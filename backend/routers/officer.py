@@ -28,9 +28,10 @@ from khatauni_schema import HEADER_FIELDS, TABLE_COLUMNS
 from khatauni_structured import compact_recognition_evidence
 import models
 import schemas
+from security import require_officer
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_officer)])
 SUBMISSION_STATUSES = {"SUBMITTED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "REJECTED"}
 REJECTION_CATEGORIES = {
     "Poor Scan Quality", "Incomplete Document", "Incorrect Document",
@@ -681,7 +682,8 @@ def get_latest_ocr(id: int, db: Session = Depends(get_db)):
 
 # Compatibility for pre-dynamic demo records only.
 @router.patch("/documents/{id}/fields/{field_id}")
-def edit_field(id: int, field_id: int, update: schemas.ExtractedFieldUpdate, officer_id: int, db: Session = Depends(get_db)):
+def edit_field(id: int, field_id: int, update: schemas.ExtractedFieldUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _officer(db, officer_id)
     field = db.query(models.ExtractedField).filter(models.ExtractedField.id == field_id).first()
     if not field:
@@ -695,7 +697,8 @@ def edit_field(id: int, field_id: int, update: schemas.ExtractedFieldUpdate, off
 
 
 @router.post("/documents/{id}/dynamic-fields")
-def add_dynamic_field(id: int, payload: schemas.DynamicExtractedItemUpdate, officer_id: int, db: Session = Depends(get_db)):
+def add_dynamic_field(id: int, payload: schemas.DynamicExtractedItemUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id)
     label = (payload.original_label or "").strip() or None
     value = payload.officer_value if payload.officer_value is not None else payload.final_value
@@ -713,7 +716,8 @@ def add_dynamic_field(id: int, payload: schemas.DynamicExtractedItemUpdate, offi
 
 
 @router.patch("/documents/{id}/dynamic-fields/{field_id}")
-def edit_dynamic_field(id: int, field_id: int, payload: schemas.DynamicExtractedItemUpdate, officer_id: int, db: Session = Depends(get_db)):
+def edit_dynamic_field(id: int, field_id: int, payload: schemas.DynamicExtractedItemUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id)
     item = db.query(models.DynamicExtractedItem).filter(models.DynamicExtractedItem.id == field_id,
         models.DynamicExtractedItem.document_id == id, models.DynamicExtractedItem.is_deleted.is_(False)).first()
@@ -739,7 +743,8 @@ def edit_dynamic_field(id: int, field_id: int, payload: schemas.DynamicExtracted
 
 
 @router.delete("/documents/{id}/dynamic-fields/{field_id}")
-def delete_dynamic_field(id: int, field_id: int, officer_id: int, db: Session = Depends(get_db)):
+def delete_dynamic_field(id: int, field_id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id)
     item = db.query(models.DynamicExtractedItem).filter(models.DynamicExtractedItem.id == field_id,
         models.DynamicExtractedItem.document_id == id, models.DynamicExtractedItem.is_deleted.is_(False)).first()
@@ -754,7 +759,8 @@ def delete_dynamic_field(id: int, field_id: int, officer_id: int, db: Session = 
 
 
 @router.post("/documents/{id}/tables")
-def add_dynamic_table(id: int, payload: schemas.DynamicExtractedTableUpdate, officer_id: int, db: Session = Depends(get_db)):
+def add_dynamic_table(id: int, payload: schemas.DynamicExtractedTableUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id)
     headers = payload.detected_headers if payload.detected_headers is not None else []
     next_index = db.query(models.DynamicExtractedTable).filter(models.DynamicExtractedTable.document_id == id).count()
@@ -773,7 +779,8 @@ def add_dynamic_table(id: int, payload: schemas.DynamicExtractedTableUpdate, off
 
 
 @router.patch("/documents/{id}/tables/{table_id}")
-def edit_dynamic_table(id: int, table_id: int, payload: schemas.DynamicExtractedTableUpdate, officer_id: int, db: Session = Depends(get_db)):
+def edit_dynamic_table(id: int, table_id: int, payload: schemas.DynamicExtractedTableUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cells = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.table_id == table.id,
         models.DynamicExtractedCell.is_deleted.is_(False)).all()
@@ -815,7 +822,8 @@ def edit_dynamic_table(id: int, table_id: int, payload: schemas.DynamicExtracted
 
 
 @router.post("/documents/{id}/tables/{table_id}/rows")
-def add_dynamic_row(id: int, table_id: int, officer_id: int, db: Session = Depends(get_db)):
+def add_dynamic_row(id: int, table_id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cells = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.table_id == table.id,
         models.DynamicExtractedCell.is_deleted.is_(False)).all()
@@ -837,7 +845,8 @@ def add_dynamic_row(id: int, table_id: int, officer_id: int, db: Session = Depen
 
 
 @router.delete("/documents/{id}/tables/{table_id}/rows/{row_index}")
-def delete_dynamic_row(id: int, table_id: int, row_index: int, officer_id: int, db: Session = Depends(get_db)):
+def delete_dynamic_row(id: int, table_id: int, row_index: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cells = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.table_id == table.id,
         models.DynamicExtractedCell.row_index == row_index, models.DynamicExtractedCell.is_deleted.is_(False)).all()
@@ -853,7 +862,8 @@ def delete_dynamic_row(id: int, table_id: int, row_index: int, officer_id: int, 
 
 
 @router.patch("/documents/{id}/tables/{table_id}/cells/{cell_id}")
-def edit_dynamic_cell(id: int, table_id: int, cell_id: int, payload: schemas.DynamicExtractedCellUpdate, officer_id: int, db: Session = Depends(get_db)):
+def edit_dynamic_cell(id: int, table_id: int, cell_id: int, payload: schemas.DynamicExtractedCellUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id); _table(db, id, table_id)
     cell = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.id == cell_id,
         models.DynamicExtractedCell.table_id == table_id, models.DynamicExtractedCell.document_id == id,
@@ -876,7 +886,8 @@ def edit_dynamic_cell(id: int, table_id: int, cell_id: int, payload: schemas.Dyn
 
 
 @router.delete("/documents/{id}/tables/{table_id}/cells/{cell_id}")
-def delete_dynamic_cell(id: int, table_id: int, cell_id: int, officer_id: int, db: Session = Depends(get_db)):
+def delete_dynamic_cell(id: int, table_id: int, cell_id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cell = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.id == cell_id,
         models.DynamicExtractedCell.table_id == table_id, models.DynamicExtractedCell.document_id == id,
@@ -893,7 +904,8 @@ def delete_dynamic_cell(id: int, table_id: int, cell_id: int, officer_id: int, d
 
 
 @router.post("/documents/{id}/{action}")
-def verify_document(id: int, action: str, officer_id: int, rejection: schemas.RejectionDecision | None = None, db: Session = Depends(get_db)):
+def verify_document(id: int, action: str, rejection: schemas.RejectionDecision | None = None, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    officer_id = current_officer.id
     if action not in {"approve", "reject", "mark-review"}:
         raise HTTPException(status_code=400, detail="Invalid action")
     _officer(db, officer_id)

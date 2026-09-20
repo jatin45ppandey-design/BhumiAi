@@ -23,6 +23,7 @@ import khatauni_fast as fast
 import khatauni_hybrid as hybrid
 import models
 from routers import documents, officer
+from security import SESSION_COOKIE_NAME, new_session
 
 SAMPLE = Path(__file__).resolve().parents[1] / "uploads/Screenshot 2026-09-10 021642.png"
 
@@ -83,7 +84,7 @@ class FastTemplateTests(unittest.TestCase):
             with sessions() as db:
                 account = models.User(name="Test Officer", email="controlled@example.test", role="officer")
                 db.add(account)
-                db.commit()
+                db.commit(); _, session_token = new_session(db, account); db.commit()
                 officer_id = account.id
             app = FastAPI()
             app.include_router(documents.router, prefix="/api/documents")
@@ -97,8 +98,9 @@ class FastTemplateTests(unittest.TestCase):
                 return response.json()
             try:
                 with TestClient(app) as client, patch.object(documents,"UPLOAD_DIR",directory):
+                    client.cookies.set(SESSION_COOKIE_NAME, session_token)
                     with SAMPLE.open("rb") as source:
-                        uploaded=ok(client.post("/api/documents/officer-upload",data={"document_type":"Khatauni","state":"Test","district":"Test","tehsil":"Test","village":"Test","officer_id":str(officer_id)},files={"file":("sample.png",source,"image/png")}))
+                        uploaded=ok(client.post("/api/documents/officer-upload",data={"document_type":"Khatauni","state":"Test","district":"Test","tehsil":"Test","village":"Test"},files={"file":("sample.png",source,"image/png")}))
                     prefix=f"/api/officer/documents/{uploaded['document_id']}"
                     started=time.perf_counter()
                     prepared=ok(client.post(prefix+"/preprocess"))
@@ -116,9 +118,9 @@ class FastTemplateTests(unittest.TestCase):
                     # A real officer correction survives reads and extraction.
                     field=fields["district"]
                     correction="Officer corrected district"
-                    ok(client.patch(prefix+f"/dynamic-fields/{field['id']}",params={"officer_id":officer_id},json={"officer_value":correction}))
+                    ok(client.patch(prefix+f"/dynamic-fields/{field['id']}",json={"officer_value":correction}))
                     cell=table["cells"][0]
-                    ok(client.patch(prefix+f"/tables/{table['id']}/cells/{cell['id']}",params={"officer_id":officer_id},json={"officer_value":"7"}))
+                    ok(client.patch(prefix+f"/tables/{table['id']}/cells/{cell['id']}",json={"officer_value":"7"}))
                     with patch.object(officer,"recognize_fast_khatauni",side_effect=AssertionError("Reopen must not OCR")):
                         reopened=ok(client.get(prefix+"/digitization"))
                         repeated=ok(client.post(prefix+"/extract",params={"ocr_id":ocr["ocr_id"]}))
@@ -128,7 +130,7 @@ class FastTemplateTests(unittest.TestCase):
                     self.assertEqual(next(c for c in repeated["tables"][0]["cells"] if c["id"]==cell["id"])["officer_value"],"7")
                     for action in ("mark-review", "reject", "approve"):
                         payload = {"reason_category": "Incomplete Document", "officer_note": "Test rejection reason"} if action == "reject" else None
-                        ok(client.post(prefix + "/" + action, params={"officer_id": officer_id}, json=payload))
+                        ok(client.post(prefix + "/" + action, json=payload))
                     with sessions() as db:
                         self.assertEqual(db.query(models.VerifiedRecord).count(),1)
                         self.assertEqual(db.query(models.Submission).first().status,"VERIFIED")

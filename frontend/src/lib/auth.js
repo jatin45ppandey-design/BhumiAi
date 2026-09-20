@@ -1,3 +1,6 @@
-export const getUser = () => { if (typeof window === 'undefined') return null; try { return JSON.parse(localStorage.getItem('landsight_user') || 'null'); } catch { return null; } };
-export const saveUser = (user) => localStorage.setItem('landsight_user', JSON.stringify(user));
-export const signOut = () => localStorage.removeItem('landsight_user');
+// Identity is established only by the HttpOnly server session. This memory
+// cache is for display convenience and is never authorization proof.
+let currentUser = null;
+export const getUser = () => currentUser;
+export const saveUser = (user) => { currentUser = user || null; };
+export const signOut = () => { currentUser = null; };

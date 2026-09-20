@@ -17,9 +17,8 @@ export default function Submissions() {
   const [rows, setRows] = useState(null);
   const [q, setQ] = useState(params.get('search') || '');
   const [error, setError] = useState('');
-  const user = getUser();
   async function load(nextStatus = status, nextSearch = q) {
-    try { setError(''); setRows(await api.userSubmissions(user.id, {status: nextStatus, search: nextSearch})); }
+    try { setError(''); setRows(await api.userSubmissions({status: nextStatus, search: nextSearch})); }
     catch (loadError) { setError(loadError.message); }
   }
   useEffect(() => { if (user?.id) load(initialStatus, params.get('search') || ''); }, [params]);

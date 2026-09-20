@@ -16,8 +16,59 @@ class User(Base):
     google_subject = Column(String, unique=True, index=True, nullable=True)
     # Issued by the authorized administrator; never selected by a public user.
     officer_id = Column(String, unique=True, index=True, nullable=True)
+    # Citizen identity and profile. Aadhaar is deliberately represented only by
+    # a last-four hint and status; the full identifier is never persisted.
+    phone_number = Column(String, unique=True, index=True, nullable=True)
+    phone_verified_at = Column(DateTime, nullable=True)
+    email_verified_at = Column(DateTime, nullable=True)
+    state = Column(String, nullable=True)
+    district = Column(String, nullable=True)
+    pincode = Column(String, nullable=True)
+    address = Column(Text, nullable=True)
+    profile_completed_at = Column(DateTime, nullable=True)
+    aadhaar_last4 = Column(String, nullable=True)
+    aadhaar_provided = Column(Boolean, default=False, nullable=False)
+    aadhaar_status = Column(String, default="UNVERIFIED", nullable=False)
     
     submissions = relationship("Submission", back_populates="user")
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token_hash = Column(String, nullable=False, unique=True, index=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    revoked_at = Column(DateTime, nullable=True, index=True)
+    last_seen_at = Column(DateTime, nullable=True)
+    user = relationship("User")
+
+
+class PhoneOtpChallenge(Base):
+    __tablename__ = "phone_otp_challenges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    phone_number = Column(String, nullable=False, index=True)
+    otp_hash = Column(String, nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    attempts = Column(Integer, default=0, nullable=False)
+    used_at = Column(DateTime, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False, index=True)
+
+
+class EmailVerificationChallenge(Base):
+    __tablename__ = "email_verification_challenges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    email = Column(String, nullable=False)
+    code_hash = Column(String, nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    attempts = Column(Integer, default=0, nullable=False)
+    used_at = Column(DateTime, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False, index=True)
 
 class Document(Base):
     __tablename__ = "documents"

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ClipboardList, Database, Files, LayoutDashboard, LogOut, MapPinned, ScrollText, ShieldCheck, Upload } from 'lucide-react';
-import { getUser, signOut } from '../../lib/auth';
+import { ClipboardList, Database, Files, LayoutDashboard, LogOut, MapPinned, ScrollText, ShieldCheck, Upload, UserRound } from 'lucide-react';
+import { signOut } from '../../lib/auth';
+import { api } from '../../lib/api';
 
 const links = {
   user: [
@@ -11,6 +12,7 @@ const links = {
     ['Digitize Record', '/user/upload', Upload],
     ['My Submissions', '/user/submissions', Files],
     ['Verified Records', '/user/records', ShieldCheck],
+    ['Profile', '/user/profile', UserRound],
   ],
   officer: [
     ['Overview', '/officer', LayoutDashboard],
@@ -21,16 +23,16 @@ const links = {
   ],
 };
 
-export default function PortalShell({ role, children }) {
+export default function PortalShell({ role, user, children }) {
   const path = usePathname();
   const router = useRouter();
-  const user = getUser();
   const workspace = role === 'officer' ? 'Verification workspace' : 'Land record workspace';
   const [primaryLink, ...recordLinks] = links[role];
   const activeLink = links[role].find(([, href]) => path === href || path.startsWith(`${href}/`)) || primaryLink;
   const roleLabel = role === 'officer' ? 'Verification Officer' : 'Record submitter';
 
-  function logout() {
+  async function logout() {
+    try { await api.logout(); } catch { /* Session may already be expired. */ }
     signOut();
     router.push('/login');
   }

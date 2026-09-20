@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database import get_db
 import models, schemas
+from security import get_current_user, require_active_citizen, require_officer
 import hashlib
 import datetime
 import os
@@ -125,7 +126,7 @@ async def upload_document(
     district: str = Form(...),
     tehsil: str = Form(...),
     village: str = Form(...),
-    db: Session = Depends(get_db)
+    current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)
 ):
     db_doc = await persist_upload(file, document_type, state, district, tehsil, village, db)
     db.add(models.AuditLog(document_id=db_doc.id, action="DOCUMENT_UPLOADED", metadata_json='{"actor_role":"CITIZEN"}'))
@@ -136,21 +137,18 @@ async def upload_document(
 async def officer_upload_document(
     file: UploadFile = File(...), document_type: str = Form(...), state: str = Form(...),
     district: str = Form(...), tehsil: str = Form(...), village: str = Form(...),
-    officer_id: int = Form(...), db: Session = Depends(get_db)
+    current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)
 ):
-    officer = db.query(models.User).filter(models.User.id == officer_id, models.User.role == "officer").first()
-    if not officer:
-        raise HTTPException(status_code=403, detail="Officer identity is required for officer upload.")
     doc = await persist_upload(file, document_type, state, district, tehsil, village, db)
-    submission = models.Submission(document_id=doc.id, user_id=officer.id, status="PROCESSING")
+    submission = models.Submission(document_id=doc.id, user_id=current_officer.id, status="PROCESSING")
     db.add(submission)
     db.flush()
-    db.add(models.AuditLog(user_id=officer.id, document_id=doc.id, submission_id=submission.id, action="DOCUMENT_UPLOADED", metadata_json='{"actor_role":"OFFICER"}'))
+    db.add(models.AuditLog(user_id=current_officer.id, document_id=doc.id, submission_id=submission.id, action="DOCUMENT_UPLOADED", metadata_json='{"actor_role":"OFFICER"}'))
     db.commit(); db.refresh(submission)
     return {"message":"Officer document uploaded and added to processing queue", "document_id":doc.id, "submission_id":submission.id, "status":submission.status, "review_url":f"/officer/review/{doc.id}"}
 
 @router.post("/{id}/duplicate-check")
-def duplicate_check(id: int, officer_id: int | None = None, db: Session = Depends(get_db)):
+def duplicate_check(id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     doc = db.query(models.Document).filter(models.Document.id == id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -162,13 +160,9 @@ def duplicate_check(id: int, officer_id: int | None = None, db: Session = Depend
     doc.duplicate_checked_at = datetime.datetime.utcnow()
     doc.duplicate_of_id = duplicate.id if duplicate else None
     latest_submission = _latest_submission(db, id)
-    if officer_id is not None:
-        officer = db.query(models.User).filter(models.User.id == officer_id, models.User.role == "officer").first()
-        if not officer:
-            raise HTTPException(status_code=403, detail="Officer identity is required for duplicate resolution.")
-    payload = _duplicate_payload(db, doc, duplicate, include_details=officer_id is not None)
+    payload = _duplicate_payload(db, doc, duplicate, include_details=current_user.role == "officer")
     db.add(models.AuditLog(document_id=id, submission_id=latest_submission.id if latest_submission else None,
-        user_id=officer_id, action="DUPLICATE_CHECKED", metadata_json=json.dumps({
+        user_id=current_user.id, action="DUPLICATE_CHECKED", metadata_json=json.dumps({
             "duplicate": payload["duplicate"], "match_type": payload["match_type"],
             "matched_document_id": payload.get("matched_document_id"), "matched_submission_id": payload.get("matched_submission_id"),
             "verified_record_id": payload.get("verified_record_id"),
@@ -178,32 +172,29 @@ def duplicate_check(id: int, officer_id: int | None = None, db: Session = Depend
 
 
 @router.post("/{id}/duplicate-continue")
-def continue_after_duplicate(id: int, officer_id: int, matched_document_id: int, db: Session = Depends(get_db)):
+def continue_after_duplicate(id: int, matched_document_id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     current = db.query(models.Document).filter(models.Document.id == id).first()
     matched = db.query(models.Document).filter(models.Document.id == matched_document_id).first()
-    officer = db.query(models.User).filter(models.User.id == officer_id, models.User.role == "officer").first()
     if not current or not matched:
         raise HTTPException(status_code=404, detail="Document not found")
-    if not officer:
-        raise HTTPException(status_code=403, detail="Officer identity is required for duplicate resolution.")
     current_submission = _latest_submission(db, id)
-    db.add(models.AuditLog(user_id=officer_id, document_id=id, submission_id=current_submission.id if current_submission else None,
+    db.add(models.AuditLog(user_id=current_officer.id, document_id=id, submission_id=current_submission.id if current_submission else None,
         action="DUPLICATE_OVERRIDE_CONTINUE", metadata_json=json.dumps({"matched_document_id": matched.id, "match_type": "EXACT_FILE_HASH"})))
     db.commit()
     return {"message": "Duplicate review acknowledged; the current submission remains unchanged."}
 
 @router.post("/{id}/submit")
-def submit_document(id: int, user_id: int, db: Session = Depends(get_db)):
+def submit_document(id: int, current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
     doc = db.query(models.Document).filter(models.Document.id == id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
         
-    submission = models.Submission(document_id=id, user_id=user_id, status="SUBMITTED")
+    submission = models.Submission(document_id=id, user_id=current_user.id, status="SUBMITTED")
     db.add(submission)
     
     # Audit log
     audit = models.AuditLog(
-        user_id=user_id,
+        user_id=current_user.id,
         document_id=id,
         submission_id=submission.id,
         action="SUBMITTED_TO_OFFICER"
@@ -216,7 +207,7 @@ def submit_document(id: int, user_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/development/reset-land-records")
-def reset_land_records(confirm: bool = False, db: Session = Depends(get_db)):
+def reset_land_records(confirm: bool = False, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     """Clear operational land-record data in development while keeping users."""
     if os.environ.get("LANDSIGHT_ENV", "development").lower() == "production":
         raise HTTPException(status_code=404, detail="Not found")

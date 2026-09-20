@@ -26,6 +26,28 @@ class User(UserBase):
 class GoogleOAuthTicket(BaseModel):
     ticket: str
 
+
+class PhoneOtpRequest(BaseModel):
+    phone_number: str
+
+
+class PhoneOtpVerify(PhoneOtpRequest):
+    otp: str
+
+
+class ProfileUpdate(BaseModel):
+    name: str
+    email: str
+    state: str
+    district: str
+    pincode: Optional[str] = None
+    address: Optional[str] = None
+    aadhaar_number: Optional[str] = None
+
+
+class EmailVerificationCode(BaseModel):
+    code: str
+
 class DocumentBase(BaseModel):
     document_type: str
     state: str

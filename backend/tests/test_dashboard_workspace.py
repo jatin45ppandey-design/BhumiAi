@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import datetime
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,6 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from database import Base, get_db
 import models
 from routers import officer, records, users
+from security import SESSION_COOKIE_NAME, new_session
 
 
 class DashboardWorkspaceTests(unittest.TestCase):
@@ -23,8 +25,8 @@ class DashboardWorkspaceTests(unittest.TestCase):
         self.sessions = sessionmaker(bind=self.engine)
         with self.sessions() as db:
             self.officer = models.User(name="Officer", email="officer@example.test", role="officer")
-            self.citizen = models.User(name="Ram Citizen", email="ram@example.test", role="user")
-            self.other_citizen = models.User(name="Other Citizen", email="other@example.test", role="user")
+            self.citizen = models.User(name="Ram Citizen", email="ram@example.test", role="user", phone_number="+919876543210", phone_verified_at=datetime.datetime.utcnow(), state="UP", district="Lucknow", profile_completed_at=datetime.datetime.utcnow())
+            self.other_citizen = models.User(name="Other Citizen", email="other@example.test", role="user", phone_number="+919876543211", phone_verified_at=datetime.datetime.utcnow(), state="UP", district="Lucknow", profile_completed_at=datetime.datetime.utcnow())
             db.add_all([self.officer, self.citizen, self.other_citizen]); db.flush()
             self.submissions = {}
             for index, status in enumerate(("SUBMITTED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "REJECTED"), start=1):
@@ -55,10 +57,16 @@ class DashboardWorkspaceTests(unittest.TestCase):
         app.dependency_overrides[get_db] = database
         self.client = TestClient(app)
 
+    def login_as(self, user_id):
+        with self.sessions() as db:
+            _, token = new_session(db, db.get(models.User, user_id)); db.commit()
+        self.client.cookies.set(SESSION_COOKIE_NAME, token)
+
     def tearDown(self):
         self.client.close(); self.engine.dispose(); self.directory.cleanup()
 
     def test_officer_default_status_filters_and_search_are_database_only(self):
+        self.login_as(self.officer_id)
         with patch.object(officer, "_load_document_image", side_effect=AssertionError("dashboard must not load documents")), \
                 patch.object(officer, "recognize_fast_khatauni", side_effect=AssertionError("dashboard must not run OCR")):
             default = self.client.get("/api/officer/submissions")
@@ -74,24 +82,26 @@ class DashboardWorkspaceTests(unittest.TestCase):
             self.assertEqual(len(self.client.get("/api/officer/submissions", params={"search": "submitted-rampur"}).json()), 1)
 
     def test_rejection_reason_persists_and_is_returned(self):
+        self.login_as(self.officer_id)
         response = self.client.get("/api/officer/submissions", params={"status": "REJECTED"})
         self.assertEqual(response.status_code, 200)
         own = next(row for row in response.json() if row["id"] == self.submissions["REJECTED"])
         self.assertEqual(own["rejection"]["reason_category"], "Poor Scan Quality")
         self.assertEqual(own["rejection"]["officer_note"], "Plot number is unreadable.")
-        created = self.client.post(f"/api/officer/documents/{self.rejected_document_id}/reject", params={"officer_id": self.officer_id}, json={"reason_category": "Information Mismatch", "officer_note": "Verified mismatch."})
+        created = self.client.post(f"/api/officer/documents/{self.rejected_document_id}/reject", json={"reason_category": "Information Mismatch", "officer_note": "Verified mismatch."})
         self.assertEqual(created.status_code, 200)
         events = self.client.get("/api/officer/audit").json()
         self.assertTrue(any(event["action"] == "REJECTED" and "Information Mismatch" in event.get("metadata_json", "") for event in events))
 
     def test_citizen_filter_scope_and_rejection_visibility(self):
-        rejected = self.client.get("/api/user/submissions", params={"user_id": self.citizen_id, "status": "REJECTED"})
+        self.login_as(self.citizen_id)
+        rejected = self.client.get("/api/user/submissions", params={"user_id": self.other_citizen_id, "status": "REJECTED"})
         self.assertEqual(rejected.status_code, 200)
         rows = rejected.json()
         self.assertEqual([row["id"] for row in rows], [self.submissions["REJECTED"]])
         self.assertEqual(rows[0]["rejection"]["reason_category"], "Poor Scan Quality")
         self.assertNotIn("Private other-user note", str(rows))
-        own_search = self.client.get("/api/user/submissions", params={"user_id": self.citizen_id, "search": "other-secret"})
+        own_search = self.client.get("/api/user/submissions", params={"user_id": self.other_citizen_id, "search": "other-secret"})
         self.assertEqual(own_search.status_code, 200)
         self.assertEqual(own_search.json(), [])
 

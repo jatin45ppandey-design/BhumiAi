@@ -3,6 +3,7 @@ from sqlalchemy import String, cast, or_
 from sqlalchemy.orm import Session
 from database import get_db
 import models, schemas
+from security import require_active_citizen
 
 router = APIRouter()
 SUBMISSION_STATUSES = {"SUBMITTED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "REJECTED"}
@@ -34,16 +35,16 @@ def _submission_payload(db: Session, submission: models.Submission):
 
 
 @router.get("/notifications", response_model=list[schemas.UserNotification])
-def get_notifications(user_id: int, db: Session = Depends(get_db)):
-    return db.query(models.UserNotification).filter(models.UserNotification.user_id == user_id).order_by(
+def get_notifications(current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
+    return db.query(models.UserNotification).filter(models.UserNotification.user_id == current_user.id).order_by(
         models.UserNotification.created_at.desc(), models.UserNotification.id.desc()
     ).all()
 
 
 @router.patch("/notifications/{notification_id}/read", response_model=schemas.UserNotification)
-def mark_notification_read(notification_id: int, user_id: int, db: Session = Depends(get_db)):
+def mark_notification_read(notification_id: int, current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
     notification = db.query(models.UserNotification).filter(
-        models.UserNotification.id == notification_id, models.UserNotification.user_id == user_id
+        models.UserNotification.id == notification_id, models.UserNotification.user_id == current_user.id
     ).first()
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
@@ -52,7 +53,8 @@ def mark_notification_read(notification_id: int, user_id: int, db: Session = Dep
     return notification
 
 @router.get("/dashboard")
-def get_user_dashboard(user_id: int, db: Session = Depends(get_db)):
+def get_user_dashboard(current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
+    user_id = current_user.id
     # Get user specific stats
     total = db.query(models.Submission).filter(models.Submission.user_id == user_id).count()
     pending = db.query(models.Submission).filter(
@@ -86,13 +88,13 @@ def get_user_dashboard(user_id: int, db: Session = Depends(get_db)):
     }
 
 @router.get("/submissions", response_model=list[schemas.Submission])
-def get_my_submissions(user_id: int, status: str | None = None, search: str | None = None, db: Session = Depends(get_db)):
+def get_my_submissions(status: str | None = None, search: str | None = None, current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
     """Return only the requested citizen's submissions, including their own rejection metadata."""
     if status:
         status = status.strip().upper()
         if status not in SUBMISSION_STATUSES:
             raise HTTPException(status_code=422, detail="Unsupported submission status")
-    query = db.query(models.Submission).join(models.Document).filter(models.Submission.user_id == user_id)
+    query = db.query(models.Submission).join(models.Document).filter(models.Submission.user_id == current_user.id)
     if status:
         query = query.filter(models.Submission.status == status)
     if search and search.strip():

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, CheckCircle, Clipboard, Download, FileText, Minus, Plus, RefreshCw, Save, ScanLine, Search, Trash2, XCircle, ZoomIn } from 'lucide-react';
 import { API_URL, api } from '../../../../lib/api';
-import { getUser } from '../../../../lib/auth';
 import { bilingualKhatauniLabel } from '../../../../lib/khatauniLabels';
 import { Button, ErrorMessage, Loader, StatusBadge } from '../../../../components/common/UI';
 import ConfidenceBadge from '../../../../components/officer/ConfidenceBadge';
@@ -145,8 +144,6 @@ export default function Review() {
     setRejectOpen(true);
   }, [query]);
 
-  function officerId() { const current = getUser(); if (!current?.id || current.role !== 'officer') throw new Error('Officer session is required.'); return current.id; }
-
   async function execute(kind) {
     setWork(kind); setError(''); setNotice('');
     try {
@@ -168,15 +165,15 @@ export default function Review() {
     try { await action(); await refreshDigitization(); await refreshAudits(); setNotice(message); } catch (mutationError) { setError(mutationError.message); } finally { setWork(''); }
   }
 
-  const updateField = (field, value) => mutate(`field-${field.id}`, () => api.updateDynamicField(id, field.id, { officer_value: value }, officerId()), 'Officer correction saved; original OCR remains preserved.');
-  const updateCell = (cell, value) => mutate(`cell-${cell.id}`, () => api.updateDynamicTableCell(id, digitization.table.id, cell.id, { officer_value: value }, officerId()), 'Table correction saved; original OCR remains preserved.');
-  const addRow = () => mutate('add-row', () => api.createDynamicTableRow(id, digitization.table.id, {}, officerId()), 'Manual Khatauni row added and audited.');
-  const deleteRow = (row) => { if (confirm(`Remove row ${row.row_index + 1}?`)) mutate('delete-row', () => api.deleteDynamicTableRow(id, digitization.table.id, row.row_index, officerId()), 'Khatauni row removed and audited.'); };
+  const updateField = (field, value) => mutate(`field-${field.id}`, () => api.updateDynamicField(id, field.id, { officer_value: value }), 'Officer correction saved; original OCR remains preserved.');
+  const updateCell = (cell, value) => mutate(`cell-${cell.id}`, () => api.updateDynamicTableCell(id, digitization.table.id, cell.id, { officer_value: value }), 'Table correction saved; original OCR remains preserved.');
+  const addRow = () => mutate('add-row', () => api.createDynamicTableRow(id, digitization.table.id, {}), 'Manual Khatauni row added and audited.');
+  const deleteRow = (row) => { if (confirm(`Remove row ${row.row_index + 1}?`)) mutate('delete-row', () => api.deleteDynamicTableRow(id, digitization.table.id, row.row_index), 'Khatauni row removed and audited.'); };
 
   async function decide(action, rejection) {
     if (!confirm(`Confirm ${action.replace('-', ' ')} for this document?`)) return;
     setWork(action); setError('');
-    try { await api.decision(id, action, officerId(), rejection); router.push(action === 'approve' ? '/officer/records' : '/officer/submissions'); } catch (decisionError) { setError(decisionError.message); setWork(''); }
+    try { await api.decision(id, action, rejection); router.push(action === 'approve' ? '/officer/records' : '/officer/submissions'); } catch (decisionError) { setError(decisionError.message); setWork(''); }
   }
 
   async function copyRaw() { await navigator.clipboard.writeText(ocr?.raw_text || ''); setNotice('Raw OCR copied to clipboard.'); }

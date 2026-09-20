@@ -1,4 +1,5 @@
 import base64
+import datetime
 import hashlib
 import hmac
 import json
@@ -12,13 +13,14 @@ from urllib import parse as urlparse
 from urllib import request as urlrequest
 
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from database import get_db
 import models, schemas
+from security import SESSION_COOKIE_NAME, cookie_options, get_current_user, get_optional_current_user, new_session, revoke_session, require_citizen
 
 router = APIRouter()
 
@@ -26,6 +28,7 @@ PASSWORD_ITERATIONS = 600_000
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+INDIAN_PHONE_PATTERN = re.compile(r"^[6-9]\d{9}$")
 OFFICER_ID_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9-]{4,63}$")
 GOOGLE_AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -90,6 +93,76 @@ def verify_password(password: str, stored_hash: str) -> bool:
 
 def user_payload(user: models.User) -> dict:
     return {"id": user.id, "email": user.email, "role": user.role, "name": user.name}
+
+
+def normalize_phone(phone_number: str) -> str:
+    value = re.sub(r"[\s()-]", "", phone_number or "")
+    if value.startswith("00"):
+        value = "+" + value[2:]
+    if value.startswith("+"):
+        digits = value[1:]
+        if not digits.startswith("91"):
+            raise HTTPException(status_code=422, detail="Enter a valid Indian mobile number.")
+        digits = digits[2:]
+    else:
+        digits = value[2:] if value.startswith("91") and len(value) == 12 else value
+    if not INDIAN_PHONE_PATTERN.fullmatch(digits):
+        raise HTTPException(status_code=422, detail="Enter a valid Indian mobile number.")
+    return f"+91{digits}"
+
+
+def _auth_secret() -> bytes:
+    # This fallback is development-only and deliberately never exposes a code
+    # outside the local development provider.
+    return os.getenv("AUTH_CHALLENGE_SECRET", "development-only-change-before-production").encode("utf-8")
+
+
+def _challenge_hash(subject: str, code: str) -> str:
+    return hmac.new(_auth_secret(), f"{subject}:{code}".encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def _new_code() -> str:
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def _development_delivery() -> bool:
+    return os.getenv("OTP_PROVIDER", "development").strip().lower() == "development" and os.getenv("LANDSIGHT_ENV", "development").lower() != "production"
+
+
+class OtpProvider:
+    """Small delivery seam: providers receive a code but never persist it."""
+    def send(self, destination: str, code: str, purpose: str) -> dict:
+        raise NotImplementedError
+
+
+class DevelopmentOtpProvider(OtpProvider):
+    def send(self, destination: str, code: str, purpose: str) -> dict:
+        return {"delivery": "development", "message": f"Development {purpose} code generated.", "development_code": code}
+
+
+class ConfiguredProviderPlaceholder(OtpProvider):
+    """Integration point for an approved SMS/email gateway; it never fakes delivery."""
+    def send(self, destination: str, code: str, purpose: str) -> dict:
+        raise HTTPException(status_code=503, detail=f"{purpose.capitalize()} delivery is not configured on this server.")
+
+
+def _otp_provider() -> OtpProvider:
+    return DevelopmentOtpProvider() if _development_delivery() else ConfiguredProviderPlaceholder()
+
+
+def _set_session(response: Response, db: Session, user: models.User) -> None:
+    _, token = new_session(db, user)
+    response.set_cookie(SESSION_COOKIE_NAME, token, **cookie_options())
+
+
+def _masked_phone(phone_number: str | None) -> str | None:
+    if not phone_number:
+        return None
+    return f"+91******{phone_number[-4:]}"
+
+
+def _profile_completed(user: models.User) -> bool:
+    return bool(user.profile_completed_at and user.phone_verified_at and user.name and user.email and user.state and user.district)
 
 
 def google_config() -> tuple[str, str, str, str, str]:
@@ -172,6 +245,145 @@ def issue_oauth_ticket(user: models.User) -> str:
     return ticket
 
 
+@router.post("/phone/request-otp")
+def request_phone_otp(payload: schemas.PhoneOtpRequest, db: Session = Depends(get_db)):
+    phone_number = normalize_phone(payload.phone_number)
+    now = datetime.datetime.utcnow()
+    previous = db.query(models.PhoneOtpChallenge).filter(
+        models.PhoneOtpChallenge.phone_number == phone_number,
+        models.PhoneOtpChallenge.used_at.is_(None),
+    ).order_by(models.PhoneOtpChallenge.created_at.desc()).first()
+    if previous and (now - previous.created_at).total_seconds() < 60:
+        raise HTTPException(status_code=429, detail="Please wait before requesting another code.")
+    if previous:
+        previous.used_at = now
+    otp = _new_code()
+    challenge = models.PhoneOtpChallenge(
+        phone_number=phone_number, otp_hash=_challenge_hash(phone_number, otp),
+        expires_at=now + datetime.timedelta(minutes=5), created_at=now,
+    )
+    db.add(challenge); db.commit()
+    result = _otp_provider().send(phone_number, otp, "OTP")
+    if "development_code" in result:
+        result["development_otp"] = result.pop("development_code")
+    result.update({"expires_in_seconds": 300, "resend_after_seconds": 60})
+    return result
+
+
+@router.post("/phone/verify-otp")
+def verify_phone_otp(payload: schemas.PhoneOtpVerify, response: Response, current_user: models.User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
+    phone_number = normalize_phone(payload.phone_number)
+    if not re.fullmatch(r"\d{6}", payload.otp or ""):
+        raise HTTPException(status_code=401, detail="Invalid or expired verification code.")
+    now = datetime.datetime.utcnow()
+    challenge = db.query(models.PhoneOtpChallenge).filter(
+        models.PhoneOtpChallenge.phone_number == phone_number,
+        models.PhoneOtpChallenge.used_at.is_(None),
+    ).order_by(models.PhoneOtpChallenge.created_at.desc()).first()
+    if not challenge or challenge.expires_at <= now or challenge.attempts >= 5:
+        raise HTTPException(status_code=401, detail="Invalid or expired verification code.")
+    if not hmac.compare_digest(challenge.otp_hash, _challenge_hash(phone_number, payload.otp)):
+        challenge.attempts += 1; db.commit()
+        raise HTTPException(status_code=401, detail="Invalid or expired verification code.")
+    challenge.used_at = now
+    phone_user = db.query(models.User).filter(models.User.phone_number == phone_number).first()
+    if current_user and current_user.role != "user":
+        raise HTTPException(status_code=403, detail="Only citizen accounts can verify a phone number.")
+    if current_user and phone_user and phone_user.id != current_user.id:
+        raise HTTPException(status_code=409, detail="This phone number is already linked to another account.")
+    user = current_user or phone_user
+    if not user:
+        user = models.User(role="user", phone_number=phone_number, phone_verified_at=now, name=None, email=None)
+        db.add(user); db.flush()
+    elif user.role != "user":
+        raise HTTPException(status_code=409, detail="This phone number cannot be used for citizen access.")
+    else:
+        user.phone_number = phone_number
+        user.phone_verified_at = now
+    db.add(models.AuditLog(user_id=user.id, action="PHONE_VERIFIED"))
+    _set_session(response, db, user)
+    db.commit(); db.refresh(user)
+    return {"message": "Phone verified.", "profile_completed": _profile_completed(user), "user": user_payload(user)}
+
+
+@router.get("/me")
+def me(current_user: models.User = Depends(get_current_user)):
+    return {
+        "id": current_user.id, "role": current_user.role, "name": current_user.name,
+        "email": current_user.email, "phone_number": _masked_phone(current_user.phone_number),
+        "phone_verified": bool(current_user.phone_verified_at), "email_verified": bool(current_user.email_verified_at),
+        "profile_completed": _profile_completed(current_user), "state": current_user.state, "district": current_user.district,
+        "pincode": current_user.pincode, "address": current_user.address,
+        "aadhaar_provided": bool(current_user.aadhaar_provided),
+        "aadhaar_masked": f"XXXX-XXXX-{current_user.aadhaar_last4}" if current_user.aadhaar_last4 else None,
+        "aadhaar_status": current_user.aadhaar_status or "UNVERIFIED",
+    }
+
+
+@router.post("/logout")
+def logout(response: Response, session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME), db: Session = Depends(get_db)):
+    revoke_session(db, session_token)
+    db.add(models.AuditLog(action="LOGOUT")); db.commit()
+    response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    return {"message": "Signed out."}
+
+
+@router.put("/profile")
+def update_profile(payload: schemas.ProfileUpdate, current_user: models.User = Depends(require_citizen), db: Session = Depends(get_db)):
+    name = (payload.name or "").strip()
+    state_value, district = (payload.state or "").strip(), (payload.district or "").strip()
+    if not name or not state_value or not district:
+        raise HTTPException(status_code=422, detail="Full name, state, and district are required.")
+    email = validate_email(payload.email)
+    existing = db.query(models.User).filter(func.lower(models.User.email) == email, models.User.id != current_user.id).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="An account with this email already exists.")
+    if current_user.email != email:
+        current_user.email_verified_at = None
+    if payload.aadhaar_number:
+        compact = re.sub(r"[\s-]", "", payload.aadhaar_number)
+        if not re.fullmatch(r"\d{12}", compact):
+            raise HTTPException(status_code=422, detail="Enter a valid 12-digit Aadhaar number.")
+        current_user.aadhaar_last4, current_user.aadhaar_provided, current_user.aadhaar_status = compact[-4:], True, "UNVERIFIED"
+    current_user.name, current_user.email = name[:120], email
+    current_user.state, current_user.district = state_value[:120], district[:120]
+    current_user.pincode, current_user.address = (payload.pincode or "").strip()[:20] or None, (payload.address or "").strip()[:500] or None
+    current_user.profile_completed_at = datetime.datetime.utcnow()
+    db.add(models.AuditLog(user_id=current_user.id, action="PROFILE_COMPLETED")); db.commit(); db.refresh(current_user)
+    return me(current_user)
+
+
+@router.post("/email/request-verification")
+def request_email_verification(response: Response, current_user: models.User = Depends(require_citizen), db: Session = Depends(get_db)):
+    if not current_user.email:
+        raise HTTPException(status_code=422, detail="Complete your profile with an email address first.")
+    now = datetime.datetime.utcnow()
+    previous = db.query(models.EmailVerificationChallenge).filter(models.EmailVerificationChallenge.user_id == current_user.id,
+        models.EmailVerificationChallenge.used_at.is_(None)).order_by(models.EmailVerificationChallenge.created_at.desc()).first()
+    if previous and (now - previous.created_at).total_seconds() < 60:
+        raise HTTPException(status_code=429, detail="Please wait before requesting another code.")
+    if previous: previous.used_at = now
+    code = _new_code(); db.add(models.EmailVerificationChallenge(user_id=current_user.id, email=current_user.email,
+        code_hash=_challenge_hash(current_user.email, code), expires_at=now + datetime.timedelta(minutes=10), created_at=now)); db.commit()
+    result = _otp_provider().send(current_user.email, code, "email verification")
+    result["expires_in_seconds"] = 600
+    return result
+
+
+@router.post("/email/verify")
+def verify_email(payload: schemas.EmailVerificationCode, current_user: models.User = Depends(require_citizen), db: Session = Depends(get_db)):
+    now = datetime.datetime.utcnow()
+    challenge = db.query(models.EmailVerificationChallenge).filter(models.EmailVerificationChallenge.user_id == current_user.id,
+        models.EmailVerificationChallenge.used_at.is_(None)).order_by(models.EmailVerificationChallenge.created_at.desc()).first()
+    if not challenge or challenge.expires_at <= now or challenge.attempts >= 5 or challenge.email != current_user.email or not re.fullmatch(r"\d{6}", payload.code or ""):
+        raise HTTPException(status_code=401, detail="Invalid or expired verification code.")
+    if not hmac.compare_digest(challenge.code_hash, _challenge_hash(challenge.email, payload.code)):
+        challenge.attempts += 1; db.commit(); raise HTTPException(status_code=401, detail="Invalid or expired verification code.")
+    challenge.used_at, current_user.email_verified_at = now, now
+    db.add(models.AuditLog(user_id=current_user.id, action="EMAIL_VERIFIED")); db.commit()
+    return {"message": "Email verified."}
+
+
 @router.get("/google/start")
 def start_google_sign_in():
     client_id, _, state_secret, redirect_uri, _ = google_config()
@@ -206,7 +418,10 @@ def google_callback(
 
     if user and email_user and user.id != email_user.id:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This Google account is already linked to another user.")
-    user = user or email_user
+    # A matching email alone is not sufficient proof to merge two accounts.
+    # Existing accounts can link Google only through a future authenticated flow.
+    if not user and email_user:
+        return RedirectResponse(f"{frontend_url}/login?google_error=account_mismatch", status_code=status.HTTP_302_FOUND)
     if user and user.role != "user":
         return RedirectResponse(f"{frontend_url}/login?google_error=submitter_only", status_code=status.HTTP_302_FOUND)
     if not user:
@@ -217,22 +432,26 @@ def google_callback(
             google_subject=google_subject,
         )
         db.add(user)
-    elif not user.google_subject:
-        user.google_subject = google_subject
     elif user.google_subject != google_subject:
         return RedirectResponse(f"{frontend_url}/login?google_error=account_mismatch", status_code=status.HTTP_302_FOUND)
+    user.email_verified_at = datetime.datetime.utcnow()
     db.commit()
     db.refresh(user)
-    ticket = issue_oauth_ticket(user)
-    return RedirectResponse(f"{frontend_url}/login?{urlparse.urlencode({'oauth_ticket': ticket})}", status_code=status.HTTP_302_FOUND)
+    redirect = RedirectResponse(f"{frontend_url}/login?google_success=1", status_code=status.HTTP_302_FOUND)
+    _set_session(redirect, db, user); db.commit()
+    return redirect
 
 
 @router.post("/google/exchange")
-def exchange_google_ticket(payload: schemas.GoogleOAuthTicket):
+def exchange_google_ticket(payload: schemas.GoogleOAuthTicket, response: Response, db: Session = Depends(get_db)):
     record = _oauth_tickets.pop(payload.ticket, None)
     if not record or record[0] <= time.time():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Your Google sign-in session expired. Please sign in again.")
-    return {"message": "Google sign-in successful", "user": record[1]}
+    user = db.get(models.User, record[1]["id"])
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Your Google sign-in session expired. Please sign in again.")
+    _set_session(response, db, user); db.commit()
+    return {"message": "Google sign-in successful", "user": user_payload(user)}
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -257,7 +476,7 @@ def register(registration: schemas.UserRegistration, db: Session = Depends(get_d
     return {"message": "Account created successfully. You can now sign in.", "user": user_payload(db_user)}
 
 @router.post("/login")
-def login(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def login(user: schemas.UserCreate, response: Response, db: Session = Depends(get_db)):
     requested_role = (user.role or "").strip().lower()
     if requested_role == "user":
         email = validate_email(user.email or "")
@@ -268,7 +487,8 @@ def login(user: schemas.UserCreate, db: Session = Depends(get_db)):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account was created with Google. Please use Continue with Google.")
         if not verify_password(user.password, db_user.password_hash):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
-        return {"message": "Login successful", "user": user_payload(db_user)}
+        _set_session(response, db, db_user); db.commit()
+        return {"message": "Login successful", "user": user_payload(db_user), "phone_verification_required": not bool(db_user.phone_verified_at)}
     if requested_role != "officer":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Choose a valid workspace.")
 
@@ -283,4 +503,5 @@ def login(user: schemas.UserCreate, db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This Government Officer account is not provisioned correctly.")
 
+    _set_session(response, db, db_user); db.commit()
     return {"message": "Login successful", "user": user_payload(db_user)}

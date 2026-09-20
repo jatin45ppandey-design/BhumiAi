@@ -28,7 +28,13 @@ Base.metadata.create_all(bind=engine)
 # only extend pre-existing tables created before dynamic digitization support.
 def apply_local_migrations():
     additions = {
-        "users": {"password_hash": "TEXT", "google_subject": "TEXT", "officer_id": "TEXT"},
+        "users": {
+            "password_hash": "TEXT", "google_subject": "TEXT", "officer_id": "TEXT",
+            "phone_number": "TEXT", "phone_verified_at": "DATETIME", "email_verified_at": "DATETIME",
+            "state": "TEXT", "district": "TEXT", "pincode": "TEXT", "address": "TEXT",
+            "profile_completed_at": "DATETIME", "aadhaar_last4": "TEXT",
+            "aadhaar_provided": "BOOLEAN DEFAULT 0", "aadhaar_status": "TEXT DEFAULT 'UNVERIFIED'",
+        },
         "ocr_results": {
             "languages":"TEXT",
             "overall_confidence":"REAL",
@@ -61,6 +67,10 @@ def apply_local_migrations():
         connection.execute(text(
             "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_officer_id_unique "
             "ON users(officer_id) WHERE officer_id IS NOT NULL"
+        ))
+        connection.execute(text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_phone_number_unique "
+            "ON users(phone_number) WHERE phone_number IS NOT NULL"
         ))
         # Explicit indexes keep dynamic document views and later generic search
         # inexpensive without modifying or rebuilding the legacy tables.
