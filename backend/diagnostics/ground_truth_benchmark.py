@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-ENGINES = ("tesseract", "local_htr", "bhashini", "hybrid")
+ENGINES = ("tesseract", "local_htr", "hybrid")
 CRITICAL_KEYS = {
     "khata_number", "gata_number", "khasra_number", "total_area",
     "holder_share", "share_area", "land_revenue",

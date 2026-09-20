@@ -149,7 +149,7 @@ def _batch(crops, language, whitelist=""):
 
 def recognize(image, prepared=None):
     """Return existing schema + real crop tokens, or None for generic fallback."""
-    from khatauni_hybrid import _maybe_htr, _recognition_context, _select, _empty_bhashini
+    from khatauni_hybrid import _maybe_htr, _recognition_context, _select
     started = time.perf_counter()
     page = prepared if prepared is not None else prepare_page(image)
     if page is None:
@@ -239,7 +239,7 @@ def recognize(image, prepared=None):
         if job["row"] is None or job["row"] in data_rows:
             htr = _maybe_htr(Image.fromarray(crop(job["box"])),candidate,"handwritten" if kind == "hindi" else "numeric",context["htr_budget"],context["htr_cache"])
         htr_time += time.perf_counter()-fallback_start
-        result = _select(candidate,htr,_empty_bhashini("skipped","local_template_path"),"handwritten" if kind == "hindi" else "numeric")
+        result = _select(candidate, htr, "handwritten" if kind == "hindi" else "numeric")
         value = clean_value(result["selected_text"],job["key"])
         if not valid_value(value,kind):
             result.update(selected_text="",confidence=None)

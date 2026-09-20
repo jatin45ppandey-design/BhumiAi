@@ -24,10 +24,6 @@ import pytesseract
 from PIL import Image, ImageOps
 
 from config import TESSERACT_LANGUAGES, TESSERACT_CMD
-from bhashini_ocr import BHASHINI_MODEL_IDS
-from bhashini_ocr import credential_status as bhashini_credential_status
-from bhashini_ocr import provider_runtime_status as bhashini_provider_runtime_status
-from bhashini_ocr import recognize_crop as bhashini_recognize_crop
 from khatauni_schema import HEADER_FIELDS, TABLE_COLUMNS
 
 
@@ -37,10 +33,6 @@ try:
     HTR_MAX_CROPS = max(0, int(os.getenv("KHATAUNI_HTR_MAX_CROPS", "4")))
 except ValueError:
     HTR_MAX_CROPS = 4
-try:
-    BHASHINI_MAX_CROPS = max(0, int(os.getenv("KHATAUNI_BHASHINI_MAX_CROPS", "3")))
-except ValueError:
-    BHASHINI_MAX_CROPS = 3
 DEVANAGARI_DIGITS = str.maketrans("०१२३४५६७८९", "0123456789")
 
 
@@ -188,74 +180,12 @@ def _maybe_htr(
     return result
 
 
-def _empty_bhashini(status: str, reason: str) -> dict[str, Any]:
-    return {
-        "text": "",
-        "confidence": None,
-        "confidence_type": "unavailable",
-        "status": status,
-        "reason": reason,
-        "provider": "BHASHINI",
-    }
-
-
 def _numeric_variants(tesseract: dict[str, Any]) -> set[str]:
     return {
         str(candidate.get("text") or "")
         for candidate in tesseract.get("passes", [])
         if candidate.get("text")
     }
-
-
-def _should_try_bhashini(tesseract: dict[str, Any], htr: dict[str, Any], kind: str) -> tuple[bool, str]:
-    state = bhashini_credential_status()
-    if "MISSING" in state.values():
-        return False, "missing_configuration"
-    text = tesseract.get("text") or ""
-    confidence = float(tesseract.get("confidence") or 0)
-    if kind == "numeric":
-        if not text:
-            return True, "unresolved_critical_numeric"
-        if confidence < 65 or tesseract.get("pass_agreement", 0) < 0.5 or len(_numeric_variants(tesseract)) > 1:
-            return True, "uncertain_critical_numeric"
-        return False, "numeric_tesseract_candidate_sufficient"
-    if kind != "handwritten":
-        return False, "printed_candidate_sufficient"
-    htr_text = htr.get("text") or ""
-    if not text or not htr_text:
-        return True, "missing_local_candidate"
-    from rapidfuzz.fuzz import ratio
-
-    if confidence < 70 or ratio(text, htr_text) < 85:
-        return True, "weak_or_disagreeing_handwriting_candidates"
-    return False, "local_candidates_sufficient"
-
-
-def _maybe_bhashini(
-    crop: Image.Image,
-    tesseract: dict[str, Any],
-    htr: dict[str, Any],
-    kind: str,
-    budget: dict[str, int] | None,
-    cache: dict[str, dict[str, Any]] | None = None,
-) -> dict[str, Any]:
-    should, reason = _should_try_bhashini(tesseract, htr, kind)
-    if not should:
-        if budget is not None:
-            budget["skipped"] = budget.get("skipped", 0) + 1
-        return _empty_bhashini("skipped", reason)
-    provider_status = bhashini_provider_runtime_status()
-    if provider_status != "ready":
-        if budget is not None:
-            budget["skipped"] = budget.get("skipped", 0) + 1
-        return _empty_bhashini("skipped", provider_status)
-    if budget is not None:
-        if budget.get("remaining", 0) <= 0:
-            budget["skipped"] = budget.get("skipped", 0) + 1
-            return _empty_bhashini("skipped", "bhashini_budget_exhausted")
-        budget["remaining"] = budget.get("remaining", 0) - 1
-        budget["attempted"] = budget.get("attempted", 0) + 1
-    return bhashini_recognize_crop(crop, handwritten=kind in {"handwritten", "numeric"}, cache=cache)
 
 
 def _crop(image: Image.Image, box: tuple[float, float, float, float]) -> Image.Image:
@@ -498,25 +428,18 @@ def _candidate_similarity(left: str, right: str, kind: str) -> float:
 def _select(
     tesseract: dict[str, Any],
     htr: dict[str, Any],
-    bhashini: dict[str, Any],
     kind: str,
 ) -> dict[str, Any]:
     t_text = tesseract.get("text") or ""
     h_text = htr.get("text") or ""
-    b_text = _clean_text(bhashini.get("text") or "", numeric=kind == "numeric")
     t_conf = tesseract.get("confidence")
     h_score = htr.get("model_score")
 
     t_usable = bool(t_text and not _suspicious_hindi_candidate(t_text, kind))
     h_usable = bool(h_text and _devanagari_score(h_text) >= 0.55 and not htr.get("truncated"))
-    b_usable = bool(b_text and (
-        kind == "numeric" and bool(re.fullmatch(r"[0-9]+(?:[./ -][0-9]+)*", b_text))
-        or kind != "numeric" and _devanagari_score(b_text) >= 0.45
-    ))
     usable = {
         **({"TESSERACT": t_text} if t_usable else {}),
         **({"HTR": h_text} if h_usable else {}),
-        **({"BHASHINI": b_text} if b_usable else {}),
     }
     agreements: dict[str, float] = {}
     names = list(usable)
@@ -558,9 +481,6 @@ def _select(
         if t_usable:
             selected_text, engine = t_text, "TESSERACT"
             reason = "numeric Tesseract candidate retained without independent agreement"
-        elif b_usable:
-            selected_text, engine = b_text, "BHASHINI"
-            reason = "only format-valid BHASHINI numeric candidate available"
         else:
             selected_text, engine = "", None
             reason = "no format-valid numeric candidate"
@@ -573,9 +493,6 @@ def _select(
     elif h_usable:
         selected_text, engine = h_text, "HTR"
         reason = "only usable local HTR candidate; officer review required"
-    elif b_usable:
-        selected_text, engine = b_text, "BHASHINI"
-        reason = "only usable BHASHINI candidate; officer review required"
     else:
         selected_text, engine = "", None
         reason = "no recognizer produced a trustworthy candidate"
@@ -586,11 +503,9 @@ def _select(
         warnings.append("tesseract_digit_disagreement")
     if t_text and not t_usable:
         warnings.append("mixed_script_review")
-    if bhashini.get("status") in {"failed", "malformed_response"}:
-        warnings.append("bhashini_unavailable_local_fallback")
 
     # Preserve Tesseract's real token mean. Other engine signals can only cap
-    # it conservatively; uncalibrated HTR/provider scores never become a fake
+    # it conservatively; uncalibrated HTR scores never become a fake
     # percentage.
     confidence = None
     confidence_method = "unavailable_no_calibrated_selected_engine_score"
@@ -620,15 +535,6 @@ def _select(
             "confidence_type": htr.get("score_type", "unavailable"),
             "status": htr.get("status"),
         },
-        "bhashini": {
-            "raw_text": bhashini.get("raw_text") or b_text or None,
-            "normalized_text": _comparison_text(b_text, kind) or None,
-            "confidence": bhashini.get("confidence"),
-            "confidence_type": bhashini.get("confidence_type", "unavailable"),
-            "status": bhashini.get("status"),
-            "reason": bhashini.get("reason"),
-            "model_id": bhashini.get("model_id"),
-        },
     }
     return {
         "selected_text": selected_text,
@@ -638,7 +544,6 @@ def _select(
         "confidence_level": _confidence_level(confidence),
         "tesseract": tesseract,
         "htr": htr,
-        "bhashini": bhashini,
         "candidates": compact_candidates,
         "agreement": agreements.get("tesseract_htr"),
         "agreements": agreements,
@@ -651,9 +556,7 @@ def _select(
 def _recognition_context() -> dict[str, Any]:
     return {
         "htr_budget": {"remaining": HTR_MAX_CROPS, "attempted": 0, "skipped": 0},
-        "bhashini_budget": {"remaining": BHASHINI_MAX_CROPS, "attempted": 0, "skipped": 0},
         "htr_cache": {},
-        "bhashini_cache": {},
         "tesseract_cache": {},
         "metrics": {"tesseract_calls": 0, "tesseract_cache_hits": 0},
     }
@@ -671,15 +574,7 @@ def _recognize_crop(crop: Image.Image, kind: str, context: dict[str, Any]) -> di
         context.get("htr_budget"),
         context.get("htr_cache"),
     )
-    bhashini = _maybe_bhashini(
-        crop,
-        tesseract,
-        htr,
-        kind,
-        context.get("bhashini_budget"),
-        context.get("bhashini_cache"),
-    )
-    return _select(tesseract, htr, bhashini, kind)
+    return _select(tesseract, htr, kind)
 
 
 def recognize_header_fields(
@@ -707,11 +602,7 @@ def recognize_header_fields(
                     "source_token_ids": anchor.get("source_token_ids", []),
                     "bounding_box": anchor.get("bounding_box"), "crop_candidate": tesseract}
         htr = _maybe_htr(crop, tesseract, region.kind, context.get("htr_budget"), context.get("htr_cache"))
-        bhashini = _maybe_bhashini(
-            crop, tesseract, htr, region.kind,
-            context.get("bhashini_budget"), context.get("bhashini_cache"),
-        )
-        selected = _select(tesseract, htr, bhashini, region.kind)
+        selected = _select(tesseract, htr, region.kind)
         if region.key == "crop_year" and selected.get("selected_text") and (selected.get("confidence") or 0) <= 0:
             # A single zero-confidence year reading is especially prone to a
             # changed digit.  Preserve it in candidates, but require officer
@@ -919,11 +810,7 @@ def recognize_table_rows(
                     crop, tesseract, kind,
                     context.get("htr_budget"), context.get("htr_cache"),
                 )
-                bhashini = _maybe_bhashini(
-                    crop, tesseract, htr, kind,
-                    context.get("bhashini_budget"), context.get("bhashini_cache"),
-                )
-                selected = _select(tesseract, htr, bhashini, kind)
+                selected = _select(tesseract, htr, kind)
             value = selected["selected_text"]
             if column["key"] == "plot_number":
                 first_cell_text = value
@@ -1001,10 +888,6 @@ def apply_hybrid_recognition(structure: dict[str, Any], original_path: str | Non
             "htr_model": HTR_MODEL_ID,
             "htr_enabled": ENABLE_LOCAL_HTR,
             "htr_max_crops": HTR_MAX_CROPS,
-            "bhashini_models": BHASHINI_MODEL_IDS,
-            "bhashini_credentials": bhashini_credential_status(),
-            "bhashini_max_crops": BHASHINI_MAX_CROPS,
-            "bhashini_contract": "ulca_published_try_me_multipart_v0",
             "recognition_runtime_seconds": round(time.monotonic() - started, 3),
         }
         return structure
@@ -1099,15 +982,6 @@ def apply_hybrid_recognition(structure: dict[str, Any], original_path: str | Non
         "htr_device": _htr_cache.get("device"),
         "header_field_count": len(header_results),
         "roi_table_rows": len(roi_rows),
-        "bhashini_models": BHASHINI_MODEL_IDS,
-        "bhashini_credentials": bhashini_credential_status(),
-        "bhashini_runtime_status": bhashini_provider_runtime_status(),
-        "bhashini_max_crops": BHASHINI_MAX_CROPS,
-        "bhashini_attempted_crops": context["bhashini_budget"].get("attempted", 0),
-        "bhashini_skipped_crops": context["bhashini_budget"].get("skipped", 0),
-        "bhashini_remaining_crops": context["bhashini_budget"].get("remaining", 0),
-        "bhashini_request_cache_entries": len(context["bhashini_cache"]),
-        "bhashini_contract": "ulca_published_try_me_multipart_v0",
         "recognition_runtime_seconds": round(time.monotonic() - started, 3),
     }
     return structure

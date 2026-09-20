@@ -102,7 +102,7 @@ class FastTemplateTests(unittest.TestCase):
                     prefix=f"/api/officer/documents/{uploaded['document_id']}"
                     started=time.perf_counter()
                     prepared=ok(client.post(prefix+"/preprocess"))
-                    with patch.object(hybrid,"_htr_candidate",side_effect=AssertionError("Clean document must not load HTR")), patch.object(hybrid,"bhashini_recognize_crop",side_effect=AssertionError("Local path must not call cloud OCR")), contextlib.redirect_stdout(io.StringIO()):
+                    with patch.object(hybrid,"_htr_candidate",side_effect=AssertionError("Clean document must not load HTR")), contextlib.redirect_stdout(io.StringIO()):
                         ocr=ok(client.post(prefix+"/ocr",params={"processed_path":prepared["processed_file_path"]}))
                     with patch.object(officer.KhatauniExtractor,"extract",side_effect=AssertionError("Reuse persisted crop recognition")):
                         extracted=ok(client.post(prefix+"/extract",params={"ocr_id":ocr["ocr_id"]}))

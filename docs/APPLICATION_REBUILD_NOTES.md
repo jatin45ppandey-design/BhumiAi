@@ -68,7 +68,6 @@ FastAPI running on Uvicorn                  port 8000
   |-- Tesseract -> text, confidence and word coordinates
   |-- Khatauni extraction rules -> labelled values and table cells
   |       |-- optional cached TrOCR -> handwriting candidates
-  |       `-- optional remote BHASHINI/ULCA -> crop candidates
   |
   `-- Google OAuth endpoints -> submitter account identity
 ```
@@ -131,7 +130,6 @@ Pydantic schemas do not create database tables. SQLAlchemy models do not automat
 | Hugging Face model cache | Supplies already-downloaded model weights/tokenizer resources | Runtime HTR loader is local-only |
 | SentencePiece, Safetensors, torchvision | Declared model-stack support dependencies | Not separate application features |
 | RapidFuzz / `difflib.SequenceMatcher` | Approximate text comparison / label matching | Candidate agreement and Khatauni aliases |
-| BHASHINI/ULCA adapter | Optional remote crop recognition | Bounded fallback; not required for core local OCR |
 
 Some directly imported modules arrive transitively rather than appearing explicitly in `requirements.txt`. A clean rebuild should review direct dependencies and record a tested compatible environment.
 
@@ -164,7 +162,6 @@ sihh/
     khatauni_hybrid.py                Recognition candidates and fallbacks
     khatauni_schema.py                Labels, aliases, table columns
     khatauni_structured.py            Validation and structured evidence
-    bhashini_ocr.py                   Remote crop OCR adapter
     tests/ and diagnostics/          Regression/evaluation helpers
     .env                             PRIVATE local backend configuration
     sql_app.db                       DB if launched from backend/
@@ -305,8 +302,6 @@ Use `backend/.env` for server settings. `.env.example` is a template, not the ru
 | `KHATAUNI_ENABLE_HTR` | Optional local handwriting recognition; default on, `0` disables |
 | `KHATAUNI_HTR_MODEL` | Local model directory or cached model ID; default `aayushpuri01/TrOCR-Devanagari` |
 | `KHATAUNI_HTR_MAX_CROPS` | HTR crop budget, default 4 |
-| `KHATAUNI_BHASHINI_MAX_CROPS` | Remote fallback crop budget, default 3 |
-| `BHASHINI_UDYAT_KEY`, `BHASHINI_INFERENCE_KEY` | Both configured values opt into the optional adapter; see its contract caveat in section 9 |
 | `LANDSIGHT_ENV` | `production` disables the development reset route; it does not secure the entire app |
 | `NEXT_PUBLIC_API_URL` | Browser-visible backend origin, set on the frontend |
 
@@ -465,13 +460,9 @@ Example concept: OCR produces a word with text and coordinates; extraction assoc
 
 Dynamic tables support varying data shapes, but current recognition and review remain Khatauni-oriented. An upload dropdown listing other document types is not evidence of full extraction support for them.
 
-### 9.5 Optional handwriting and external OCR
+### 9.5 Optional local handwriting recognition
 
 TrOCR runs through PyTorch/Transformers for selected crop candidates. Loading is lazy and synchronized; the model is reused, not reloaded for every field. It uses CUDA if available or CPU otherwise. The loader accepts local model files/an already-cached snapshot and does not download weights during inference. Missing/incompatible resources produce an unavailable fallback.
-
-The general hybrid path may ask BHASHINI/ULCA for weak/disagreeing crops, with limits, caching, timeouts and a circuit breaker. The guarded local template path skips BHASHINI.
-
-**Current adapter caveat:** both configured BHASHINI keys act as an opt-in gate, but are deliberately **not sent** to its ULCA `tryMe` multipart endpoint. This is not authenticated Dhruva OCR integration. Setting keys does not guarantee service availability. Remote recognition sends image crops externally, so enabling it for real documents requires an explicit privacy decision.
 
 Candidate selection uses validity, confidence and agreement. Missing confidence must remain unavailable, not receive an invented percentage. A valid-looking number can still be the wrong number.
 
@@ -539,8 +530,8 @@ Open these source files alongside these notes; no new code comments are necessar
 | 8 | [upload page](frontend/src/app/user/upload/page.jsx) / [documents router](backend/routers/documents.py) | Upload -> check -> submit as separate actions |
 | 9 | [officer router](backend/routers/officer.py) | `_load_document_image` -> preprocess -> OCR -> extract -> edit -> verify |
 | 10 | [digitization.py](backend/digitization.py) / [khatauni_fast.py](backend/khatauni_fast.py) | Token geometry and guarded recognition |
-| 11 | [extractor](backend/khatauni_extractor.py) / [hybrid](backend/khatauni_hybrid.py) | Domain mapping and bounded optional candidates |
-| 12 | [schema](backend/khatauni_schema.py) / [structured](backend/khatauni_structured.py) / [BHASHINI adapter](backend/bhashini_ocr.py) | Labels, validation, evidence and external-provider behavior |
+| 11 | [extractor](backend/khatauni_extractor.py) / [hybrid](backend/khatauni_hybrid.py) | Domain mapping and local recognition candidates |
+| 12 | [schema](backend/khatauni_schema.py) / [structured](backend/khatauni_structured.py) | Labels, validation and evidence |
 | 13 | [review page](frontend/src/app/officer/review/[id]/page.jsx) | `valueOf`, `normalizeDigitization`, `execute`, `mutate`, `decide` |
 | 14 | [records router](backend/routers/records.py) | Latest OCR/manual view, final values and search |
 | 15 | [PortalShell](frontend/src/components/layout/PortalShell.jsx) / [root layout](frontend/src/app/layout.jsx) | Shared navigation and stylesheet layering |
@@ -601,7 +592,6 @@ Mocked tests check logic, not actual OCR accuracy. Accuracy claims need represen
 | Tesseract unavailable | Native executable path and installed `hin`/`eng` traineddata |
 | PDF visible but OCR fails | Preprocess/rasterization result; PyMuPDF availability; only first page supported |
 | HTR unavailable | Model files/cache, compatible packages, enable flag; no automatic inference-time downloads |
-| BHASHINI skipped/unavailable | Opt-in, path, budget, circuit breaker/provider availability; local template path skips remote OCR |
 | Unexpected displayed values | Correct document ID, latest OCR generation, soft deletion, correction/final precedence |
 
 Do not paste secrets, OAuth codes or tickets into debugging messages. Error text and non-secret URL/configuration names are normally enough to begin diagnosis.

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import time
 import unittest
 from unittest.mock import patch
+from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-import bhashini_ocr
 import khatauni_hybrid
 from diagnostics.ground_truth_benchmark import evaluate_manifest
 from khatauni_hybrid import _ink_line_spans, _repair_template_columns, _select
@@ -30,58 +29,45 @@ def htr(text: str, score: float = 0.5):
     return {"text": text, "model_score": score, "status": "ready", "truncated": False}
 
 
-def bhashini(text: str):
-    return {"text": text, "raw_text": text, "confidence": None, "status": "ready"}
-
-
 class CandidateSelectionTests(unittest.TestCase):
-    def test_tesseract_bhashini_agreement_outvotes_htr(self):
-        result = _select(tesseract("123", 62), htr("128"), bhashini("123"), "numeric")
+    def test_strong_tesseract_candidate_is_retained(self):
+        result = _select(tesseract("123", 96), {"text": "", "status": "skipped"}, "numeric")
         self.assertEqual(result["selected_engine"], "TESSERACT")
         self.assertEqual(result["selected_text"], "123")
-        self.assertEqual(result["supporting_engines"], ["BHASHINI", "TESSERACT"])
 
-    def test_handwriting_consensus_can_select_htr_without_fake_percentage(self):
-        result = _select(tesseract("कमल", 25), htr("राम कुमार"), bhashini("राम कुमार"), "handwritten")
+    def test_weak_tesseract_with_valid_htr_selects_htr_without_fake_percentage(self):
+        result = _select(tesseract("कमल", 25), htr("राम कुमार"), "handwritten")
         self.assertEqual(result["selected_engine"], "HTR")
         self.assertEqual(result["selected_text"], "राम कुमार")
         self.assertIsNone(result["confidence"])
 
-    def test_all_engines_disagree_requires_review(self):
-        result = _select(tesseract("राम", 30), htr("श्याम"), bhashini("मोहन"), "handwritten")
+    def test_tesseract_htr_agreement_retains_local_consensus(self):
+        result = _select(tesseract("राम कुमार", 50), htr("राम कुमार"), "handwritten")
+        self.assertEqual(result["selected_engine"], "TESSERACT")
+        self.assertEqual(result["supporting_engines"], ["HTR", "TESSERACT"])
+
+    def test_tesseract_htr_disagreement_requires_review(self):
+        result = _select(tesseract("राम", 30), htr("श्याम"), "handwritten")
         self.assertIn("engine_disagreement", result["warnings"])
         self.assertIn(result["confidence_level"], {"LOW", "UNAVAILABLE"})
 
     def test_numeric_disagreement_caps_tesseract_evidence(self):
-        result = _select(tesseract("121", 96, ["121", "127"]), {"text": "", "status": "skipped"}, bhashini("127"), "numeric")
+        result = _select(tesseract("121", 96, ["121", "127"]), {"text": "", "status": "skipped"}, "numeric")
         self.assertIn("tesseract_digit_disagreement", result["warnings"])
         self.assertLessEqual(result["confidence"], 59)
 
+    def test_unresolved_input_remains_unresolved(self):
+        result = _select(tesseract("", 0), {"text": "", "status": "skipped"}, "handwritten")
+        self.assertEqual(result["selected_text"], "")
+        self.assertIsNone(result["selected_engine"])
 
-class ProviderTests(unittest.TestCase):
-    def setUp(self):
-        bhashini_ocr._circuit_open_until = 0
-
-    def test_response_parser_rejects_missing_output(self):
-        result = bhashini_ocr._parse_response({"unexpected": []}, "model")
-        self.assertEqual(result["status"], "malformed_response")
-        self.assertFalse(result["text"])
-
-    def test_wall_clock_timeout_falls_back(self):
-        image = Image.new("L", (20, 20), "white")
-
-        def slow_request(*args, **kwargs):
-            time.sleep(0.2)
-
-        with patch.object(bhashini_ocr, "BHASHINI_UDYAT_KEY", "configured"), \
-                patch.object(bhashini_ocr, "BHASHINI_INFERENCE_KEY", "configured"), \
-                patch.object(bhashini_ocr, "BHASHINI_TIMEOUT_SECONDS", 0.03), \
-                patch.object(bhashini_ocr.urllib.request, "urlopen", slow_request):
-            started = time.monotonic()
-            result = bhashini_ocr.recognize_crop(image, handwritten=True)
-            elapsed = time.monotonic() - started
-        self.assertEqual(result["reason"], "network_or_timeout")
-        self.assertLess(elapsed, 0.15)
+    def test_active_backend_has_no_bhashini_runtime_references(self):
+        backend = Path(__file__).resolve().parents[1]
+        active_files = list(backend.glob("*.py"))
+        for directory in ("routers", "diagnostics"):
+            active_files.extend((backend / directory).rglob("*.py"))
+        matches = [path for path in active_files if "bhashini" in path.read_text(encoding="utf-8").lower()]
+        self.assertEqual(matches, [])
 
 
 class TableAndStructureTests(unittest.TestCase):
@@ -145,7 +131,6 @@ class TableAndStructureTests(unittest.TestCase):
         with patch.object(khatauni_hybrid, "_table_grid", return_value=((0, 0), xs, [0, 30], image)), \
                 patch.object(khatauni_hybrid, "_tesseract_candidate", return_value=tesseract("1", 80)), \
                 patch.object(khatauni_hybrid, "_maybe_htr", return_value={"text": "", "status": "skipped"}), \
-                patch.object(khatauni_hybrid, "_maybe_bhashini", return_value={"text": "", "status": "skipped"}), \
                 patch.object(khatauni_hybrid, "_select", side_effect=selected), \
                 patch.object(khatauni_hybrid, "_ink_line_spans", return_value=[(0, 10), (14, 24)]), \
                 patch.object(khatauni_hybrid, "_recognize_crop", side_effect=holder_results):
@@ -175,7 +160,7 @@ class BenchmarkTests(unittest.TestCase):
         result = evaluate_manifest(manifest)
         self.assertEqual(result["verified_fields"], 1)
         self.assertEqual(result["metrics"]["hybrid"]["field_exact_match"], 1.0)
-        self.assertEqual(result["metrics"]["bhashini"]["unresolved_field_rate"], 1.0)
+        self.assertEqual(result["metrics"]["local_htr"]["unresolved_field_rate"], 1.0)
         self.assertEqual(result["metrics"]["hybrid"]["table_row_count_exact_match"], 1.0)
 
 
