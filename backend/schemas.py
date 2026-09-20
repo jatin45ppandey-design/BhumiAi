@@ -63,6 +63,27 @@ class Submission(SubmissionBase):
     submitted_at: datetime
     document: Document
     user: User
+    rejection: Optional[Dict[str, Any]] = None
+    verified_record_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class RejectionDecision(BaseModel):
+    reason_category: str
+    officer_note: Optional[str] = None
+
+
+class UserNotification(BaseModel):
+    id: int
+    type: str
+    title: str
+    message: str
+    document_id: Optional[int] = None
+    record_id: Optional[int] = None
+    is_read: bool
+    created_at: datetime
 
     class Config:
         from_attributes = True

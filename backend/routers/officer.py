@@ -16,7 +16,7 @@ import numpy as np
 import pytesseract
 from fastapi import APIRouter, Depends, HTTPException
 from PIL import Image
-from sqlalchemy import or_
+from sqlalchemy import String, cast, or_
 from sqlalchemy.orm import Session
 
 from config import TESSERACT_CMD, TESSERACT_LANGUAGES
@@ -31,6 +31,11 @@ import schemas
 
 
 router = APIRouter()
+SUBMISSION_STATUSES = {"SUBMITTED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "REJECTED"}
+REJECTION_CATEGORIES = {
+    "Poor Scan Quality", "Incomplete Document", "Incorrect Document",
+    "Unreadable Information", "Duplicate Submission", "Information Mismatch", "Other",
+}
 
 
 def _source_digest(path: str) -> str:
@@ -136,6 +141,55 @@ def _officer(db: Session, officer_id: int) -> models.User:
     if not user or user.role != "officer":
         raise HTTPException(status_code=403, detail="An officer account is required")
     return user
+
+
+def _rejection_details(db: Session, submission: models.Submission) -> dict[str, Any] | None:
+    event = db.query(models.AuditLog).filter(
+        models.AuditLog.submission_id == submission.id,
+        models.AuditLog.action == "REJECTED",
+    ).order_by(models.AuditLog.timestamp.desc(), models.AuditLog.id.desc()).first()
+    if not event:
+        return None
+    try:
+        metadata = json.loads(event.metadata_json or "{}")
+    except (TypeError, json.JSONDecodeError):
+        metadata = {}
+    return {
+        "reason_category": metadata.get("reason_category"),
+        "officer_note": metadata.get("officer_note"),
+        "actor_role": metadata.get("actor_role"),
+        "rejected_at": event.timestamp,
+        "rejected_by": event.user_id,
+    }
+
+
+def _submission_payload(db: Session, submission: models.Submission) -> dict[str, Any]:
+    payload = schemas.Submission.model_validate(submission).model_dump()
+    payload["rejection"] = _rejection_details(db, submission) if submission.status == "REJECTED" else None
+    payload["verified_record_id"] = submission.verified_record.id if submission.verified_record else None
+    return payload
+
+
+def _submission_search_query(db: Session, *, status: str | None, search: str | None):
+    if status:
+        status = status.strip().upper()
+        if status not in SUBMISSION_STATUSES:
+            raise HTTPException(status_code=422, detail="Unsupported submission status")
+    query = db.query(models.Submission).join(models.Document).join(models.User)
+    if status:
+        query = query.filter(models.Submission.status == status)
+    if search and search.strip():
+        pattern = f"%{search.strip()}%"
+        query = query.filter(or_(
+            cast(models.Submission.id, String).ilike(pattern),
+            models.Submission.status.ilike(pattern),
+            models.Document.original_filename.ilike(pattern),
+            models.Document.document_type.ilike(pattern),
+            models.Document.state.ilike(pattern), models.Document.district.ilike(pattern),
+            models.Document.tehsil.ilike(pattern), models.Document.village.ilike(pattern),
+            models.User.name.ilike(pattern), models.User.email.ilike(pattern),
+        ))
+    return query
 
 
 def _list(value: Any) -> list[Any]:
@@ -313,8 +367,11 @@ def get_officer_dashboard(db: Session = Depends(get_db)):
 
 
 @router.get("/submissions", response_model=list[schemas.Submission])
-def get_all_submissions(db: Session = Depends(get_db)):
-    return db.query(models.Submission).order_by(models.Submission.submitted_at.desc()).all()
+def get_all_submissions(status: str | None = None, search: str | None = None, db: Session = Depends(get_db)):
+    rows = _submission_search_query(db, status=status, search=search).order_by(
+        models.Submission.submitted_at.desc(), models.Submission.id.desc()
+    ).all()
+    return [_submission_payload(db, row) for row in rows]
 
 
 @router.get("/submissions/{id}", response_model=schemas.Submission)
@@ -326,7 +383,7 @@ def get_submission(id: int, db: Session = Depends(get_db)):
         submission.status = "PROCESSING"
         db.commit()
         db.refresh(submission)
-    return submission
+    return _submission_payload(db, submission)
 
 
 @router.post("/documents/{id}/preprocess")
@@ -836,7 +893,7 @@ def delete_dynamic_cell(id: int, table_id: int, cell_id: int, officer_id: int, d
 
 
 @router.post("/documents/{id}/{action}")
-def verify_document(id: int, action: str, officer_id: int, db: Session = Depends(get_db)):
+def verify_document(id: int, action: str, officer_id: int, rejection: schemas.RejectionDecision | None = None, db: Session = Depends(get_db)):
     if action not in {"approve", "reject", "mark-review"}:
         raise HTTPException(status_code=400, detail="Invalid action")
     _officer(db, officer_id)
@@ -844,6 +901,13 @@ def verify_document(id: int, action: str, officer_id: int, db: Session = Depends
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
     doc = _document(db, id)
+    if action == "reject":
+        category = (rejection.reason_category if rejection else "").strip()
+        note = (rejection.officer_note if rejection and rejection.officer_note else "").strip()
+        if category not in REJECTION_CATEGORIES:
+            raise HTTPException(status_code=422, detail="Choose a rejection reason category")
+        if category == "Other" and not note:
+            raise HTTPException(status_code=422, detail="Add an officer note when using Other")
     submission.status = {"approve": "VERIFIED", "reject": "REJECTED", "mark-review": "NEEDS_REVIEW"}[action]
     if action == "approve":
         ocr = _latest_ocr(db, id)
@@ -870,8 +934,36 @@ def verify_document(id: int, action: str, officer_id: int, db: Session = Depends
         _audit(db, document_id=id, ocr_result_id=ocr.id if ocr else None, action="VERIFIED", entity_type="verified_record",
             entity_id=record.id, actor_id=officer_id, metadata={"record_id": record.record_id, "dynamic_structure": _digitization(db, id)["summary"]})
     else:
+        metadata = None
+        if action == "reject":
+            metadata = {"reason_category": category, "officer_note": note or None, "actor_role": "OFFICER"}
+            # Exact duplicate resolution remains an officer decision. Only a
+            # confirmed Duplicate Submission rejection can notify the owner of
+            # a different, already verified source record.
+            if category == "Duplicate Submission" and doc.duplicate_of_id:
+                matched_submission = db.query(models.Submission).filter(
+                    models.Submission.document_id == doc.duplicate_of_id
+                ).order_by(models.Submission.submitted_at.desc(), models.Submission.id.desc()).first()
+                matched_record = None
+                if matched_submission:
+                    matched_record = db.query(models.VerifiedRecord).filter(
+                        models.VerifiedRecord.submission_id == matched_submission.id
+                    ).first()
+                if matched_record and matched_submission and matched_submission.user_id != submission.user_id:
+                    exists = db.query(models.UserNotification).filter(
+                        models.UserNotification.user_id == matched_submission.user_id,
+                        models.UserNotification.type == "EXACT_DUPLICATE_NOTICE",
+                        models.UserNotification.document_id == doc.duplicate_of_id,
+                        models.UserNotification.record_id == matched_record.id,
+                    ).first()
+                    if not exists:
+                        db.add(models.UserNotification(
+                            user_id=matched_submission.user_id, type="EXACT_DUPLICATE_NOTICE", title="Record Notice",
+                            message=f"A new submission exactly matched one of your verified land-record documents. Record: {matched_record.record_id}. The new submission was reviewed by an officer. No changes have been made to your verified record.",
+                            document_id=doc.duplicate_of_id, record_id=matched_record.id,
+                        ))
         db.add(models.AuditLog(document_id=id, user_id=officer_id, submission_id=submission.id,
-            action="NEEDS_REVIEW" if action == "mark-review" else "REJECTED"))
+            action="NEEDS_REVIEW" if action == "mark-review" else "REJECTED", metadata_json=_json(metadata) if metadata else None))
     db.commit()
     return {"message": f"Document {action}d successfully"}
 

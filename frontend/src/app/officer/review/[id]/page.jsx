@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, CheckCircle, Clipboard, Download, FileText, Minus, Plus, RefreshCw, Save, ScanLine, Search, Trash2, XCircle, ZoomIn } from 'lucide-react';
 import { API_URL, api } from '../../../../lib/api';
 import { getUser } from '../../../../lib/auth';
@@ -99,6 +99,7 @@ function DigitalKhatauni({ digitization, work, onFieldChange, onCellChange, onAd
 export default function Review() {
   const { id } = useParams();
   const router = useRouter();
+  const query = useSearchParams();
   const [submission, setSubmission] = useState(null);
   const [ocr, setOcr] = useState(null);
   const [digitization, setDigitization] = useState({ items: [], table: null, summary: {} });
@@ -110,6 +111,9 @@ export default function Review() {
   const [work, setWork] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [reasonCategory, setReasonCategory] = useState('');
+  const [officerNote, setOfficerNote] = useState('');
   const hasRawOcr = Boolean(ocr?.raw_text?.trim());
   const hasExtraction = digitization.items.length > 0 && Boolean(digitization.table);
   const summary = digitization.summary || {};
@@ -132,6 +136,14 @@ export default function Review() {
       }).catch((loadError) => active && setError(loadError.message));
     return () => { active = false; };
   }, [id]);
+
+  useEffect(() => {
+    if (query.get('reject_duplicate') !== '1') return;
+    const record = query.get('record');
+    setReasonCategory('Duplicate Submission');
+    setOfficerNote(record ? `This submission exactly matches existing verified record ${record}.` : 'This submission exactly matches an existing record.');
+    setRejectOpen(true);
+  }, [query]);
 
   function officerId() { const current = getUser(); if (!current?.id || current.role !== 'officer') throw new Error('Officer session is required.'); return current.id; }
 
@@ -161,10 +173,10 @@ export default function Review() {
   const addRow = () => mutate('add-row', () => api.createDynamicTableRow(id, digitization.table.id, {}, officerId()), 'Manual Khatauni row added and audited.');
   const deleteRow = (row) => { if (confirm(`Remove row ${row.row_index + 1}?`)) mutate('delete-row', () => api.deleteDynamicTableRow(id, digitization.table.id, row.row_index, officerId()), 'Khatauni row removed and audited.'); };
 
-  async function decide(action) {
+  async function decide(action, rejection) {
     if (!confirm(`Confirm ${action.replace('-', ' ')} for this document?`)) return;
     setWork(action); setError('');
-    try { await api.decision(id, action, officerId()); router.push(action === 'approve' ? '/officer/records' : '/officer/submissions'); } catch (decisionError) { setError(decisionError.message); setWork(''); }
+    try { await api.decision(id, action, officerId(), rejection); router.push(action === 'approve' ? '/officer/records' : '/officer/submissions'); } catch (decisionError) { setError(decisionError.message); setWork(''); }
   }
 
   async function copyRaw() { await navigator.clipboard.writeText(ocr?.raw_text || ''); setNotice('Raw OCR copied to clipboard.'); }
@@ -172,18 +184,19 @@ export default function Review() {
 
   if (!submission) return error ? <ErrorMessage>{error}</ErrorMessage> : <Loader label="Loading Khatauni review workspace…" />;
   const sourceDocument = submission.document;
+  const isRejected = submission.status === 'REJECTED';
   const steps = [['1. Document Upload', Boolean(sourceDocument?.file_path)], ['2. OpenCV Preprocessing', Boolean(processedPath)], ['3. Tesseract OCR', Boolean(ocr)], ['4. Data Extraction', hasExtraction], ['5. Officer Verification', submission.status === 'VERIFIED'], ['6. Digital Record', submission.status === 'VERIFIED']];
   const currentStep = steps.findIndex((step) => !step[1]);
 
   return <>
     <div className="page-title"><div><div className="eyebrow">VERIFICATION WORKSPACE</div><h2>Land Record #{sourceDocument.id}</h2><p>{sourceDocument.original_filename} · {sourceDocument.file_size ? `${(sourceDocument.file_size / 1024).toFixed(1)} KB` : 'file size unavailable'} · Uploaded {new Date(sourceDocument.uploaded_at || submission.submitted_at).toLocaleString()}</p><p>Uploader: {submission.user?.name} ({submission.user?.email})</p></div><StatusBadge status={submission.status} /></div>
-    <ErrorMessage>{error}</ErrorMessage>{notice && <div className="notice success" role="status">{notice}</div>}
+    <ErrorMessage>{error}</ErrorMessage>{notice && <div className="notice success" role="status">{notice}</div>}{isRejected && <div className="notice warn"><b>Rejected record — read-only.</b><br/>Reason: {submission.rejection?.reason_category || 'Unavailable'}{submission.rejection?.officer_note && <><br/>{submission.rejection.officer_note}</>}</div>}
     <section className="card khatauni-stepper" aria-label="Document processing progress"><ol>{steps.map(([label, done], index) => <li className={done ? 'complete' : (index === currentStep ? 'current' : '')} key={label}><span aria-hidden="true">{done ? '✓' : index + 1}</span><b>{label}</b></li>)}</ol></section>
-    <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} /><DigitalKhatauni digitization={digitization} work={work} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} /></div>
+    <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} /><DigitalKhatauni digitization={digitization} work={isRejected ? 'read-only' : work} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} /></div>
 
-    <section className="card processing-card"><div className="section-head"><div><div className="eyebrow">DOCUMENT PROCESSING</div><h3>Prepare the digital record</h3><p>Process this source record before reviewing its structured data.</p></div><div className="actions"><Button variant="secondary" onClick={() => execute('preprocess')} loading={work === 'preprocess'} disabled={Boolean(work)}><ScanLine size={15} /> Preprocess</Button><Button onClick={() => execute('ocr')} loading={work === 'ocr'} disabled={!processedPath || Boolean(work)}><Search size={15} /> Run OCR</Button><Button variant="secondary" onClick={() => execute('extract')} loading={work === 'extract'} disabled={!hasRawOcr || Boolean(work)}>Extract Data</Button><Button variant="secondary" onClick={async () => { await refreshDigitization(); setNotice('All corrections are persisted as they are entered.'); }} disabled={!hasExtraction || Boolean(work)}><Save size={15} /> Save Corrections</Button></div></div>
+    {!isRejected && <section className="card processing-card"><div className="section-head"><div><div className="eyebrow">DOCUMENT PROCESSING</div><h3>Prepare the digital record</h3><p>Process this source record before reviewing its structured data.</p></div><div className="actions"><Button variant="secondary" onClick={() => execute('preprocess')} loading={work === 'preprocess'} disabled={Boolean(work)}><ScanLine size={15} /> Preprocess</Button><Button onClick={() => execute('ocr')} loading={work === 'ocr'} disabled={!processedPath || Boolean(work)}><Search size={15} /> Run OCR</Button><Button variant="secondary" onClick={() => execute('extract')} loading={work === 'extract'} disabled={!hasRawOcr || Boolean(work)}>Extract Data</Button><Button variant="secondary" onClick={async () => { await refreshDigitization(); setNotice('All corrections are persisted as they are entered.'); }} disabled={!hasExtraction || Boolean(work)}><Save size={15} /> Save Corrections</Button></div></div>
       {work === 'ocr' && <div className="ocr-live-state"><span className="ocr-live-spinner" /><b>Running OCR on the actual document with Tesseract hin+eng…</b></div>}{work === 'extract' && <div className="ocr-live-state"><span className="ocr-live-spinner" /><b>Extracting Khatauni structure from OCR tokens…</b></div>}
-    </section>
+    </section>}
 
     <section className="card raw-ocr-card"><div className="section-head"><div><div className="eyebrow">RAW OCR OUTPUT · मूल OCR परिणाम</div><h3>Complete Tesseract output</h3><p>Unmodified, selectable, scrollable OCR evidence from the uploaded document.</p></div><div className="actions"><Button variant="secondary" onClick={copyRaw} disabled={!ocr}><Clipboard size={14} /> Copy Raw OCR</Button><Button variant="secondary" onClick={downloadRaw} disabled={!ocr}><Download size={14} /> Download OCR Text</Button></div></div>
       <div className="ocr-evidence-meta"><div><span>ENGINE</span><b>{ocr?.engine || 'Not run'}</b></div><div><span>LANGUAGES</span><b>Hindi + English ({ocr?.languages || 'hin+eng'})</b></div><div><span>STATUS</span><b>{ocr?.status || 'Not run'}</b></div><div><span>CHARACTERS</span><b>{ocr?.character_count ?? '—'}</b></div><div><span>TOKENS</span><b>{ocr?.token_count ?? '—'}</b></div><div><span>OVERALL CONFIDENCE</span><b>{ocr?.overall_confidence == null ? 'Unavailable' : `${ocr.overall_confidence.toFixed(2)}%`}</b></div></div>
@@ -193,6 +206,7 @@ export default function Review() {
 
     <section className="card extraction-summary-card"><div className="section-head"><div><div className="eyebrow">REAL EXTRACTION SUMMARY</div><h3>Khatauni parser result</h3></div></div><div className="extraction-summary-grid"><div><span>HEADER FIELDS</span><b>{summary.header_fields_detected || 0} / {summary.header_fields_total || 12}</b></div><div><span>TABLE ROWS</span><b>{summary.rows_digitized || 0}</b></div><div><span>OCR CELLS POPULATED</span><b>{summary.ocr_cells_populated || 0}</b></div><div><span>HIGH</span><b>{summary.high_confidence_items || 0}</b></div><div><span>MEDIUM</span><b>{summary.medium_confidence_items || 0}</b></div><div><span>LOW</span><b>{summary.low_confidence_items || 0}</b></div><div><span>UNAVAILABLE</span><b>{summary.unavailable_confidence_items || 0}</b></div></div></section>
     <section className="card review-audit-card"><div className="section-head"><div><div className="eyebrow">AUDIT EVENTS</div><h3>Current document lifecycle</h3></div><Button variant="secondary" onClick={refreshAudits}><RefreshCw size={14} /> Refresh</Button></div><div className="table-wrap"><table className="data-table"><thead><tr><th>TIME</th><th>ACTION</th><th>ACTOR</th><th>DETAIL</th></tr></thead><tbody>{audits.length ? audits.map((row) => <tr key={row.id}><td>{new Date(row.timestamp).toLocaleString()}</td><td>{row.action}</td><td>{row.user_id || 'System'}</td><td><code>{row.metadata_json || '—'}</code></td></tr>) : <tr><td colSpan="4">No lifecycle events yet.</td></tr>}</tbody></table></div></section>
-    <section className="card final-decision"><div className="section-head"><div><h3>Officer Verification</h3><p>Approve only after comparing the source record, recognition evidence, and final values.</p></div><div className="actions"><Button onClick={() => decide('approve')} loading={work === 'approve'} disabled={!hasExtraction}><CheckCircle size={15} /> Approve & Verify</Button><Button variant="secondary" onClick={() => decide('mark-review')} loading={work === 'mark-review'}><AlertTriangle size={15} /> Needs Review</Button><Button variant="danger" onClick={() => decide('reject')} loading={work === 'reject'}><XCircle size={15} /> Reject</Button></div></div></section>
+    {!isRejected && <section className="card final-decision"><div className="section-head"><div><h3>Officer Verification</h3><p>Approve only after comparing the source record, recognition evidence, and final values.</p></div><div className="actions"><Button onClick={() => decide('approve')} loading={work === 'approve'} disabled={!hasExtraction}><CheckCircle size={15} /> Approve & Verify</Button><Button variant="secondary" onClick={() => decide('mark-review')} loading={work === 'mark-review'}><AlertTriangle size={15} /> Needs Review</Button><Button variant="danger" onClick={() => setRejectOpen(true)} loading={work === 'reject'}><XCircle size={15} /> Reject</Button></div></div></section>}
+    {rejectOpen && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reject-title"><div className="modal-card"><h3 id="reject-title">Reject record</h3><p>Choose a meaningful reason before confirming. This is saved in the audit trail and shown to the submitting citizen.</p><div className="field"><label>Reason Category</label><select value={reasonCategory} onChange={event => setReasonCategory(event.target.value)}><option value="">Select a reason</option>{['Poor Scan Quality', 'Incomplete Document', 'Incorrect Document', 'Unreadable Information', 'Duplicate Submission', 'Information Mismatch', 'Other'].map(reason => <option key={reason}>{reason}</option>)}</select></div><div className="field"><label>Officer Note {reasonCategory === 'Other' ? '(required)' : '(optional)'}</label><textarea value={officerNote} onChange={event => setOfficerNote(event.target.value)} placeholder="Explain what the citizen needs to correct."/></div><div className="actions" style={{marginTop: 16}}><Button variant="secondary" onClick={() => setRejectOpen(false)}>Cancel</Button><Button variant="danger" disabled={!reasonCategory || (reasonCategory === 'Other' && !officerNote.trim())} onClick={() => { setRejectOpen(false); decide('reject', {reason_category: reasonCategory, officer_note: officerNote.trim() || null}); }}>Confirm rejection</Button></div></div></div>}
   </>;
 }

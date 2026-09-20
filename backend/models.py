@@ -289,3 +289,18 @@ class AuditLog(Base):
     action = Column(String)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
     metadata_json = Column(String, nullable=True)
+
+
+class UserNotification(Base):
+    """Minimal persisted in-app notices; delivery remains inside the portal."""
+    __tablename__ = "user_notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    type = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    document_id = Column(Integer, ForeignKey("documents.id"), nullable=True, index=True)
+    record_id = Column(Integer, ForeignKey("verified_records.id"), nullable=True, index=True)
+    is_read = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False, index=True)

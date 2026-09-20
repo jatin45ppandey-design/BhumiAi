@@ -425,6 +425,113 @@ def _candidate_similarity(left: str, right: str, kind: str) -> float:
     return ratio(left_value, right_value) / 100
 
 
+def _calculate_evidence_confidence(
+    selected_text: str,
+    selected_engine: str | None,
+    tesseract: dict[str, Any],
+    htr: dict[str, Any],
+    kind: str,
+    agreements: dict[str, float],
+    supporting_engines: list[str],
+    warnings: list[str],
+) -> tuple[float | None, str, dict[str, Any]]:
+    """Derive a bounded evidence-strength score from existing recognition data.
+
+    This post-selection helper does not invoke recognizers or alter candidate
+    choice. Its output is an explainable evidence score, not a probability.
+    """
+    raw_tesseract_confidence = tesseract.get("confidence")
+    raw_htr_model_score = htr.get("model_score")
+    agreement_similarity = agreements.get("tesseract_htr")
+    pass_agreement = tesseract.get("pass_agreement")
+    breakdown: dict[str, Any] = {
+        "selected_engine": selected_engine,
+        "engine_base": None,
+        "raw_tesseract_confidence": raw_tesseract_confidence,
+        "raw_htr_model_score": raw_htr_model_score,
+        "agreement_similarity": agreement_similarity,
+        "agreement_bonus": 0,
+        "pass_agreement": pass_agreement,
+        "stability_bonus": 0,
+        "validation_bonus": 0,
+        "penalties": [],
+        "applied_caps": [],
+        "final_score": None,
+    }
+    method = "bhumiai_evidence_score_v1_uncalibrated"
+    if not selected_text or selected_engine is None:
+        return None, method, breakdown
+
+    if selected_engine == "TESSERACT":
+        if raw_tesseract_confidence is None:
+            return None, method, breakdown
+        try:
+            engine_base = max(0.0, min(100.0, float(raw_tesseract_confidence)))
+        except (TypeError, ValueError):
+            return None, method, breakdown
+    elif selected_engine == "HTR":
+        # TrOCR's geometric mean token score is retained as raw evidence but
+        # deliberately is not scaled into a percentage.
+        engine_base = 50.0
+    else:
+        return None, method, breakdown
+    breakdown["engine_base"] = engine_base
+
+    # Agreements are populated only when both local candidates passed their
+    # existing usability checks, so this cannot double-count OCR pass stability.
+    if agreement_similarity is not None:
+        if agreement_similarity >= 0.95:
+            breakdown["agreement_bonus"] = 15
+        elif agreement_similarity >= 0.90:
+            breakdown["agreement_bonus"] = 10
+        elif agreement_similarity >= 0.80:
+            breakdown["agreement_bonus"] = 5
+
+    if selected_engine == "TESSERACT" and pass_agreement is not None:
+        if pass_agreement >= 0.95:
+            breakdown["stability_bonus"] = 5
+        elif pass_agreement >= 0.50:
+            breakdown["stability_bonus"] = 2
+
+    numeric_valid = bool(re.fullmatch(r"[0-9]+(?:[./ -][0-9]+)*", selected_text))
+    if kind == "numeric":
+        if numeric_valid:
+            breakdown["validation_bonus"] = 5
+    elif _devanagari_score(selected_text) >= 0.90:
+        breakdown["validation_bonus"] = 5
+
+    penalty_total = 0
+    caps: list[tuple[str, float]] = []
+    if "engine_disagreement" in warnings:
+        breakdown["penalties"].append({"reason": "engine_disagreement", "value": -15})
+        penalty_total += 15
+        caps.append(("engine_disagreement", 59))
+    if "tesseract_digit_disagreement" in warnings:
+        breakdown["penalties"].append({"reason": "tesseract_digit_disagreement", "value": -15})
+        penalty_total += 15
+        caps.append(("tesseract_digit_disagreement", 49))
+    if kind == "numeric" and not numeric_valid:
+        caps.append(("invalid_numeric_format", 35))
+    if "mixed_script_review" in warnings:
+        caps.append(("mixed_script_review", 39))
+    if selected_engine == "HTR" and htr.get("truncated") is True:
+        caps.append(("truncated_htr", 39))
+
+    score = (
+        engine_base
+        + breakdown["agreement_bonus"]
+        + breakdown["stability_bonus"]
+        + breakdown["validation_bonus"]
+        - penalty_total
+    )
+    for reason, maximum in caps:
+        breakdown["applied_caps"].append({"reason": reason, "max_score": maximum})
+        score = min(score, maximum)
+    score = round(max(0.0, min(100.0, score)), 2)
+    breakdown["final_score"] = score
+    return score, method, breakdown
+
+
 def _select(
     tesseract: dict[str, Any],
     htr: dict[str, Any],
@@ -504,21 +611,16 @@ def _select(
     if t_text and not t_usable:
         warnings.append("mixed_script_review")
 
-    # Preserve Tesseract's real token mean. Other engine signals can only cap
-    # it conservatively; uncalibrated HTR scores never become a fake
-    # percentage.
-    confidence = None
-    confidence_method = "unavailable_no_calibrated_selected_engine_score"
-    if selected_text and engine == "TESSERACT" and t_conf is not None:
-        confidence = float(t_conf)
-        confidence_method = "tesseract_token_mean_with_conservative_evidence_caps"
-        if "engine_disagreement" in warnings:
-            confidence = min(confidence - 12, 59)
-        if "tesseract_digit_disagreement" in warnings:
-            confidence = min(confidence, 59)
-        if kind == "numeric" and not tesseract.get("format_valid", False):
-            confidence = min(confidence, 39)
-        confidence = round(max(0, min(100, confidence)), 2)
+    confidence, confidence_method, confidence_breakdown = _calculate_evidence_confidence(
+        selected_text,
+        engine,
+        tesseract,
+        htr,
+        kind,
+        agreements,
+        supporting_engines,
+        warnings,
+    )
 
     compact_candidates = {
         "tesseract": {
@@ -550,6 +652,7 @@ def _select(
         "warnings": warnings,
         "selection_reason": reason,
         "confidence_method": confidence_method,
+        "confidence_breakdown": confidence_breakdown,
     }
 
 

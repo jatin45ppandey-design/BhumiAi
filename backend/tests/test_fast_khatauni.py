@@ -126,8 +126,9 @@ class FastTemplateTests(unittest.TestCase):
                     self.assertEqual(next(f for f in repeated["items"] if f["id"]==field["id"])["officer_value"],correction)
                     self.assertEqual(len(repeated["items"]),14)
                     self.assertEqual(next(c for c in repeated["tables"][0]["cells"] if c["id"]==cell["id"])["officer_value"],"7")
-                    for action in ("mark-review","reject","approve"):
-                        ok(client.post(prefix+"/"+action,params={"officer_id":officer_id}))
+                    for action in ("mark-review", "reject", "approve"):
+                        payload = {"reason_category": "Incomplete Document", "officer_note": "Test rejection reason"} if action == "reject" else None
+                        ok(client.post(prefix + "/" + action, params={"officer_id": officer_id}, json=payload))
                     with sessions() as db:
                         self.assertEqual(db.query(models.VerifiedRecord).count(),1)
                         self.assertEqual(db.query(models.Submission).first().status,"VERIFIED")
