@@ -1,0 +1,5 @@
+{
+  "schema_version": "khatauni_ground_truth_v1",
+  "instructions": "Add only human-verified truth and captured engine predictions. Unverified documents are excluded.",
+  "documents": []
+}

@@ -1,0 +1,23 @@
+{
+  "message": "Document preprocessed",
+  "processed_file_path": "uploads\\recognition-regression-20e34fcfb415430792e34e1a8825de0b_processed.png",
+  "orientation_correction_degrees": 0,
+  "deskew_degrees": 0.0,
+  "pdf_page": null,
+  "operations": [
+    "grayscale",
+    "deskew",
+    "preserve_grayscale_strokes"
+  ],
+  "quality": {
+    "width": 1086,
+    "height": 1448,
+    "paper_color_cast": 52.0,
+    "gray_percentiles": [
+      134.0,
+      215.0,
+      230.0
+    ],
+    "laplacian_variance": 2651.32
+  }
+}

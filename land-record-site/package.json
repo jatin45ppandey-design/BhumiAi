@@ -1,0 +1,1 @@
+{"name":"land-record-intelligence-site","private":true,"scripts":{"dev":"next dev","build":"next build"},"dependencies":{"next":"15.1.2","react":"19.0.0","react-dom":"19.0.0"},"devDependencies":{"typescript":"5.7.2","@types/react":"19.0.2","@types/node":"22.10.2"}}

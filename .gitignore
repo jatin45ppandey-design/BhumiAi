@@ -1,0 +1,61 @@
+# Python virtual environments
+.venv/
+venv/
+backend/.venv/
+**/.venv/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+**/.pytest_cache/
+
+# Node
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Runtime/generated data
+uploads/
+**/uploads/
+storage/
+**/storage/
+
+# Downloaded / local ML models
+backend/models/
+backend/models--*/
+**/models--*/
+**/.cache/
+
+# Logs / temporary files
+*.log
+*.tmp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Generated frontend/build artifacts
+out/
+**/out/
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Test/build coverage
+coverage/
+**/coverage/

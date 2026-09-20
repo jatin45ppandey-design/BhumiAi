@@ -1,0 +1,1 @@
+export default function StatCard({label,value,icon:Icon,tone='teal'}){return <article className={`stat ${tone}`}><div><p>{label}</p><strong>{value ?? 0}</strong></div>{Icon&&<span className="stat-icon"><Icon size={21}/></span>}</article>}

@@ -1,0 +1,4574 @@
+{
+  "message": "Tesseract OCR completed successfully.",
+  "status": "COMPLETED",
+  "ocr_id": 21,
+  "raw_text": "बट” ee ie aa... a\ny (\ny ज्मार्बन्दी 7\nही ख़तौनी / जमांबन्दी (प्रतिलिपि) प्रपत्र संख्या - 76 ’\nts; Bis हट co i संख्या 385 |\n«पटवारी हल्का _Seage दिनांक. [2/05/2023 ”\n© wets fore en ee nr [25\ne: a O23 i\n7 Fasc Gis Cie i ee\n4 पिता/पति_का नाम __ श्री मोहन लाल Fs हन लाल: _ a a\n| जाति mez cee “a निवास स्थान ___ भेरबयुर RAR 3\ny 'खसरा क्षेत्रफल का. ee. 3 Ee\ni, afi वर्गीकरण. fifiq Rank का साधन नलकूप ot कोई a |\n: a सिंचाई का जे este +| 4\n— थक | = | a किस्म साधन लाशाता टिप्पणी\n| | का नाम\n| है. | on | L= | कै |\nJMNM 355.\nLe [ia ०० | set जाखि 3० | ८० | 4\n7 | ० | ० foo] sr नल! | 45 ०८ |\nja4 | ० | 20 \\eo| aah बारिश 4 36 | ०० | 30 ०० | राम कुमार = |S\nZ| ‘\nLo [2 ०० | went | 45 | co, J\n: ir\n: fre feof जि | -.« «\"। जे !\n. उपरोक्त खसरा संख्या... ।2/ से 26 dh ) ga aaws 2-5० छकड़ा\nt शब्दों में-...दो' was vere डिससिला काना\n2 frim__I2/o5/2c0a3 4  - ———$—$\n, तैयार करने वाले के हस्ताक्षर aa के हस्ताक्षर 'तहसीलदार के हस्ताक्षर :\nपटवारी कानूनगों 'तहसीलदार बिलारी |\nhe UE ER af, ui\niS We, Se afr राजस्व afc सत्यापित j\nहै हू दर x सत्यापित तक te |es [209 प्रतिलिपि निर्गत दिनांक रफ |\n2 eae (AEE ; !\noe SExy 4 255: हि ;\nAe °F ee eee tS a ee ae 7, S34 4\n",
+  "engine": "Tesseract OCR 5.4.0.20240606",
+  "languages": "hin+eng",
+  "overall_confidence": 47.00350877192982,
+  "token_count": 285,
+  "character_count": 1135,
+  "processed_image_path": "uploads\\recognition-regression-428f6dbd72d14f9f84ad7127b3528450_processed.png",
+  "tokens": [
+    {
+      "index": 4,
+      "text": "बट”",
+      "confidence": 8.0,
+      "bbox": {
+        "left": 136,
+        "top": 1,
+        "width": 29,
+        "height": 4
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 1,
+      "word_num": 1
+    },
+    {
+      "index": 5,
+      "text": "ee",
+      "confidence": 19.0,
+      "bbox": {
+        "left": 177,
+        "top": 1,
+        "width": 68,
+        "height": 7
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 1,
+      "word_num": 2
+    },
+    {
+      "index": 6,
+      "text": "ie",
+      "confidence": 11.0,
+      "bbox": {
+        "left": 275,
+        "top": 1,
+        "width": 40,
+        "height": 5
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 1,
+      "word_num": 3
+    },
+    {
+      "index": 7,
+      "text": "aa...",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 414,
+        "top": 1,
+        "width": 563,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 1,
+      "word_num": 4
+    },
+    {
+      "index": 8,
+      "text": "a",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 983,
+        "top": 1,
+        "width": 103,
+        "height": 102
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 1,
+      "word_num": 5
+    },
+    {
+      "index": 10,
+      "text": "y",
+      "confidence": 81.0,
+      "bbox": {
+        "left": 100,
+        "top": 19,
+        "width": 9,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 2,
+      "word_num": 1
+    },
+    {
+      "index": 11,
+      "text": "(",
+      "confidence": 48.0,
+      "bbox": {
+        "left": 542,
+        "top": 23,
+        "width": 1,
+        "height": 4
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 2,
+      "word_num": 2
+    },
+    {
+      "index": 13,
+      "text": "y",
+      "confidence": 62.0,
+      "bbox": {
+        "left": 91,
+        "top": 36,
+        "width": 7,
+        "height": 8
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 3,
+      "word_num": 1
+    },
+    {
+      "index": 14,
+      "text": "ज्मार्बन्दी",
+      "confidence": 33.0,
+      "bbox": {
+        "left": 486,
+        "top": 18,
+        "width": 110,
+        "height": 50
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 3,
+      "word_num": 2
+    },
+    {
+      "index": 15,
+      "text": "7",
+      "confidence": 55.0,
+      "bbox": {
+        "left": 1027,
+        "top": 39,
+        "width": 6,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 3,
+      "word_num": 3
+    },
+    {
+      "index": 17,
+      "text": "ही",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 52,
+        "top": 70,
+        "width": 2,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 1
+    },
+    {
+      "index": 18,
+      "text": "ख़तौनी",
+      "confidence": 91.0,
+      "bbox": {
+        "left": 381,
+        "top": 34,
+        "width": 79,
+        "height": 33
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 2
+    },
+    {
+      "index": 19,
+      "text": "/",
+      "confidence": 90.0,
+      "bbox": {
+        "left": 469,
+        "top": 40,
+        "width": 12,
+        "height": 26
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 3
+    },
+    {
+      "index": 20,
+      "text": "जमांबन्दी",
+      "confidence": 67.0,
+      "bbox": {
+        "left": 541,
+        "top": 66,
+        "width": 4,
+        "height": 8
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 4
+    },
+    {
+      "index": 21,
+      "text": "(प्रतिलिपि)",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 602,
+        "top": 35,
+        "width": 117,
+        "height": 32
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 5
+    },
+    {
+      "index": 22,
+      "text": "प्रपत्र",
+      "confidence": 90.0,
+      "bbox": {
+        "left": 909,
+        "top": 60,
+        "width": 35,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 6
+    },
+    {
+      "index": 23,
+      "text": "संख्या",
+      "confidence": 92.0,
+      "bbox": {
+        "left": 951,
+        "top": 57,
+        "width": 43,
+        "height": 16
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 7
+    },
+    {
+      "index": 24,
+      "text": "-",
+      "confidence": 91.0,
+      "bbox": {
+        "left": 1005,
+        "top": 66,
+        "width": 3,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 8
+    },
+    {
+      "index": 25,
+      "text": "76",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 1017,
+        "top": 60,
+        "width": 17,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 9
+    },
+    {
+      "index": 26,
+      "text": "’",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 1052,
+        "top": 2,
+        "width": 32,
+        "height": 101
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 4,
+      "word_num": 10
+    },
+    {
+      "index": 28,
+      "text": "ts;",
+      "confidence": 51.0,
+      "bbox": {
+        "left": 8,
+        "top": 88,
+        "width": 50,
+        "height": 33
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 1
+    },
+    {
+      "index": 29,
+      "text": "Bis",
+      "confidence": 26.0,
+      "bbox": {
+        "left": 113,
+        "top": 85,
+        "width": 39,
+        "height": 36
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 2
+    },
+    {
+      "index": 30,
+      "text": "हट",
+      "confidence": 20.0,
+      "bbox": {
+        "left": 151,
+        "top": 72,
+        "width": 146,
+        "height": 54
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 3
+    },
+    {
+      "index": 31,
+      "text": "co",
+      "confidence": 17.0,
+      "bbox": {
+        "left": 251,
+        "top": 93,
+        "width": 49,
+        "height": 29
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 4
+    },
+    {
+      "index": 32,
+      "text": "i",
+      "confidence": 25.0,
+      "bbox": {
+        "left": 538,
+        "top": 107,
+        "width": 5,
+        "height": 7
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 5
+    },
+    {
+      "index": 33,
+      "text": "संख्या",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 819,
+        "top": 105,
+        "width": 46,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 6
+    },
+    {
+      "index": 34,
+      "text": "385",
+      "confidence": 46.0,
+      "bbox": {
+        "left": 876,
+        "top": 101,
+        "width": 160,
+        "height": 24
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 7
+    },
+    {
+      "index": 35,
+      "text": "|",
+      "confidence": 46.0,
+      "bbox": {
+        "left": 1080,
+        "top": 100,
+        "width": 4,
+        "height": 42
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 5,
+      "word_num": 8
+    },
+    {
+      "index": 37,
+      "text": "«पटवारी",
+      "confidence": 23.0,
+      "bbox": {
+        "left": 28,
+        "top": 125,
+        "width": 144,
+        "height": 24
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 6,
+      "word_num": 1
+    },
+    {
+      "index": 38,
+      "text": "हल्का",
+      "confidence": 75.0,
+      "bbox": {
+        "left": 179,
+        "top": 136,
+        "width": 43,
+        "height": 14
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 6,
+      "word_num": 2
+    },
+    {
+      "index": 39,
+      "text": "_Seage",
+      "confidence": 7.0,
+      "bbox": {
+        "left": 222,
+        "top": 115,
+        "width": 124,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 6,
+      "word_num": 3
+    },
+    {
+      "index": 40,
+      "text": "दिनांक.",
+      "confidence": 24.0,
+      "bbox": {
+        "left": 819,
+        "top": 137,
+        "width": 52,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 6,
+      "word_num": 4
+    },
+    {
+      "index": 41,
+      "text": "[2/05/2023",
+      "confidence": 23.0,
+      "bbox": {
+        "left": 875,
+        "top": 131,
+        "width": 176,
+        "height": 30
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 6,
+      "word_num": 5
+    },
+    {
+      "index": 42,
+      "text": "”",
+      "confidence": 20.0,
+      "bbox": {
+        "left": 1076,
+        "top": 134,
+        "width": 10,
+        "height": 31
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 6,
+      "word_num": 6
+    },
+    {
+      "index": 44,
+      "text": "©",
+      "confidence": 16.0,
+      "bbox": {
+        "left": 32,
+        "top": 176,
+        "width": 5,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 7,
+      "word_num": 1
+    },
+    {
+      "index": 45,
+      "text": "wets",
+      "confidence": 21.0,
+      "bbox": {
+        "left": 90,
+        "top": 153,
+        "width": 88,
+        "height": 50
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 7,
+      "word_num": 2
+    },
+    {
+      "index": 46,
+      "text": "fore",
+      "confidence": 21.0,
+      "bbox": {
+        "left": 198,
+        "top": 153,
+        "width": 93,
+        "height": 50
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 7,
+      "word_num": 3
+    },
+    {
+      "index": 47,
+      "text": "en",
+      "confidence": 60.0,
+      "bbox": {
+        "left": 398,
+        "top": 153,
+        "width": 89,
+        "height": 50
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 7,
+      "word_num": 4
+    },
+    {
+      "index": 48,
+      "text": "ee",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 553,
+        "top": 172,
+        "width": 92,
+        "height": 27
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 7,
+      "word_num": 5
+    },
+    {
+      "index": 49,
+      "text": "nr",
+      "confidence": 27.0,
+      "bbox": {
+        "left": 819,
+        "top": 158,
+        "width": 217,
+        "height": 35
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 7,
+      "word_num": 6
+    },
+    {
+      "index": 50,
+      "text": "[25",
+      "confidence": 17.0,
+      "bbox": {
+        "left": 949,
+        "top": 153,
+        "width": 51,
+        "height": 50
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 7,
+      "word_num": 7
+    },
+    {
+      "index": 52,
+      "text": "e:",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 7,
+        "top": 205,
+        "width": 28,
+        "height": 24
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 8,
+      "word_num": 1
+    },
+    {
+      "index": 53,
+      "text": "a",
+      "confidence": 19.0,
+      "bbox": {
+        "left": 116,
+        "top": 202,
+        "width": 24,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 8,
+      "word_num": 2
+    },
+    {
+      "index": 54,
+      "text": "O23",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 147,
+        "top": 206,
+        "width": 218,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 8,
+      "word_num": 3
+    },
+    {
+      "index": 55,
+      "text": "i",
+      "confidence": 60.0,
+      "bbox": {
+        "left": 540,
+        "top": 210,
+        "width": 2,
+        "height": 4
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 8,
+      "word_num": 4
+    },
+    {
+      "index": 57,
+      "text": "7",
+      "confidence": 38.0,
+      "bbox": {
+        "left": 30,
+        "top": 268,
+        "width": 2,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 9,
+      "word_num": 1
+    },
+    {
+      "index": 58,
+      "text": "Fasc",
+      "confidence": 23.0,
+      "bbox": {
+        "left": 115,
+        "top": 246,
+        "width": 62,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 9,
+      "word_num": 2
+    },
+    {
+      "index": 59,
+      "text": "Gis",
+      "confidence": 7.0,
+      "bbox": {
+        "left": 184,
+        "top": 252,
+        "width": 61,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 9,
+      "word_num": 3
+    },
+    {
+      "index": 60,
+      "text": "Cie",
+      "confidence": 35.0,
+      "bbox": {
+        "left": 250,
+        "top": 249,
+        "width": 288,
+        "height": 23
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 9,
+      "word_num": 4
+    },
+    {
+      "index": 61,
+      "text": "i",
+      "confidence": 23.0,
+      "bbox": {
+        "left": 540,
+        "top": 267,
+        "width": 2,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 9,
+      "word_num": 5
+    },
+    {
+      "index": 62,
+      "text": "ee",
+      "confidence": 25.0,
+      "bbox": {
+        "left": 549,
+        "top": 267,
+        "width": 429,
+        "height": 5
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 9,
+      "word_num": 6
+    },
+    {
+      "index": 64,
+      "text": "4",
+      "confidence": 85.0,
+      "bbox": {
+        "left": 24,
+        "top": 295,
+        "width": 13,
+        "height": 7
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 1
+    },
+    {
+      "index": 65,
+      "text": "पिता/पति_का",
+      "confidence": 66.0,
+      "bbox": {
+        "left": 115,
+        "top": 283,
+        "width": 109,
+        "height": 24
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 2
+    },
+    {
+      "index": 66,
+      "text": "नाम",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 231,
+        "top": 289,
+        "width": 31,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 3
+    },
+    {
+      "index": 67,
+      "text": "__",
+      "confidence": 58.0,
+      "bbox": {
+        "left": 262,
+        "top": 272,
+        "width": 29,
+        "height": 41
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 4
+    },
+    {
+      "index": 68,
+      "text": "श्री",
+      "confidence": 76.0,
+      "bbox": {
+        "left": 305,
+        "top": 272,
+        "width": 42,
+        "height": 41
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 5
+    },
+    {
+      "index": 69,
+      "text": "मोहन",
+      "confidence": 76.0,
+      "bbox": {
+        "left": 359,
+        "top": 272,
+        "width": 55,
+        "height": 41
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 6
+    },
+    {
+      "index": 70,
+      "text": "लाल",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 428,
+        "top": 272,
+        "width": 47,
+        "height": 41
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 7
+    },
+    {
+      "index": 71,
+      "text": "Fs",
+      "confidence": 17.0,
+      "bbox": {
+        "left": 357,
+        "top": 272,
+        "width": 18,
+        "height": 40
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 8
+    },
+    {
+      "index": 72,
+      "text": "हन",
+      "confidence": 85.0,
+      "bbox": {
+        "left": 385,
+        "top": 287,
+        "width": 26,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 9
+    },
+    {
+      "index": 73,
+      "text": "लाल:",
+      "confidence": 50.0,
+      "bbox": {
+        "left": 428,
+        "top": 288,
+        "width": 47,
+        "height": 15
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 10
+    },
+    {
+      "index": 74,
+      "text": "_",
+      "confidence": 84.0,
+      "bbox": {
+        "left": 540,
+        "top": 285,
+        "width": 13,
+        "height": 31
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 11
+    },
+    {
+      "index": 75,
+      "text": "a",
+      "confidence": 32.0,
+      "bbox": {
+        "left": 558,
+        "top": 305,
+        "width": 74,
+        "height": 1
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 12
+    },
+    {
+      "index": 76,
+      "text": "a",
+      "confidence": 12.0,
+      "bbox": {
+        "left": 720,
+        "top": 285,
+        "width": 71,
+        "height": 31
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 10,
+      "word_num": 13
+    },
+    {
+      "index": 78,
+      "text": "|",
+      "confidence": 77.0,
+      "bbox": {
+        "left": 20,
+        "top": 316,
+        "width": 5,
+        "height": 36
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 1
+    },
+    {
+      "index": 79,
+      "text": "जाति",
+      "confidence": 94.0,
+      "bbox": {
+        "left": 110,
+        "top": 316,
+        "width": 49,
+        "height": 31
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 2
+    },
+    {
+      "index": 80,
+      "text": "mez",
+      "confidence": 24.0,
+      "bbox": {
+        "left": 154,
+        "top": 307,
+        "width": 77,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 3
+    },
+    {
+      "index": 81,
+      "text": "cee",
+      "confidence": 37.0,
+      "bbox": {
+        "left": 249,
+        "top": 307,
+        "width": 81,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 4
+    },
+    {
+      "index": 82,
+      "text": "“a",
+      "confidence": 40.0,
+      "bbox": {
+        "left": 352,
+        "top": 307,
+        "width": 114,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 5
+    },
+    {
+      "index": 83,
+      "text": "निवास",
+      "confidence": 96.0,
+      "bbox": {
+        "left": 467,
+        "top": 322,
+        "width": 50,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 6
+    },
+    {
+      "index": 84,
+      "text": "स्थान",
+      "confidence": 91.0,
+      "bbox": {
+        "left": 525,
+        "top": 328,
+        "width": 42,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 7
+    },
+    {
+      "index": 85,
+      "text": "___",
+      "confidence": 29.0,
+      "bbox": {
+        "left": 567,
+        "top": 306,
+        "width": 45,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 8
+    },
+    {
+      "index": 86,
+      "text": "भेरबयुर",
+      "confidence": 13.0,
+      "bbox": {
+        "left": 624,
+        "top": 306,
+        "width": 84,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 9
+    },
+    {
+      "index": 87,
+      "text": "RAR",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 647,
+        "top": 326,
+        "width": 53,
+        "height": 27
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 10
+    },
+    {
+      "index": 88,
+      "text": "3",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 936,
+        "top": 336,
+        "width": 3,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 11,
+      "word_num": 11
+    },
+    {
+      "index": 90,
+      "text": "y",
+      "confidence": 37.0,
+      "bbox": {
+        "left": 22,
+        "top": 357,
+        "width": 11,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 12,
+      "word_num": 1
+    },
+    {
+      "index": 91,
+      "text": "'खसरा",
+      "confidence": 69.0,
+      "bbox": {
+        "left": 114,
+        "top": 364,
+        "width": 49,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 12,
+      "word_num": 2
+    },
+    {
+      "index": 92,
+      "text": "क्षेत्रफल",
+      "confidence": 83.0,
+      "bbox": {
+        "left": 171,
+        "top": 359,
+        "width": 59,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 12,
+      "word_num": 3
+    },
+    {
+      "index": 93,
+      "text": "का.",
+      "confidence": 5.0,
+      "bbox": {
+        "left": 230,
+        "top": 340,
+        "width": 221,
+        "height": 52
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 12,
+      "word_num": 4
+    },
+    {
+      "index": 94,
+      "text": "ee.",
+      "confidence": 43.0,
+      "bbox": {
+        "left": 544,
+        "top": 380,
+        "width": 181,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 12,
+      "word_num": 5
+    },
+    {
+      "index": 95,
+      "text": "3",
+      "confidence": 4.0,
+      "bbox": {
+        "left": 746,
+        "top": 359,
+        "width": 58,
+        "height": 33
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 12,
+      "word_num": 6
+    },
+    {
+      "index": 96,
+      "text": "Ee",
+      "confidence": 24.0,
+      "bbox": {
+        "left": 729,
+        "top": 381,
+        "width": 277,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 12,
+      "word_num": 7
+    },
+    {
+      "index": 98,
+      "text": "i,",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 0,
+        "top": 384,
+        "width": 53,
+        "height": 106
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 1
+    },
+    {
+      "index": 99,
+      "text": "afi",
+      "confidence": 54.0,
+      "bbox": {
+        "left": 115,
+        "top": 396,
+        "width": 33,
+        "height": 23
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 2
+    },
+    {
+      "index": 100,
+      "text": "वर्गीकरण.",
+      "confidence": 58.0,
+      "bbox": {
+        "left": 155,
+        "top": 396,
+        "width": 71,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 3
+    },
+    {
+      "index": 101,
+      "text": "fifiq",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 229,
+        "top": 389,
+        "width": 210,
+        "height": 29
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 4
+    },
+    {
+      "index": 102,
+      "text": "Rank",
+      "confidence": 55.0,
+      "bbox": {
+        "left": 445,
+        "top": 398,
+        "width": 50,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 5
+    },
+    {
+      "index": 103,
+      "text": "का",
+      "confidence": 91.0,
+      "bbox": {
+        "left": 502,
+        "top": 404,
+        "width": 22,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 6
+    },
+    {
+      "index": 104,
+      "text": "साधन",
+      "confidence": 67.0,
+      "bbox": {
+        "left": 531,
+        "top": 401,
+        "width": 46,
+        "height": 23
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 7
+    },
+    {
+      "index": 105,
+      "text": "नलकूप",
+      "confidence": 68.0,
+      "bbox": {
+        "left": 599,
+        "top": 401,
+        "width": 139,
+        "height": 22
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 8
+    },
+    {
+      "index": 106,
+      "text": "ot",
+      "confidence": 44.0,
+      "bbox": {
+        "left": 747,
+        "top": 399,
+        "width": 53,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 9
+    },
+    {
+      "index": 107,
+      "text": "कोई",
+      "confidence": 93.0,
+      "bbox": {
+        "left": 819,
+        "top": 385,
+        "width": 41,
+        "height": 45
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 10
+    },
+    {
+      "index": 108,
+      "text": "a",
+      "confidence": 34.0,
+      "bbox": {
+        "left": 815,
+        "top": 391,
+        "width": 196,
+        "height": 35
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 11
+    },
+    {
+      "index": 109,
+      "text": "|",
+      "confidence": 59.0,
+      "bbox": {
+        "left": 1074,
+        "top": 393,
+        "width": 8,
+        "height": 89
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 13,
+      "word_num": 12
+    },
+    {
+      "index": 111,
+      "text": ":",
+      "confidence": 28.0,
+      "bbox": {
+        "left": 32,
+        "top": 469,
+        "width": 2,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 1
+    },
+    {
+      "index": 112,
+      "text": "a",
+      "confidence": 62.0,
+      "bbox": {
+        "left": 109,
+        "top": 468,
+        "width": 42,
+        "height": 26
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 2
+    },
+    {
+      "index": 113,
+      "text": "सिंचाई",
+      "confidence": 96.0,
+      "bbox": {
+        "left": 477,
+        "top": 479,
+        "width": 44,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 3
+    },
+    {
+      "index": 114,
+      "text": "का",
+      "confidence": 87.0,
+      "bbox": {
+        "left": 528,
+        "top": 484,
+        "width": 20,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 4
+    },
+    {
+      "index": 115,
+      "text": "जे",
+      "confidence": 24.0,
+      "bbox": {
+        "left": 720,
+        "top": 476,
+        "width": 6,
+        "height": 29
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 5
+    },
+    {
+      "index": 116,
+      "text": "este",
+      "confidence": 21.0,
+      "bbox": {
+        "left": 810,
+        "top": 465,
+        "width": 67,
+        "height": 41
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 6
+    },
+    {
+      "index": 117,
+      "text": "+|",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 1041,
+        "top": 488,
+        "width": 4,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 7
+    },
+    {
+      "index": 118,
+      "text": "4",
+      "confidence": 31.0,
+      "bbox": {
+        "left": 1082,
+        "top": 479,
+        "width": 4,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 14,
+      "word_num": 8
+    },
+    {
+      "index": 120,
+      "text": "—",
+      "confidence": 7.0,
+      "bbox": {
+        "left": 9,
+        "top": 498,
+        "width": 29,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 1
+    },
+    {
+      "index": 121,
+      "text": "थक",
+      "confidence": 37.0,
+      "bbox": {
+        "left": 116,
+        "top": 491,
+        "width": 22,
+        "height": 40
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 2
+    },
+    {
+      "index": 122,
+      "text": "|",
+      "confidence": 68.0,
+      "bbox": {
+        "left": 163,
+        "top": 483,
+        "width": 28,
+        "height": 48
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 3
+    },
+    {
+      "index": 123,
+      "text": "=",
+      "confidence": 57.0,
+      "bbox": {
+        "left": 223,
+        "top": 487,
+        "width": 40,
+        "height": 36
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 4
+    },
+    {
+      "index": 124,
+      "text": "|",
+      "confidence": 81.0,
+      "bbox": {
+        "left": 307,
+        "top": 483,
+        "width": 36,
+        "height": 48
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 5
+    },
+    {
+      "index": 125,
+      "text": "a",
+      "confidence": 22.0,
+      "bbox": {
+        "left": 367,
+        "top": 495,
+        "width": 29,
+        "height": 21
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 6
+    },
+    {
+      "index": 126,
+      "text": "किस्म",
+      "confidence": 89.0,
+      "bbox": {
+        "left": 403,
+        "top": 496,
+        "width": 37,
+        "height": 16
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 7
+    },
+    {
+      "index": 127,
+      "text": "साधन",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 487,
+        "top": 501,
+        "width": 49,
+        "height": 30
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 8
+    },
+    {
+      "index": 128,
+      "text": "लाशाता",
+      "confidence": 71.0,
+      "bbox": {
+        "left": 704,
+        "top": 498,
+        "width": 56,
+        "height": 34
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 9
+    },
+    {
+      "index": 129,
+      "text": "टिप्पणी",
+      "confidence": 93.0,
+      "bbox": {
+        "left": 950,
+        "top": 500,
+        "width": 58,
+        "height": 34
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 15,
+      "word_num": 10
+    },
+    {
+      "index": 131,
+      "text": "|",
+      "confidence": 73.0,
+      "bbox": {
+        "left": 9,
+        "top": 513,
+        "width": 4,
+        "height": 30
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 16,
+      "word_num": 1
+    },
+    {
+      "index": 132,
+      "text": "|",
+      "confidence": 76.0,
+      "bbox": {
+        "left": 18,
+        "top": 517,
+        "width": 2,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 16,
+      "word_num": 2
+    },
+    {
+      "index": 133,
+      "text": "का",
+      "confidence": 90.0,
+      "bbox": {
+        "left": 818,
+        "top": 529,
+        "width": 20,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 16,
+      "word_num": 3
+    },
+    {
+      "index": 134,
+      "text": "नाम",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 844,
+        "top": 529,
+        "width": 28,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 16,
+      "word_num": 4
+    },
+    {
+      "index": 136,
+      "text": "|",
+      "confidence": 88.0,
+      "bbox": {
+        "left": 163,
+        "top": 520,
+        "width": 13,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 1
+    },
+    {
+      "index": 137,
+      "text": "है.",
+      "confidence": 84.0,
+      "bbox": {
+        "left": 185,
+        "top": 520,
+        "width": 29,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 2
+    },
+    {
+      "index": 138,
+      "text": "|",
+      "confidence": 77.0,
+      "bbox": {
+        "left": 223,
+        "top": 520,
+        "width": 11,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 3
+    },
+    {
+      "index": 139,
+      "text": "on",
+      "confidence": 62.0,
+      "bbox": {
+        "left": 243,
+        "top": 520,
+        "width": 22,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 4
+    },
+    {
+      "index": 140,
+      "text": "|",
+      "confidence": 70.0,
+      "bbox": {
+        "left": 277,
+        "top": 520,
+        "width": 14,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 5
+    },
+    {
+      "index": 141,
+      "text": "L=",
+      "confidence": 72.0,
+      "bbox": {
+        "left": 564,
+        "top": 526,
+        "width": 119,
+        "height": 34
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 6
+    },
+    {
+      "index": 142,
+      "text": "|",
+      "confidence": 23.0,
+      "bbox": {
+        "left": 626,
+        "top": 522,
+        "width": 8,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 7
+    },
+    {
+      "index": 143,
+      "text": "कै",
+      "confidence": 51.0,
+      "bbox": {
+        "left": 646,
+        "top": 522,
+        "width": 23,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 8
+    },
+    {
+      "index": 144,
+      "text": "|",
+      "confidence": 73.0,
+      "bbox": {
+        "left": 681,
+        "top": 522,
+        "width": 7,
+        "height": 51
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 17,
+      "word_num": 9
+    },
+    {
+      "index": 146,
+      "text": "JMNM",
+      "confidence": 25.0,
+      "bbox": {
+        "left": 28,
+        "top": 590,
+        "width": 6,
+        "height": 4
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 18,
+      "word_num": 1
+    },
+    {
+      "index": 147,
+      "text": "355.",
+      "confidence": 26.0,
+      "bbox": {
+        "left": 167,
+        "top": 559,
+        "width": 914,
+        "height": 52
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 18,
+      "word_num": 2
+    },
+    {
+      "index": 149,
+      "text": "Le",
+      "confidence": 38.0,
+      "bbox": {
+        "left": 162,
+        "top": 602,
+        "width": 43,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 1
+    },
+    {
+      "index": 150,
+      "text": "[ia",
+      "confidence": 45.0,
+      "bbox": {
+        "left": 222,
+        "top": 602,
+        "width": 44,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 2
+    },
+    {
+      "index": 151,
+      "text": "००",
+      "confidence": 43.0,
+      "bbox": {
+        "left": 298,
+        "top": 602,
+        "width": 33,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 3
+    },
+    {
+      "index": 152,
+      "text": "|",
+      "confidence": 63.0,
+      "bbox": {
+        "left": 344,
+        "top": 602,
+        "width": 6,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 4
+    },
+    {
+      "index": 153,
+      "text": "set",
+      "confidence": 46.0,
+      "bbox": {
+        "left": 362,
+        "top": 602,
+        "width": 68,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 5
+    },
+    {
+      "index": 154,
+      "text": "जाखि",
+      "confidence": 26.0,
+      "bbox": {
+        "left": 472,
+        "top": 602,
+        "width": 55,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 6
+    },
+    {
+      "index": 155,
+      "text": "3०",
+      "confidence": 39.0,
+      "bbox": {
+        "left": 563,
+        "top": 602,
+        "width": 51,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 7
+    },
+    {
+      "index": 156,
+      "text": "|",
+      "confidence": 8.0,
+      "bbox": {
+        "left": 627,
+        "top": 602,
+        "width": 10,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 8
+    },
+    {
+      "index": 157,
+      "text": "८०",
+      "confidence": 8.0,
+      "bbox": {
+        "left": 645,
+        "top": 602,
+        "width": 24,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 9
+    },
+    {
+      "index": 158,
+      "text": "|",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 677,
+        "top": 602,
+        "width": 10,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 10
+    },
+    {
+      "index": 159,
+      "text": "4",
+      "confidence": 73.0,
+      "bbox": {
+        "left": 1044,
+        "top": 623,
+        "width": 34,
+        "height": 134
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 19,
+      "word_num": 11
+    },
+    {
+      "index": 161,
+      "text": "7",
+      "confidence": 54.0,
+      "bbox": {
+        "left": 27,
+        "top": 700,
+        "width": 2,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 1
+    },
+    {
+      "index": 162,
+      "text": "|",
+      "confidence": 54.0,
+      "bbox": {
+        "left": 162,
+        "top": 653,
+        "width": 10,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 2
+    },
+    {
+      "index": 163,
+      "text": "०",
+      "confidence": 54.0,
+      "bbox": {
+        "left": 189,
+        "top": 657,
+        "width": 15,
+        "height": 50
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 3
+    },
+    {
+      "index": 164,
+      "text": "|",
+      "confidence": 81.0,
+      "bbox": {
+        "left": 217,
+        "top": 653,
+        "width": 15,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 4
+    },
+    {
+      "index": 165,
+      "text": "०",
+      "confidence": 68.0,
+      "bbox": {
+        "left": 249,
+        "top": 653,
+        "width": 20,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 5
+    },
+    {
+      "index": 166,
+      "text": "foo]",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 285,
+        "top": 653,
+        "width": 62,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 6
+    },
+    {
+      "index": 167,
+      "text": "sr",
+      "confidence": 11.0,
+      "bbox": {
+        "left": 365,
+        "top": 653,
+        "width": 38,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 7
+    },
+    {
+      "index": 168,
+      "text": "नल!",
+      "confidence": 25.0,
+      "bbox": {
+        "left": 453,
+        "top": 653,
+        "width": 98,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 8
+    },
+    {
+      "index": 169,
+      "text": "|",
+      "confidence": 59.0,
+      "bbox": {
+        "left": 556,
+        "top": 653,
+        "width": 13,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 9
+    },
+    {
+      "index": 170,
+      "text": "45",
+      "confidence": 55.0,
+      "bbox": {
+        "left": 587,
+        "top": 653,
+        "width": 24,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 10
+    },
+    {
+      "index": 171,
+      "text": "०८",
+      "confidence": 35.0,
+      "bbox": {
+        "left": 633,
+        "top": 653,
+        "width": 34,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 11
+    },
+    {
+      "index": 172,
+      "text": "|",
+      "confidence": 71.0,
+      "bbox": {
+        "left": 673,
+        "top": 653,
+        "width": 14,
+        "height": 74
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 20,
+      "word_num": 12
+    },
+    {
+      "index": 174,
+      "text": "ja4",
+      "confidence": 39.0,
+      "bbox": {
+        "left": 110,
+        "top": 734,
+        "width": 34,
+        "height": 16
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 1
+    },
+    {
+      "index": 175,
+      "text": "|",
+      "confidence": 87.0,
+      "bbox": {
+        "left": 161,
+        "top": 720,
+        "width": 14,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 2
+    },
+    {
+      "index": 176,
+      "text": "०",
+      "confidence": 71.0,
+      "bbox": {
+        "left": 187,
+        "top": 735,
+        "width": 12,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 3
+    },
+    {
+      "index": 177,
+      "text": "|",
+      "confidence": 83.0,
+      "bbox": {
+        "left": 216,
+        "top": 720,
+        "width": 15,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 4
+    },
+    {
+      "index": 178,
+      "text": "20",
+      "confidence": 83.0,
+      "bbox": {
+        "left": 239,
+        "top": 733,
+        "width": 28,
+        "height": 14
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 5
+    },
+    {
+      "index": 179,
+      "text": "\\eo|",
+      "confidence": 21.0,
+      "bbox": {
+        "left": 302,
+        "top": 736,
+        "width": 25,
+        "height": 11
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 6
+    },
+    {
+      "index": 180,
+      "text": "aah",
+      "confidence": 41.0,
+      "bbox": {
+        "left": 363,
+        "top": 724,
+        "width": 58,
+        "height": 25
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 7
+    },
+    {
+      "index": 181,
+      "text": "बारिश",
+      "confidence": 42.0,
+      "bbox": {
+        "left": 468,
+        "top": 727,
+        "width": 61,
+        "height": 25
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 8
+    },
+    {
+      "index": 182,
+      "text": "4",
+      "confidence": 37.0,
+      "bbox": {
+        "left": 548,
+        "top": 720,
+        "width": 15,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 9
+    },
+    {
+      "index": 183,
+      "text": "36",
+      "confidence": 66.0,
+      "bbox": {
+        "left": 581,
+        "top": 736,
+        "width": 27,
+        "height": 14
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 10
+    },
+    {
+      "index": 184,
+      "text": "|",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 628,
+        "top": 720,
+        "width": 9,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 11
+    },
+    {
+      "index": 185,
+      "text": "००",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 642,
+        "top": 740,
+        "width": 25,
+        "height": 11
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 12
+    },
+    {
+      "index": 186,
+      "text": "|",
+      "confidence": 56.0,
+      "bbox": {
+        "left": 680,
+        "top": 720,
+        "width": 9,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 13
+    },
+    {
+      "index": 187,
+      "text": "30",
+      "confidence": 92.0,
+      "bbox": {
+        "left": 697,
+        "top": 739,
+        "width": 27,
+        "height": 14
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 14
+    },
+    {
+      "index": 188,
+      "text": "००",
+      "confidence": 94.0,
+      "bbox": {
+        "left": 742,
+        "top": 743,
+        "width": 23,
+        "height": 10
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 15
+    },
+    {
+      "index": 189,
+      "text": "|",
+      "confidence": 91.0,
+      "bbox": {
+        "left": 774,
+        "top": 720,
+        "width": 12,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 16
+    },
+    {
+      "index": 190,
+      "text": "राम",
+      "confidence": 92.0,
+      "bbox": {
+        "left": 796,
+        "top": 720,
+        "width": 31,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 17
+    },
+    {
+      "index": 191,
+      "text": "कुमार",
+      "confidence": 44.0,
+      "bbox": {
+        "left": 837,
+        "top": 720,
+        "width": 53,
+        "height": 44
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 18
+    },
+    {
+      "index": 192,
+      "text": "=",
+      "confidence": 14.0,
+      "bbox": {
+        "left": 970,
+        "top": 730,
+        "width": 31,
+        "height": 22
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 19
+    },
+    {
+      "index": 193,
+      "text": "|S",
+      "confidence": 18.0,
+      "bbox": {
+        "left": 1079,
+        "top": 752,
+        "width": 7,
+        "height": 9
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 21,
+      "word_num": 20
+    },
+    {
+      "index": 195,
+      "text": "Z|",
+      "confidence": 46.0,
+      "bbox": {
+        "left": 542,
+        "top": 737,
+        "width": 23,
+        "height": 35
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 22,
+      "word_num": 1
+    },
+    {
+      "index": 196,
+      "text": "‘",
+      "confidence": 27.0,
+      "bbox": {
+        "left": 1077,
+        "top": 762,
+        "width": 9,
+        "height": 9
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 22,
+      "word_num": 2
+    },
+    {
+      "index": 198,
+      "text": "Lo",
+      "confidence": 64.0,
+      "bbox": {
+        "left": 161,
+        "top": 755,
+        "width": 37,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 1
+    },
+    {
+      "index": 199,
+      "text": "[2",
+      "confidence": 56.0,
+      "bbox": {
+        "left": 215,
+        "top": 755,
+        "width": 44,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 2
+    },
+    {
+      "index": 200,
+      "text": "००",
+      "confidence": 34.0,
+      "bbox": {
+        "left": 293,
+        "top": 755,
+        "width": 33,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 3
+    },
+    {
+      "index": 201,
+      "text": "|",
+      "confidence": 81.0,
+      "bbox": {
+        "left": 334,
+        "top": 755,
+        "width": 10,
+        "height": 73
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 4
+    },
+    {
+      "index": 202,
+      "text": "went",
+      "confidence": 55.0,
+      "bbox": {
+        "left": 469,
+        "top": 785,
+        "width": 68,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 5
+    },
+    {
+      "index": 203,
+      "text": "|",
+      "confidence": 61.0,
+      "bbox": {
+        "left": 555,
+        "top": 758,
+        "width": 12,
+        "height": 72
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 6
+    },
+    {
+      "index": 204,
+      "text": "45",
+      "confidence": 77.0,
+      "bbox": {
+        "left": 579,
+        "top": 758,
+        "width": 30,
+        "height": 72
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 7
+    },
+    {
+      "index": 205,
+      "text": "|",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 627,
+        "top": 758,
+        "width": 6,
+        "height": 72
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 8
+    },
+    {
+      "index": 206,
+      "text": "co,",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 631,
+        "top": 762,
+        "width": 50,
+        "height": 52
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 9
+    },
+    {
+      "index": 207,
+      "text": "J",
+      "confidence": 65.0,
+      "bbox": {
+        "left": 1070,
+        "top": 780,
+        "width": 16,
+        "height": 30
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 23,
+      "word_num": 10
+    },
+    {
+      "index": 209,
+      "text": ":",
+      "confidence": 22.0,
+      "bbox": {
+        "left": 532,
+        "top": 819,
+        "width": 2,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 24,
+      "word_num": 1
+    },
+    {
+      "index": 210,
+      "text": "ir",
+      "confidence": 31.0,
+      "bbox": {
+        "left": 1074,
+        "top": 810,
+        "width": 7,
+        "height": 6
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 24,
+      "word_num": 2
+    },
+    {
+      "index": 212,
+      "text": ":",
+      "confidence": 29.0,
+      "bbox": {
+        "left": 21,
+        "top": 906,
+        "width": 12,
+        "height": 7
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 1
+    },
+    {
+      "index": 213,
+      "text": "fre",
+      "confidence": 48.0,
+      "bbox": {
+        "left": 219,
+        "top": 876,
+        "width": 53,
+        "height": 79
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 2
+    },
+    {
+      "index": 214,
+      "text": "feof",
+      "confidence": 48.0,
+      "bbox": {
+        "left": 278,
+        "top": 876,
+        "width": 86,
+        "height": 79
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 3
+    },
+    {
+      "index": 215,
+      "text": "जि",
+      "confidence": 29.0,
+      "bbox": {
+        "left": 456,
+        "top": 880,
+        "width": 89,
+        "height": 55
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 4
+    },
+    {
+      "index": 216,
+      "text": "|",
+      "confidence": 77.0,
+      "bbox": {
+        "left": 618,
+        "top": 882,
+        "width": 11,
+        "height": 54
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 5
+    },
+    {
+      "index": 217,
+      "text": "-.«",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 678,
+        "top": 876,
+        "width": 99,
+        "height": 79
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 6
+    },
+    {
+      "index": 218,
+      "text": "«\"।",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 851,
+        "top": 876,
+        "width": 84,
+        "height": 79
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 7
+    },
+    {
+      "index": 219,
+      "text": "जे",
+      "confidence": 17.0,
+      "bbox": {
+        "left": 984,
+        "top": 876,
+        "width": 70,
+        "height": 79
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 8
+    },
+    {
+      "index": 220,
+      "text": "!",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 1073,
+        "top": 900,
+        "width": 13,
+        "height": 66
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 25,
+      "word_num": 9
+    },
+    {
+      "index": 222,
+      "text": ".",
+      "confidence": 14.0,
+      "bbox": {
+        "left": 12,
+        "top": 993,
+        "width": 3,
+        "height": 1
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 1
+    },
+    {
+      "index": 223,
+      "text": "उपरोक्त",
+      "confidence": 80.0,
+      "bbox": {
+        "left": 106,
+        "top": 972,
+        "width": 65,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 2
+    },
+    {
+      "index": 224,
+      "text": "खसरा",
+      "confidence": 93.0,
+      "bbox": {
+        "left": 179,
+        "top": 977,
+        "width": 49,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 3
+    },
+    {
+      "index": 225,
+      "text": "संख्या...",
+      "confidence": 65.0,
+      "bbox": {
+        "left": 236,
+        "top": 973,
+        "width": 47,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 4
+    },
+    {
+      "index": 226,
+      "text": "।2/",
+      "confidence": 11.0,
+      "bbox": {
+        "left": 321,
+        "top": 959,
+        "width": 35,
+        "height": 45
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 5
+    },
+    {
+      "index": 227,
+      "text": "से",
+      "confidence": 35.0,
+      "bbox": {
+        "left": 369,
+        "top": 959,
+        "width": 32,
+        "height": 45
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 6
+    },
+    {
+      "index": 228,
+      "text": "26",
+      "confidence": 43.0,
+      "bbox": {
+        "left": 424,
+        "top": 973,
+        "width": 38,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 7
+    },
+    {
+      "index": 229,
+      "text": "dh",
+      "confidence": 40.0,
+      "bbox": {
+        "left": 477,
+        "top": 959,
+        "width": 34,
+        "height": 45
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 8
+    },
+    {
+      "index": 230,
+      "text": ")",
+      "confidence": 38.0,
+      "bbox": {
+        "left": 541,
+        "top": 992,
+        "width": 5,
+        "height": 1
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 9
+    },
+    {
+      "index": 231,
+      "text": "ga",
+      "confidence": 29.0,
+      "bbox": {
+        "left": 616,
+        "top": 979,
+        "width": 52,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 10
+    },
+    {
+      "index": 232,
+      "text": "aaws",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 677,
+        "top": 974,
+        "width": 60,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 11
+    },
+    {
+      "index": 233,
+      "text": "2-5०",
+      "confidence": 58.0,
+      "bbox": {
+        "left": 782,
+        "top": 975,
+        "width": 60,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 12
+    },
+    {
+      "index": 234,
+      "text": "छकड़ा",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 753,
+        "top": 975,
+        "width": 241,
+        "height": 22
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 26,
+      "word_num": 13
+    },
+    {
+      "index": 236,
+      "text": "t",
+      "confidence": 42.0,
+      "bbox": {
+        "left": 22,
+        "top": 1027,
+        "width": 5,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 27,
+      "word_num": 1
+    },
+    {
+      "index": 237,
+      "text": "शब्दों",
+      "confidence": 89.0,
+      "bbox": {
+        "left": 106,
+        "top": 1015,
+        "width": 41,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 27,
+      "word_num": 2
+    },
+    {
+      "index": 238,
+      "text": "में-...दो'",
+      "confidence": 48.0,
+      "bbox": {
+        "left": 155,
+        "top": 1015,
+        "width": 14,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 27,
+      "word_num": 3
+    },
+    {
+      "index": 239,
+      "text": "was",
+      "confidence": 56.0,
+      "bbox": {
+        "left": 261,
+        "top": 1001,
+        "width": 50,
+        "height": 49
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 27,
+      "word_num": 4
+    },
+    {
+      "index": 240,
+      "text": "vere",
+      "confidence": 36.0,
+      "bbox": {
+        "left": 330,
+        "top": 1001,
+        "width": 62,
+        "height": 49
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 27,
+      "word_num": 5
+    },
+    {
+      "index": 241,
+      "text": "डिससिला",
+      "confidence": 32.0,
+      "bbox": {
+        "left": 411,
+        "top": 1001,
+        "width": 99,
+        "height": 49
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 27,
+      "word_num": 6
+    },
+    {
+      "index": 242,
+      "text": "काना",
+      "confidence": 25.0,
+      "bbox": {
+        "left": 525,
+        "top": 1001,
+        "width": 55,
+        "height": 49
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 27,
+      "word_num": 7
+    },
+    {
+      "index": 244,
+      "text": "2",
+      "confidence": 61.0,
+      "bbox": {
+        "left": 18,
+        "top": 1058,
+        "width": 10,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 28,
+      "word_num": 1
+    },
+    {
+      "index": 245,
+      "text": "frim__I2/o5/2c0a3",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 105,
+        "top": 1049,
+        "width": 377,
+        "height": 31
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 28,
+      "word_num": 2
+    },
+    {
+      "index": 246,
+      "text": "4",
+      "confidence": 16.0,
+      "bbox": {
+        "left": 496,
+        "top": 1057,
+        "width": 40,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 28,
+      "word_num": 3
+    },
+    {
+      "index": 247,
+      "text": "-",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 610,
+        "top": 1077,
+        "width": 106,
+        "height": 1
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 28,
+      "word_num": 4
+    },
+    {
+      "index": 248,
+      "text": "———$—$",
+      "confidence": 12.0,
+      "bbox": {
+        "left": 767,
+        "top": 1077,
+        "width": 231,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 28,
+      "word_num": 5
+    },
+    {
+      "index": 250,
+      "text": ",",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 37,
+        "top": 1120,
+        "width": 3,
+        "height": 4
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 1
+    },
+    {
+      "index": 251,
+      "text": "तैयार",
+      "confidence": 69.0,
+      "bbox": {
+        "left": 104,
+        "top": 1103,
+        "width": 39,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 2
+    },
+    {
+      "index": 252,
+      "text": "करने",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 149,
+        "top": 1104,
+        "width": 37,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 3
+    },
+    {
+      "index": 253,
+      "text": "वाले",
+      "confidence": 96.0,
+      "bbox": {
+        "left": 192,
+        "top": 1104,
+        "width": 32,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 4
+    },
+    {
+      "index": 254,
+      "text": "के",
+      "confidence": 96.0,
+      "bbox": {
+        "left": 231,
+        "top": 1104,
+        "width": 15,
+        "height": 16
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 5
+    },
+    {
+      "index": 255,
+      "text": "हस्ताक्षर",
+      "confidence": 89.0,
+      "bbox": {
+        "left": 253,
+        "top": 1109,
+        "width": 59,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 6
+    },
+    {
+      "index": 256,
+      "text": "aa",
+      "confidence": 39.0,
+      "bbox": {
+        "left": 484,
+        "top": 1085,
+        "width": 66,
+        "height": 45
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 7
+    },
+    {
+      "index": 257,
+      "text": "के",
+      "confidence": 96.0,
+      "bbox": {
+        "left": 557,
+        "top": 1105,
+        "width": 16,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 8
+    },
+    {
+      "index": 258,
+      "text": "हस्ताक्षर",
+      "confidence": 92.0,
+      "bbox": {
+        "left": 579,
+        "top": 1111,
+        "width": 60,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 9
+    },
+    {
+      "index": 259,
+      "text": "'तहसीलदार",
+      "confidence": 86.0,
+      "bbox": {
+        "left": 779,
+        "top": 1107,
+        "width": 82,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 10
+    },
+    {
+      "index": 260,
+      "text": "के",
+      "confidence": 95.0,
+      "bbox": {
+        "left": 868,
+        "top": 1108,
+        "width": 16,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 11
+    },
+    {
+      "index": 261,
+      "text": "हस्ताक्षर",
+      "confidence": 85.0,
+      "bbox": {
+        "left": 890,
+        "top": 1113,
+        "width": 61,
+        "height": 13
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 12
+    },
+    {
+      "index": 262,
+      "text": ":",
+      "confidence": 19.0,
+      "bbox": {
+        "left": 1057,
+        "top": 1118,
+        "width": 3,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 29,
+      "word_num": 13
+    },
+    {
+      "index": 264,
+      "text": "पटवारी",
+      "confidence": 51.0,
+      "bbox": {
+        "left": 152,
+        "top": 1177,
+        "width": 60,
+        "height": 29
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 30,
+      "word_num": 1
+    },
+    {
+      "index": 265,
+      "text": "कानूनगों",
+      "confidence": 26.0,
+      "bbox": {
+        "left": 490,
+        "top": 1179,
+        "width": 68,
+        "height": 30
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 30,
+      "word_num": 2
+    },
+    {
+      "index": 266,
+      "text": "'तहसीलदार",
+      "confidence": 86.0,
+      "bbox": {
+        "left": 778,
+        "top": 1188,
+        "width": 82,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 30,
+      "word_num": 3
+    },
+    {
+      "index": 267,
+      "text": "बिलारी",
+      "confidence": 90.0,
+      "bbox": {
+        "left": 867,
+        "top": 1188,
+        "width": 52,
+        "height": 17
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 30,
+      "word_num": 4
+    },
+    {
+      "index": 268,
+      "text": "|",
+      "confidence": 76.0,
+      "bbox": {
+        "left": 1082,
+        "top": 1190,
+        "width": 1,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 30,
+      "word_num": 5
+    },
+    {
+      "index": 270,
+      "text": "he",
+      "confidence": 39.0,
+      "bbox": {
+        "left": 8,
+        "top": 1205,
+        "width": 15,
+        "height": 27
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 31,
+      "word_num": 1
+    },
+    {
+      "index": 271,
+      "text": "UE",
+      "confidence": 53.0,
+      "bbox": {
+        "left": 184,
+        "top": 1203,
+        "width": 47,
+        "height": 31
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 31,
+      "word_num": 2
+    },
+    {
+      "index": 272,
+      "text": "ER",
+      "confidence": 35.0,
+      "bbox": {
+        "left": 243,
+        "top": 1203,
+        "width": 27,
+        "height": 31
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 31,
+      "word_num": 3
+    },
+    {
+      "index": 273,
+      "text": "af,",
+      "confidence": 34.0,
+      "bbox": {
+        "left": 212,
+        "top": 1220,
+        "width": 53,
+        "height": 21
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 31,
+      "word_num": 4
+    },
+    {
+      "index": 274,
+      "text": "ui",
+      "confidence": 29.0,
+      "bbox": {
+        "left": 525,
+        "top": 1204,
+        "width": 10,
+        "height": 33
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 31,
+      "word_num": 5
+    },
+    {
+      "index": 276,
+      "text": "iS",
+      "confidence": 23.0,
+      "bbox": {
+        "left": 168,
+        "top": 1223,
+        "width": 44,
+        "height": 45
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 1
+    },
+    {
+      "index": 277,
+      "text": "We,",
+      "confidence": 48.0,
+      "bbox": {
+        "left": 219,
+        "top": 1254,
+        "width": 38,
+        "height": 21
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 2
+    },
+    {
+      "index": 278,
+      "text": "Se",
+      "confidence": 23.0,
+      "bbox": {
+        "left": 259,
+        "top": 1228,
+        "width": 39,
+        "height": 55
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 3
+    },
+    {
+      "index": 279,
+      "text": "afr",
+      "confidence": 47.0,
+      "bbox": {
+        "left": 543,
+        "top": 1252,
+        "width": 47,
+        "height": 49
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 4
+    },
+    {
+      "index": 280,
+      "text": "राजस्व",
+      "confidence": 82.0,
+      "bbox": {
+        "left": 748,
+        "top": 1270,
+        "width": 56,
+        "height": 14
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 5
+    },
+    {
+      "index": 281,
+      "text": "afc",
+      "confidence": 50.0,
+      "bbox": {
+        "left": 816,
+        "top": 1264,
+        "width": 70,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 6
+    },
+    {
+      "index": 282,
+      "text": "सत्यापित",
+      "confidence": 91.0,
+      "bbox": {
+        "left": 897,
+        "top": 1264,
+        "width": 74,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 7
+    },
+    {
+      "index": 283,
+      "text": "j",
+      "confidence": 77.0,
+      "bbox": {
+        "left": 1077,
+        "top": 1272,
+        "width": 5,
+        "height": 30
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 32,
+      "word_num": 8
+    },
+    {
+      "index": 285,
+      "text": "है",
+      "confidence": 34.0,
+      "bbox": {
+        "left": 26,
+        "top": 1270,
+        "width": 20,
+        "height": 58
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 1
+    },
+    {
+      "index": 286,
+      "text": "हू",
+      "confidence": 31.0,
+      "bbox": {
+        "left": 50,
+        "top": 1293,
+        "width": 16,
+        "height": 35
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 2
+    },
+    {
+      "index": 287,
+      "text": "दर",
+      "confidence": 8.0,
+      "bbox": {
+        "left": 152,
+        "top": 1283,
+        "width": 17,
+        "height": 46
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 3
+    },
+    {
+      "index": 288,
+      "text": "x",
+      "confidence": 67.0,
+      "bbox": {
+        "left": 293,
+        "top": 1291,
+        "width": 13,
+        "height": 12
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 4
+    },
+    {
+      "index": 289,
+      "text": "सत्यापित",
+      "confidence": 41.0,
+      "bbox": {
+        "left": 444,
+        "top": 1270,
+        "width": 83,
+        "height": 60
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 5
+    },
+    {
+      "index": 290,
+      "text": "तक",
+      "confidence": 53.0,
+      "bbox": {
+        "left": 468,
+        "top": 1295,
+        "width": 34,
+        "height": 76
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 6
+    },
+    {
+      "index": 291,
+      "text": "te",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 512,
+        "top": 1295,
+        "width": 20,
+        "height": 76
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 7
+    },
+    {
+      "index": 292,
+      "text": "|es",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 537,
+        "top": 1295,
+        "width": 33,
+        "height": 76
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 8
+    },
+    {
+      "index": 293,
+      "text": "[209",
+      "confidence": 14.0,
+      "bbox": {
+        "left": 575,
+        "top": 1295,
+        "width": 58,
+        "height": 76
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 9
+    },
+    {
+      "index": 294,
+      "text": "प्रतिलिपि",
+      "confidence": 90.0,
+      "bbox": {
+        "left": 748,
+        "top": 1300,
+        "width": 73,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 10
+    },
+    {
+      "index": 295,
+      "text": "निर्गत",
+      "confidence": 89.0,
+      "bbox": {
+        "left": 835,
+        "top": 1300,
+        "width": 47,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 11
+    },
+    {
+      "index": 296,
+      "text": "दिनांक",
+      "confidence": 96.0,
+      "bbox": {
+        "left": 896,
+        "top": 1302,
+        "width": 49,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 12
+    },
+    {
+      "index": 297,
+      "text": "रफ",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 1051,
+        "top": 1297,
+        "width": 14,
+        "height": 35
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 13
+    },
+    {
+      "index": 298,
+      "text": "|",
+      "confidence": 77.0,
+      "bbox": {
+        "left": 1081,
+        "top": 1294,
+        "width": 5,
+        "height": 39
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 33,
+      "word_num": 14
+    },
+    {
+      "index": 300,
+      "text": "2",
+      "confidence": 18.0,
+      "bbox": {
+        "left": 235,
+        "top": 1331,
+        "width": 14,
+        "height": 6
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 34,
+      "word_num": 1
+    },
+    {
+      "index": 301,
+      "text": "eae",
+      "confidence": 34.0,
+      "bbox": {
+        "left": 442,
+        "top": 1327,
+        "width": 56,
+        "height": 24
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 34,
+      "word_num": 2
+    },
+    {
+      "index": 302,
+      "text": "(AEE",
+      "confidence": 16.0,
+      "bbox": {
+        "left": 517,
+        "top": 1311,
+        "width": 120,
+        "height": 34
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 34,
+      "word_num": 3
+    },
+    {
+      "index": 303,
+      "text": ";",
+      "confidence": 46.0,
+      "bbox": {
+        "left": 844,
+        "top": 1322,
+        "width": 2,
+        "height": 4
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 34,
+      "word_num": 4
+    },
+    {
+      "index": 304,
+      "text": "!",
+      "confidence": 73.0,
+      "bbox": {
+        "left": 1037,
+        "top": 1340,
+        "width": 3,
+        "height": 1
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 34,
+      "word_num": 5
+    },
+    {
+      "index": 306,
+      "text": "oe",
+      "confidence": 9.0,
+      "bbox": {
+        "left": 42,
+        "top": 1338,
+        "width": 74,
+        "height": 18
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 35,
+      "word_num": 1
+    },
+    {
+      "index": 307,
+      "text": "SExy",
+      "confidence": 28.0,
+      "bbox": {
+        "left": 221,
+        "top": 1338,
+        "width": 81,
+        "height": 21
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 35,
+      "word_num": 2
+    },
+    {
+      "index": 308,
+      "text": "4",
+      "confidence": 73.0,
+      "bbox": {
+        "left": 527,
+        "top": 1355,
+        "width": 3,
+        "height": 6
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 35,
+      "word_num": 3
+    },
+    {
+      "index": 309,
+      "text": "255:",
+      "confidence": 42.0,
+      "bbox": {
+        "left": 748,
+        "top": 1331,
+        "width": 221,
+        "height": 33
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 35,
+      "word_num": 4
+    },
+    {
+      "index": 310,
+      "text": "हि",
+      "confidence": 36.0,
+      "bbox": {
+        "left": 1004,
+        "top": 1361,
+        "width": 2,
+        "height": 2
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 35,
+      "word_num": 5
+    },
+    {
+      "index": 311,
+      "text": ";",
+      "confidence": 35.0,
+      "bbox": {
+        "left": 1078,
+        "top": 1353,
+        "width": 3,
+        "height": 6
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 35,
+      "word_num": 6
+    },
+    {
+      "index": 313,
+      "text": "Ae",
+      "confidence": 45.0,
+      "bbox": {
+        "left": 7,
+        "top": 1421,
+        "width": 37,
+        "height": 26
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 1
+    },
+    {
+      "index": 314,
+      "text": "°F",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 91,
+        "top": 1421,
+        "width": 146,
+        "height": 25
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 2
+    },
+    {
+      "index": 315,
+      "text": "ee",
+      "confidence": 38.0,
+      "bbox": {
+        "left": 346,
+        "top": 1432,
+        "width": 6,
+        "height": 3
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 3
+    },
+    {
+      "index": 316,
+      "text": "eee",
+      "confidence": 27.0,
+      "bbox": {
+        "left": 420,
+        "top": 1428,
+        "width": 130,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 4
+    },
+    {
+      "index": 317,
+      "text": "tS",
+      "confidence": 0.0,
+      "bbox": {
+        "left": 603,
+        "top": 1423,
+        "width": 16,
+        "height": 20
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 5
+    },
+    {
+      "index": 318,
+      "text": "a",
+      "confidence": 40.0,
+      "bbox": {
+        "left": 637,
+        "top": 1438,
+        "width": 27,
+        "height": 9
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 6
+    },
+    {
+      "index": 319,
+      "text": "ee",
+      "confidence": 22.0,
+      "bbox": {
+        "left": 727,
+        "top": 1428,
+        "width": 54,
+        "height": 19
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 7
+    },
+    {
+      "index": 320,
+      "text": "ae",
+      "confidence": 37.0,
+      "bbox": {
+        "left": 832,
+        "top": 1440,
+        "width": 39,
+        "height": 7
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 8
+    },
+    {
+      "index": 321,
+      "text": "7,",
+      "confidence": 37.0,
+      "bbox": {
+        "left": 947,
+        "top": 1414,
+        "width": 70,
+        "height": 34
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 9
+    },
+    {
+      "index": 322,
+      "text": "S34",
+      "confidence": 13.0,
+      "bbox": {
+        "left": 1010,
+        "top": 1379,
+        "width": 71,
+        "height": 69
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 10
+    },
+    {
+      "index": 323,
+      "text": "4",
+      "confidence": 67.0,
+      "bbox": {
+        "left": 1069,
+        "top": 1428,
+        "width": 9,
+        "height": 11
+      },
+      "page_num": 1,
+      "block_num": 1,
+      "par_num": 1,
+      "line_num": 36,
+      "word_num": 11
+    }
+  ]
+}

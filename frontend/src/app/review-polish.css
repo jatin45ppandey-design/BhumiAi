@@ -1,0 +1,71 @@
+/* Presentation-only refinements for the officer verification workspace. */
+.khatauni-stepper { border-color: #d8e4e0; box-shadow: 0 5px 18px rgba(12, 45, 48, .04); }
+.khatauni-stepper ol { padding: 15px 20px; }
+.khatauni-stepper li { font-size: 10px; font-weight: 700; }
+
+.review-workbench { gap: 20px; }
+.evidence-pane, .khatauni-pane { border-color: #d5e2de; }
+.evidence-head { min-height: 84px; }
+.evidence-toolbar { gap: 6px; }
+.evidence-toolbar button { min-height: 30px; border-radius: 6px; padding: 6px 9px; }
+
+.source-canvas {
+  background: #edf2f0;
+  padding: 20px;
+  border-top: 1px solid #e0e9e5;
+}
+
+.source-canvas img { box-shadow: 0 12px 28px rgba(18, 43, 43, .17); }
+
+.khatauni-pane > .section-head { min-height: 84px; padding: 17px 18px; }
+.khatauni-fields { gap: 10px; padding: 14px 16px; background: #fbfcfa; }
+
+.khatauni-field {
+  min-height: 94px;
+  border: 1px solid #e0e9e5;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+  box-shadow: 0 1px 1px rgba(12, 45, 48, .025);
+}
+
+.khatauni-field:focus-within { border-color: #79aaa2; box-shadow: 0 0 0 3px rgba(12, 103, 103, .08); }
+.khatauni-field > span { color: #37555a; }
+.khatauni-field input, .khatauni-cell input { min-height: 34px; border-color: #cadbd6; }
+.khatauni-field em { padding-top: 2px; }
+
+.recognition-details {
+  border-top: 1px solid #e7eeeb;
+  padding-top: 5px;
+  color: #5a7376;
+}
+
+.recognition-details summary { color: #2e6266; }
+.khatauni-table-head { padding: 13px 16px; background: #f5f9f7; }
+.khatauni-table th { background: #eef5f2; }
+.khatauni-table td { background: #fff; }
+.khatauni-table tr:hover td { background: #f8fbfa; }
+.source-tag { border-radius: 999px; padding: 4px 7px; }
+
+.processing-card .section-head, .raw-ocr-card .section-head, .extraction-summary-card .section-head, .review-audit-card .section-head { min-height: 78px; }
+.ocr-evidence-meta { background: #d7e5e1; }
+.ocr-evidence-meta > div { min-height: 66px; padding: 12px 14px; }
+.raw-ocr-text { border-radius: 8px; box-shadow: inset 0 1px rgba(255, 255, 255, .04); }
+.token-evidence { border-radius: 8px; }
+.extraction-summary-grid { border-top: 1px solid #dce8e4; }
+.extraction-summary-grid > div { min-height: 72px; padding: 13px 14px; }
+
+.final-decision { border-color: #bdd2cd; }
+.final-decision .section-head { min-height: 80px; background: #fffdf8; }
+.final-decision .button { min-width: 126px; }
+
+@media (max-width: 1180px) {
+  .review-workbench { gap: 16px; }
+}
+
+@media (max-width: 700px) {
+  .khatauni-stepper ol { padding: 13px 16px; }
+  .khatauni-fields { padding: 12px; }
+  .khatauni-field { min-height: 0; }
+  .source-canvas { padding: 12px; }
+}

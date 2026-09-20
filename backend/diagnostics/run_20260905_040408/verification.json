@@ -1,0 +1,33 @@
+{
+  "checks": {
+    "/health": "PASS",
+    "/api/officer/dashboard": "PASS",
+    "/api/officer/submissions": "PASS",
+    "/api/officer/audit": "PASS",
+    "/api/verified-records/": "PASS",
+    "/uploads/recognition-regression-20e34fcfb415430792e34e1a8825de0b.jpeg": "PASS",
+    "/uploads/recognition-regression-20e34fcfb415430792e34e1a8825de0b_processed.png": "PASS",
+    "original_unchanged": true,
+    "field_correction": true,
+    "cell_correction": true,
+    "recognition_evidence_preserved": true,
+    "frontend_http": true,
+    "browser_interaction": "NOT VERIFIED"
+  },
+  "timings_seconds": {
+    "/api/auth/login": 0.032,
+    "/api/documents/officer-upload": 0.047,
+    "/api/officer/documents/6/preprocess": 0.843,
+    "/api/officer/documents/6/ocr?processed_path=uploads%5Crecognition-regression-20e34fcfb415430792e34e1a8825de0b_processed.png": 4.61,
+    "/api/officer/documents/6/extract?ocr_id=7": 65.0,
+    "/api/officer/documents/6/dynamic-fields/61?officer_id=2": 0.031,
+    "/api/officer/documents/6/digitization": 0.047,
+    "/api/officer/documents/6/tables/6/cells/82?officer_id=2": 0.032,
+    "/health": 0.015,
+    "/api/officer/dashboard": 0.032,
+    "/api/officer/submissions": 0.031,
+    "/api/officer/audit": 0.031,
+    "/api/verified-records/": 0.016
+  },
+  "original_sha256": "cbeee72eca64ff0c3e319994d2789836e70497c8ff52a94ab3e20ee4d23df053"
+}

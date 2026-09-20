@@ -1,0 +1,29 @@
+{
+  "message": "Document preprocessed",
+  "processed_file_path": "uploads\\recognition-regression-428f6dbd72d14f9f84ad7127b3528450_processed.png",
+  "orientation_correction_degrees": 0,
+  "deskew_degrees": 0.0,
+  "pdf_page": null,
+  "operations": [
+    "grayscale",
+    "deskew",
+    "denoise_light",
+    "CLAHE_light",
+    "preserve_grayscale_strokes"
+  ],
+  "quality": {
+    "width": 1086,
+    "height": 1448,
+    "paper_color_cast": 52.0,
+    "gray_percentiles": [
+      134.0,
+      215.0,
+      230.0
+    ],
+    "contrast_span": 96.0,
+    "laplacian_variance": 2651.32,
+    "ink_density": 0.1012,
+    "table_line_strength": 0.028,
+    "warnings": []
+  }
+}

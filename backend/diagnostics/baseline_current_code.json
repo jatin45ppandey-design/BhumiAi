@@ -1,0 +1,2402 @@
+{
+  "document_type": "khatauni",
+  "header_fields": [
+    {
+      "key": "district",
+      "label": "जनपद",
+      "ocr_value": "सुरादाबाद et",
+      "ocr_confidence": 17.0,
+      "confidence_source": "hybrid_field_roi",
+      "bounding_box": null,
+      "source_token_ids": [],
+      "audit_metadata": {
+        "selected_text": "सुरादाबाद et",
+        "selected_engine": "TESSERACT",
+        "confidence": 17.0,
+        "confidence_level": "LOW",
+        "tesseract": {
+          "text": "सुरादाबाद et",
+          "confidence": 17.0,
+          "config": "--psm 13"
+        },
+        "htr": {
+          "text": "",
+          "model_score": null,
+          "status": "unavailable",
+          "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+        },
+        "roi": [
+          0.48,
+          0.101,
+          0.75,
+          0.14
+        ],
+        "recognizer": "relative_khatauni_header_roi"
+      }
+    },
+    {
+      "key": "tehsil",
+      "label": "तहसील",
+      "ocr_value": "fet kg",
+      "ocr_confidence": 41.5,
+      "confidence_source": "hybrid_field_roi",
+      "bounding_box": {
+        "left": 115,
+        "top": 245,
+        "width": 873,
+        "height": 37
+      },
+      "source_token_ids": [
+        49,
+        50,
+        51,
+        52,
+        55,
+        53,
+        54
+      ],
+      "audit_metadata": {
+        "selected_text": "fet kg",
+        "selected_engine": "TESSERACT",
+        "confidence": 41.5,
+        "confidence_level": "LOW",
+        "tesseract": {
+          "text": "fet kg",
+          "confidence": 41.5,
+          "config": "--psm 13"
+        },
+        "htr": {
+          "text": "",
+          "model_score": null,
+          "status": "unavailable",
+          "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+        },
+        "roi": [
+          0.18,
+          0.101,
+          0.42,
+          0.14
+        ],
+        "recognizer": "relative_khatauni_header_roi"
+      }
+    },
+    {
+      "key": "revenue_village",
+      "label": "राजस्व ग्राम",
+      "ocr_value": "",
+      "ocr_confidence": null,
+      "confidence_source": "unavailable",
+      "bounding_box": null,
+      "source_token_ids": []
+    },
+    {
+      "key": "village_name",
+      "label": "ग्राम का नाम",
+      "ocr_value": "भैरवपुर",
+      "ocr_confidence": 35.0,
+      "confidence_source": "hybrid_field_roi",
+      "bounding_box": null,
+      "source_token_ids": [],
+      "audit_metadata": {
+        "selected_text": "भैरवपुर",
+        "selected_engine": "TESSERACT",
+        "confidence": 35.0,
+        "confidence_level": "LOW",
+        "tesseract": {
+          "text": "भैरवपुर",
+          "confidence": 35.0,
+          "config": "--psm 7"
+        },
+        "htr": {
+          "text": "",
+          "model_score": null,
+          "status": "unavailable",
+          "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+        },
+        "roi": [
+          0.17,
+          0.052,
+          0.4,
+          0.091
+        ],
+        "recognizer": "relative_khatauni_header_roi"
+      }
+    },
+    {
+      "key": "village_code",
+      "label": "ग्राम कोड",
+      "ocr_value": "",
+      "ocr_confidence": null,
+      "confidence_source": "unavailable",
+      "bounding_box": null,
+      "source_token_ids": []
+    },
+    {
+      "key": "pargana",
+      "label": "परगना",
+      "ocr_value": "",
+      "ocr_confidence": null,
+      "confidence_source": "unavailable",
+      "bounding_box": null,
+      "source_token_ids": []
+    },
+    {
+      "key": "crop_year",
+      "label": "फसली वर्ष",
+      "ocr_value": "9h Oo ND लिककन कक ओर",
+      "ocr_confidence": 16.5,
+      "confidence_source": "hybrid_field_roi",
+      "bounding_box": null,
+      "source_token_ids": [],
+      "audit_metadata": {
+        "selected_text": "9h Oo ND लिककन कक ओर",
+        "selected_engine": "TESSERACT",
+        "confidence": 16.5,
+        "confidence_level": "LOW",
+        "tesseract": {
+          "text": "9h Oo ND लिककन कक ओर",
+          "confidence": 16.5,
+          "config": "--psm 6"
+        },
+        "htr": {
+          "text": "",
+          "model_score": null,
+          "status": "unavailable",
+          "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+        },
+        "roi": [
+          0.18,
+          0.132,
+          0.42,
+          0.166
+        ],
+        "recognizer": "relative_khatauni_header_roi"
+      }
+    },
+    {
+      "key": "khata_number",
+      "label": "खाता संख्या",
+      "ocr_value": "25",
+      "ocr_confidence": 0,
+      "confidence_source": "hybrid_field_roi",
+      "bounding_box": null,
+      "source_token_ids": [],
+      "audit_metadata": {
+        "selected_text": "25",
+        "selected_engine": "TESSERACT",
+        "confidence": 0,
+        "confidence_level": "LOW",
+        "tesseract": {
+          "text": "25",
+          "confidence": 0.0,
+          "config": "--psm 7 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+        },
+        "htr": {
+          "text": "",
+          "model_score": null,
+          "status": "skipped"
+        },
+        "roi": [
+          0.84,
+          0.117,
+          0.96,
+          0.151
+        ],
+        "recognizer": "relative_khatauni_header_roi"
+      }
+    },
+    {
+      "key": "holder_name",
+      "label": "खातेदार का नाम",
+      "ocr_value": "of sea लाल",
+      "ocr_confidence": 50.5,
+      "confidence_source": "hybrid_field_roi",
+      "bounding_box": {
+        "left": 20,
+        "top": 764,
+        "width": 745,
+        "height": 20
+      },
+      "source_token_ids": [
+        159,
+        160,
+        161
+      ],
+      "audit_metadata": {
+        "selected_text": "of sea लाल",
+        "selected_engine": "TESSERACT",
+        "confidence": 50.5,
+        "confidence_level": "LOW",
+        "tesseract": {
+          "text": "of sea लाल",
+          "confidence": 50.5,
+          "config": "--psm 6"
+        },
+        "htr": {
+          "text": "",
+          "model_score": null,
+          "status": "unavailable",
+          "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+        },
+        "roi": [
+          0.27,
+          0.171,
+          0.56,
+          0.209
+        ],
+        "recognizer": "relative_khatauni_header_roi"
+      }
+    },
+    {
+      "key": "guardian_name",
+      "label": "पिता / पति का नाम",
+      "ocr_value": "AVG SOUS FI BCU Cera! See LS i OAR Rolie",
+      "ocr_confidence": 25.2,
+      "confidence_source": "hybrid_field_roi",
+      "bounding_box": {
+        "left": 261,
+        "top": 272,
+        "width": 295,
+        "height": 48
+      },
+      "source_token_ids": [
+        60,
+        61,
+        63,
+        62
+      ],
+      "audit_metadata": {
+        "selected_text": "AVG SOUS FI BCU Cera! See LS i OAR Rolie",
+        "selected_engine": "TESSERACT",
+        "confidence": 25.2,
+        "confidence_level": "LOW",
+        "tesseract": {
+          "text": "AVG SOUS FI BCU Cera! See LS i OAR Rolie",
+          "confidence": 25.2,
+          "config": "--psm 6"
+        },
+        "htr": {
+          "text": "",
+          "model_score": null,
+          "status": "unavailable",
+          "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+        },
+        "roi": [
+          0.28,
+          0.201,
+          0.57,
+          0.237
+        ],
+        "recognizer": "relative_khatauni_header_roi"
+      }
+    },
+    {
+      "key": "patwari_circle",
+      "label": "पटवारी हल्का",
+      "ocr_value": "sage Rate _j2fos}s0a3 ”",
+      "ocr_confidence": 35.25,
+      "confidence_source": "tesseract_token_mean",
+      "bounding_box": {
+        "left": 221,
+        "top": 115,
+        "width": 865,
+        "height": 51
+      },
+      "source_token_ids": [
+        28,
+        29,
+        30,
+        31
+      ]
+    },
+    {
+      "key": "patwari_name",
+      "label": "पटवारी का नाम",
+      "ocr_value": "il medica बिलारी",
+      "ocr_confidence": 58.333333333333336,
+      "confidence_source": "tesseract_token_mean",
+      "bounding_box": {
+        "left": 494,
+        "top": 1179,
+        "width": 425,
+        "height": 50
+      },
+      "source_token_ids": [
+        239,
+        240,
+        241
+      ]
+    },
+    {
+      "key": "lekhpal_name",
+      "label": "लेखपाल का नाम",
+      "ocr_value": "",
+      "ocr_confidence": null,
+      "confidence_source": "unavailable",
+      "bounding_box": null,
+      "source_token_ids": []
+    },
+    {
+      "key": "issue_date",
+      "label": "निर्गमन तिथि",
+      "ocr_value": "Ser fafa Per सिंचाई का | | कर दर | . wae a}",
+      "ocr_confidence": 55.69230769230769,
+      "confidence_source": "tesseract_token_mean",
+      "bounding_box": {
+        "left": 105,
+        "top": 448,
+        "width": 942,
+        "height": 81
+      },
+      "source_token_ids": [
+        89,
+        90,
+        91,
+        92,
+        93,
+        95,
+        94,
+        96,
+        98,
+        97,
+        99,
+        100,
+        101
+      ]
+    }
+  ],
+  "table_headers": [
+    "क्रम संख्या",
+    "गाटा / खसरा संख्या",
+    "खातेदार / भूमिधर का नाम",
+    "पिता / पति / संरक्षक का नाम",
+    "निवास स्थान",
+    "हिस्सा",
+    "क्षेत्रफल / रकबा",
+    "भूमि का प्रकार",
+    "सिंचाई का साधन",
+    "लगान",
+    "भूमि की श्रेणी",
+    "आदेश / परिवर्तन विवरण / टिप्पणी"
+  ],
+  "rows": [
+    {
+      "cells": [
+        {
+          "column_index": 0,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 1,
+          "raw_ocr_value": "24",
+          "ai_value": "24",
+          "ai_confidence": 55.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 92,
+            "top": 559,
+            "width": 69,
+            "height": 43
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "24",
+            "selected_engine": "TESSERACT",
+            "confidence": 55.0,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "24",
+              "confidence": 55.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "plot_number"
+          }
+        },
+        {
+          "column_index": 2,
+          "raw_ocr_value": "राम HAIL",
+          "ai_value": "राम HAIL",
+          "ai_confidence": 85.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 779,
+            "top": 559,
+            "width": 137,
+            "height": 43
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "राम HAIL",
+            "selected_engine": "TESSERACT",
+            "confidence": 85.5,
+            "confidence_level": "HIGH",
+            "tesseract": {
+              "text": "राम HAIL",
+              "confidence": 85.5,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "unavailable",
+              "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "holder_name"
+          }
+        },
+        {
+          "column_index": 3,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 4,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 5,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 6,
+          "raw_ocr_value": "0 00",
+          "ai_value": "0 00",
+          "ai_confidence": 84.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 165,
+            "top": 559,
+            "width": 172,
+            "height": 43
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "0 00",
+            "selected_engine": "TESSERACT",
+            "confidence": 84.5,
+            "confidence_level": "HIGH",
+            "tesseract": {
+              "text": "0 00",
+              "confidence": 84.5,
+              "config": "--psm 7 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "area"
+          }
+        },
+        {
+          "column_index": 7,
+          "raw_ocr_value": "ar",
+          "ai_value": "ar",
+          "ai_confidence": 47.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 341,
+            "top": 559,
+            "width": 115,
+            "height": 43
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "ar",
+            "selected_engine": "TESSERACT",
+            "confidence": 47.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "ar",
+              "confidence": 47.0,
+              "config": "--psm 13"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "land_type"
+          }
+        },
+        {
+          "column_index": 8,
+          "raw_ocr_value": "=",
+          "ai_value": "=",
+          "ai_confidence": 41.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 460,
+            "top": 559,
+            "width": 99,
+            "height": 43
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "=",
+            "selected_engine": "TESSERACT",
+            "confidence": 41.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "=",
+              "confidence": 41.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "irrigation_source"
+          }
+        },
+        {
+          "column_index": 9,
+          "raw_ocr_value": "45 000",
+          "ai_value": "45 000",
+          "ai_confidence": 55.75,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 683,
+            "top": 559,
+            "width": 92,
+            "height": 43
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "45 000",
+            "selected_engine": "TESSERACT",
+            "confidence": 55.75,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "45 000",
+              "confidence": 55.75,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "revenue"
+          }
+        },
+        {
+          "column_index": 10,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 11,
+          "raw_ocr_value": "ea",
+          "ai_value": "ea",
+          "ai_confidence": 35.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 920,
+            "top": 559,
+            "width": 129,
+            "height": 43
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "ea",
+            "selected_engine": "TESSERACT",
+            "confidence": 35.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "ea",
+              "confidence": 35.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "order_remarks"
+          }
+        }
+      ],
+      "source": "hybrid_table_grid_roi",
+      "source_row_index": 0
+    },
+    {
+      "cells": [
+        {
+          "column_index": 0,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 1,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 92,
+            "top": 606,
+            "width": 69,
+            "height": 47
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "",
+            "selected_engine": null,
+            "confidence": null,
+            "confidence_level": "UNAVAILABLE",
+            "tesseract": {
+              "text": "",
+              "confidence": null,
+              "config": "--psm 7 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "plot_number"
+          }
+        },
+        {
+          "column_index": 2,
+          "raw_ocr_value": "राम HAL",
+          "ai_value": "राम HAL",
+          "ai_confidence": 52.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 779,
+            "top": 606,
+            "width": 137,
+            "height": 47
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "राम HAL",
+            "selected_engine": "TESSERACT",
+            "confidence": 52.5,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "राम HAL",
+              "confidence": 52.5,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "unavailable",
+              "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "holder_name"
+          }
+        },
+        {
+          "column_index": 3,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 4,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 5,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 6,
+          "raw_ocr_value": "2",
+          "ai_value": "2",
+          "ai_confidence": 0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 165,
+            "top": 606,
+            "width": 172,
+            "height": 47
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "2",
+            "selected_engine": "TESSERACT",
+            "confidence": 0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "2",
+              "confidence": 0.0,
+              "config": "--psm 7 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "area"
+          }
+        },
+        {
+          "column_index": 7,
+          "raw_ocr_value": "ee oe बरानी",
+          "ai_value": "ee oe बरानी",
+          "ai_confidence": 55.666666666666664,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 341,
+            "top": 606,
+            "width": 115,
+            "height": 47
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "ee oe बरानी",
+            "selected_engine": "TESSERACT",
+            "confidence": 55.666666666666664,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "ee oe बरानी",
+              "confidence": 55.666666666666664,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "land_type"
+          }
+        },
+        {
+          "column_index": 8,
+          "raw_ocr_value": "बारिश",
+          "ai_value": "बारिश",
+          "ai_confidence": 84.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 460,
+            "top": 606,
+            "width": 99,
+            "height": 47
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "बारिश",
+            "selected_engine": "TESSERACT",
+            "confidence": 84.0,
+            "confidence_level": "HIGH",
+            "tesseract": {
+              "text": "बारिश",
+              "confidence": 84.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "irrigation_source"
+          }
+        },
+        {
+          "column_index": 9,
+          "raw_ocr_value": "30 70",
+          "ai_value": "30 70",
+          "ai_confidence": 63.333333333333336,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 683,
+            "top": 606,
+            "width": 92,
+            "height": 47
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "30 70",
+            "selected_engine": "TESSERACT",
+            "confidence": 63.333333333333336,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "30 70",
+              "confidence": 63.333333333333336,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "revenue"
+          }
+        },
+        {
+          "column_index": 10,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 11,
+          "raw_ocr_value": "iat a",
+          "ai_value": "iat a",
+          "ai_confidence": 20.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 920,
+            "top": 606,
+            "width": 129,
+            "height": 47
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "iat a",
+            "selected_engine": "TESSERACT",
+            "confidence": 20.5,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "iat a",
+              "confidence": 20.5,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "order_remarks"
+          }
+        }
+      ],
+      "source": "hybrid_table_grid_roi",
+      "source_row_index": 1
+    },
+    {
+      "cells": [
+        {
+          "column_index": 0,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 1,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 92,
+            "top": 657,
+            "width": 69,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "",
+            "selected_engine": null,
+            "confidence": null,
+            "confidence_level": "UNAVAILABLE",
+            "tesseract": {
+              "text": "",
+              "confidence": null,
+              "config": "--psm 7 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "plot_number"
+          }
+        },
+        {
+          "column_index": 2,
+          "raw_ocr_value": "eT कमार",
+          "ai_value": "eT कमार",
+          "ai_confidence": 46.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 779,
+            "top": 657,
+            "width": 137,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "eT कमार",
+            "selected_engine": "TESSERACT",
+            "confidence": 46.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "eT कमार",
+              "confidence": 46.0,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "unavailable",
+              "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "holder_name"
+          }
+        },
+        {
+          "column_index": 3,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 4,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 5,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 6,
+          "raw_ocr_value": "2",
+          "ai_value": "2",
+          "ai_confidence": 0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 165,
+            "top": 657,
+            "width": 172,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "2",
+            "selected_engine": "TESSERACT",
+            "confidence": 0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "2",
+              "confidence": 0.0,
+              "config": "--psm 7 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "area"
+          }
+        },
+        {
+          "column_index": 7,
+          "raw_ocr_value": "फल",
+          "ai_value": "फल",
+          "ai_confidence": 45.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 341,
+            "top": 657,
+            "width": 115,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "फल",
+            "selected_engine": "TESSERACT",
+            "confidence": 45.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "फल",
+              "confidence": 45.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "land_type"
+          }
+        },
+        {
+          "column_index": 8,
+          "raw_ocr_value": "ee",
+          "ai_value": "ee",
+          "ai_confidence": 60.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 460,
+            "top": 657,
+            "width": 99,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "ee",
+            "selected_engine": "TESSERACT",
+            "confidence": 60.5,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "ee",
+              "confidence": 60.5,
+              "config": "--psm 8"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "irrigation_source"
+          }
+        },
+        {
+          "column_index": 9,
+          "raw_ocr_value": "4 00",
+          "ai_value": "4 00",
+          "ai_confidence": 53.25,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 683,
+            "top": 657,
+            "width": 92,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "4 00",
+            "selected_engine": "TESSERACT",
+            "confidence": 53.25,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "4 00",
+              "confidence": 53.25,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "revenue"
+          }
+        },
+        {
+          "column_index": 10,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 11,
+          "raw_ocr_value": "Tt ae",
+          "ai_value": "Tt ae",
+          "ai_confidence": 40.333333333333336,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 920,
+            "top": 657,
+            "width": 129,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "Tt ae",
+            "selected_engine": "TESSERACT",
+            "confidence": 40.333333333333336,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "Tt ae",
+              "confidence": 40.333333333333336,
+              "config": "--psm 8"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "order_remarks"
+          }
+        }
+      ],
+      "source": "hybrid_table_grid_roi",
+      "source_row_index": 2
+    },
+    {
+      "cells": [
+        {
+          "column_index": 0,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 1,
+          "raw_ocr_value": "24",
+          "ai_value": "24",
+          "ai_confidence": 22.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 92,
+            "top": 709,
+            "width": 69,
+            "height": 46
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "24",
+            "selected_engine": "TESSERACT",
+            "confidence": 22.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "24",
+              "confidence": 22.0,
+              "config": "--psm 6 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "plot_number"
+          }
+        },
+        {
+          "column_index": 2,
+          "raw_ocr_value": "सम कमार",
+          "ai_value": "सम कमार",
+          "ai_confidence": 43.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 779,
+            "top": 709,
+            "width": 137,
+            "height": 46
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "सम कमार",
+            "selected_engine": "TESSERACT",
+            "confidence": 43.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "सम कमार",
+              "confidence": 43.0,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "unavailable",
+              "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "holder_name"
+          }
+        },
+        {
+          "column_index": 3,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 4,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 5,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 6,
+          "raw_ocr_value": "20",
+          "ai_value": "20",
+          "ai_confidence": 39.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 165,
+            "top": 709,
+            "width": 172,
+            "height": 46
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "20",
+            "selected_engine": "TESSERACT",
+            "confidence": 39.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "20",
+              "confidence": 39.0,
+              "config": "--psm 6 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "area"
+          }
+        },
+        {
+          "column_index": 7,
+          "raw_ocr_value": "ee",
+          "ai_value": "ee",
+          "ai_confidence": 33.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 341,
+            "top": 709,
+            "width": 115,
+            "height": 46
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "ee",
+            "selected_engine": "TESSERACT",
+            "confidence": 33.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "ee",
+              "confidence": 33.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "land_type"
+          }
+        },
+        {
+          "column_index": 8,
+          "raw_ocr_value": "nn 7",
+          "ai_value": "nn 7",
+          "ai_confidence": 53.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 460,
+            "top": 709,
+            "width": 99,
+            "height": 46
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "nn 7",
+            "selected_engine": "TESSERACT",
+            "confidence": 53.5,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "nn 7",
+              "confidence": 53.5,
+              "config": "--psm 13"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "irrigation_source"
+          }
+        },
+        {
+          "column_index": 9,
+          "raw_ocr_value": "320 70",
+          "ai_value": "320 70",
+          "ai_confidence": 63.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 683,
+            "top": 709,
+            "width": 92,
+            "height": 46
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "320 70",
+            "selected_engine": "TESSERACT",
+            "confidence": 63.0,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "320 70",
+              "confidence": 63.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "revenue"
+          }
+        },
+        {
+          "column_index": 10,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 11,
+          "raw_ocr_value": "rg Se रण — a निसर",
+          "ai_value": "rg Se रण — a निसर",
+          "ai_confidence": 29.77777777777778,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 920,
+            "top": 709,
+            "width": 129,
+            "height": 46
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "rg Se रण — a निसर",
+            "selected_engine": "TESSERACT",
+            "confidence": 29.77777777777778,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "rg Se रण — a निसर",
+              "confidence": 29.77777777777778,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "order_remarks"
+          }
+        }
+      ],
+      "source": "hybrid_table_grid_roi",
+      "source_row_index": 3
+    },
+    {
+      "cells": [
+        {
+          "column_index": 0,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 1,
+          "raw_ocr_value": "25",
+          "ai_value": "25",
+          "ai_confidence": 0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 92,
+            "top": 759,
+            "width": 69,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "25",
+            "selected_engine": "TESSERACT",
+            "confidence": 0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "25",
+              "confidence": 0.0,
+              "config": "--psm 7 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "plot_number"
+          }
+        },
+        {
+          "column_index": 2,
+          "raw_ocr_value": "राम कमार",
+          "ai_value": "राम कमार",
+          "ai_confidence": 78.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 779,
+            "top": 759,
+            "width": 137,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "राम कमार",
+            "selected_engine": "TESSERACT",
+            "confidence": 78.0,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "राम कमार",
+              "confidence": 78.0,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "unavailable",
+              "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "holder_name"
+          }
+        },
+        {
+          "column_index": 3,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 4,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 5,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 6,
+          "raw_ocr_value": "320",
+          "ai_value": "320",
+          "ai_confidence": 72.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 165,
+            "top": 759,
+            "width": 172,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "320",
+            "selected_engine": "TESSERACT",
+            "confidence": 72.0,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "320",
+              "confidence": 72.0,
+              "config": "--psm 6 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "area"
+          }
+        },
+        {
+          "column_index": 7,
+          "raw_ocr_value": "a",
+          "ai_value": "a",
+          "ai_confidence": 53.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 341,
+            "top": 759,
+            "width": 115,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "a",
+            "selected_engine": "TESSERACT",
+            "confidence": 53.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "a",
+              "confidence": 53.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "land_type"
+          }
+        },
+        {
+          "column_index": 8,
+          "raw_ocr_value": "ane",
+          "ai_value": "ane",
+          "ai_confidence": 41.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 460,
+            "top": 759,
+            "width": 99,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "ane",
+            "selected_engine": "TESSERACT",
+            "confidence": 41.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "ane",
+              "confidence": 41.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "irrigation_source"
+          }
+        },
+        {
+          "column_index": 9,
+          "raw_ocr_value": "45 00",
+          "ai_value": "45 00",
+          "ai_confidence": 90.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 683,
+            "top": 759,
+            "width": 92,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "45 00",
+            "selected_engine": "TESSERACT",
+            "confidence": 90.0,
+            "confidence_level": "HIGH",
+            "tesseract": {
+              "text": "45 00",
+              "confidence": 90.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "revenue"
+          }
+        },
+        {
+          "column_index": 10,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 11,
+          "raw_ocr_value": "AVM] खाता",
+          "ai_value": "AVM] खाता",
+          "ai_confidence": 51.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 920,
+            "top": 759,
+            "width": 129,
+            "height": 48
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "AVM] खाता",
+            "selected_engine": "TESSERACT",
+            "confidence": 51.5,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "AVM] खाता",
+              "confidence": 51.5,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "order_remarks"
+          }
+        }
+      ],
+      "source": "hybrid_table_grid_roi",
+      "source_row_index": 4
+    },
+    {
+      "cells": [
+        {
+          "column_index": 0,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 1,
+          "raw_ocr_value": "2.6",
+          "ai_value": "2.6",
+          "ai_confidence": 34.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 92,
+            "top": 811,
+            "width": 69,
+            "height": 65
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "2.6",
+            "selected_engine": "TESSERACT",
+            "confidence": 34.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "2.6",
+              "confidence": 34.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "plot_number"
+          }
+        },
+        {
+          "column_index": 2,
+          "raw_ocr_value": "राम कुमार",
+          "ai_value": "राम कुमार",
+          "ai_confidence": 92.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 779,
+            "top": 811,
+            "width": 137,
+            "height": 65
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "राम कुमार",
+            "selected_engine": "TESSERACT",
+            "confidence": 92.5,
+            "confidence_level": "HIGH",
+            "tesseract": {
+              "text": "राम कुमार",
+              "confidence": 92.5,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "unavailable",
+              "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "holder_name"
+          }
+        },
+        {
+          "column_index": 3,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 4,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 5,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 6,
+          "raw_ocr_value": "0 00",
+          "ai_value": "0 00",
+          "ai_confidence": 59.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 165,
+            "top": 811,
+            "width": 172,
+            "height": 65
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "0 00",
+            "selected_engine": "TESSERACT",
+            "confidence": 59.0,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "0 00",
+              "confidence": 59.0,
+              "config": "--psm 6 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "area"
+          }
+        },
+        {
+          "column_index": 7,
+          "raw_ocr_value": "3F coma, Lo a _ चाही",
+          "ai_value": "3F coma, Lo a _ चाही",
+          "ai_confidence": 33.666666666666664,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 341,
+            "top": 811,
+            "width": 115,
+            "height": 65
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "3F coma, Lo a _ चाही",
+            "selected_engine": "TESSERACT",
+            "confidence": 33.666666666666664,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "3F coma, Lo a _ चाही",
+              "confidence": 33.666666666666664,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "land_type"
+          }
+        },
+        {
+          "column_index": 8,
+          "raw_ocr_value": "नलकूप",
+          "ai_value": "नलकूप",
+          "ai_confidence": 88.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 460,
+            "top": 811,
+            "width": 99,
+            "height": 65
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "नलकूप",
+            "selected_engine": "TESSERACT",
+            "confidence": 88.0,
+            "confidence_level": "HIGH",
+            "tesseract": {
+              "text": "नलकूप",
+              "confidence": 88.0,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "irrigation_source"
+          }
+        },
+        {
+          "column_index": 9,
+          "raw_ocr_value": "45 00",
+          "ai_value": "45 00",
+          "ai_confidence": 74.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 683,
+            "top": 811,
+            "width": 92,
+            "height": 65
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "45 00",
+            "selected_engine": "TESSERACT",
+            "confidence": 74.0,
+            "confidence_level": "MEDIUM",
+            "tesseract": {
+              "text": "45 00",
+              "confidence": 74.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "revenue"
+          }
+        },
+        {
+          "column_index": 10,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 11,
+          "raw_ocr_value": "नाप",
+          "ai_value": "नाप",
+          "ai_confidence": 46.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 920,
+            "top": 811,
+            "width": 129,
+            "height": 65
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "नाप",
+            "selected_engine": "TESSERACT",
+            "confidence": 46.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "नाप",
+              "confidence": 46.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "order_remarks"
+          }
+        }
+      ],
+      "source": "hybrid_table_grid_roi",
+      "source_row_index": 5
+    },
+    {
+      "cells": [
+        {
+          "column_index": 0,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 1,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 92,
+            "top": 880,
+            "width": 69,
+            "height": 51
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "",
+            "selected_engine": null,
+            "confidence": null,
+            "confidence_level": "UNAVAILABLE",
+            "tesseract": {
+              "text": "",
+              "confidence": 95.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "plot_number"
+          }
+        },
+        {
+          "column_index": 2,
+          "raw_ocr_value": "5",
+          "ai_value": "5",
+          "ai_confidence": 25.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 779,
+            "top": 880,
+            "width": 137,
+            "height": 51
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "5",
+            "selected_engine": "TESSERACT",
+            "confidence": 25.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "5",
+              "confidence": 25.0,
+              "config": "--psm 8"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "unavailable",
+              "error": "ValueError: Unrecognized processing class in aayushpuri01/TrOCR-Devanagari. Can't instantiate a processor, a tokenizer, an image processor, a video processor or a feature extractor for this model. Make sure the repository contains the files of at least one of those processing classes."
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "holder_name"
+          }
+        },
+        {
+          "column_index": 3,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 4,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 5,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 6,
+          "raw_ocr_value": "2 0 00",
+          "ai_value": "2 0 00",
+          "ai_confidence": 47.333333333333336,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 165,
+            "top": 880,
+            "width": 172,
+            "height": 51
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "2 0 00",
+            "selected_engine": "TESSERACT",
+            "confidence": 47.333333333333336,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "2 0 00",
+              "confidence": 47.333333333333336,
+              "config": "--psm 6 -c tessedit_char_whitelist=0123456789०१२३४५६७८९./- "
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "area"
+          }
+        },
+        {
+          "column_index": 7,
+          "raw_ocr_value": "“काका",
+          "ai_value": "“काका",
+          "ai_confidence": 0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 341,
+            "top": 880,
+            "width": 115,
+            "height": 51
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "“काका",
+            "selected_engine": "TESSERACT",
+            "confidence": 0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "“काका",
+              "confidence": 0.0,
+              "config": "--psm 13"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "land_type"
+          }
+        },
+        {
+          "column_index": 8,
+          "raw_ocr_value": "EO",
+          "ai_value": "EO",
+          "ai_confidence": 49.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 460,
+            "top": 880,
+            "width": 99,
+            "height": 51
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "EO",
+            "selected_engine": "TESSERACT",
+            "confidence": 49.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "EO",
+              "confidence": 49.0,
+              "config": "--psm 6"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "irrigation_source"
+          }
+        },
+        {
+          "column_index": 9,
+          "raw_ocr_value": "240",
+          "ai_value": "240",
+          "ai_confidence": 91.5,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 683,
+            "top": 880,
+            "width": 92,
+            "height": 51
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "240",
+            "selected_engine": "TESSERACT",
+            "confidence": 91.5,
+            "confidence_level": "HIGH",
+            "tesseract": {
+              "text": "240",
+              "confidence": 91.5,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "revenue"
+          }
+        },
+        {
+          "column_index": 10,
+          "raw_ocr_value": "",
+          "ai_value": "",
+          "ai_confidence": null,
+          "confidence_source": "unavailable",
+          "audit_metadata": {
+            "source": "khatauni_table_roi",
+            "status": "no_template_column"
+          }
+        },
+        {
+          "column_index": 11,
+          "raw_ocr_value": "शी =",
+          "ai_value": "शी =",
+          "ai_confidence": 26.0,
+          "confidence_source": "hybrid_field_roi",
+          "bounding_box": {
+            "left": 920,
+            "top": 880,
+            "width": 129,
+            "height": 51
+          },
+          "source_token_ids": [],
+          "audit_metadata": {
+            "selected_text": "शी =",
+            "selected_engine": "TESSERACT",
+            "confidence": 26.0,
+            "confidence_level": "LOW",
+            "tesseract": {
+              "text": "शी =",
+              "confidence": 26.0,
+              "config": "--psm 7"
+            },
+            "htr": {
+              "text": "",
+              "model_score": null,
+              "status": "skipped"
+            },
+            "source": "khatauni_table_roi",
+            "schema_key": "order_remarks"
+          }
+        }
+      ],
+      "source": "hybrid_table_grid_roi",
+      "source_row_index": 6
+    }
+  ],
+  "extraction_summary": {
+    "header_fields_detected": 10,
+    "header_fields_total": 14,
+    "table_rows_detected": 7,
+    "ocr_cells_populated": 46,
+    "high_confidence_values": 7,
+    "medium_confidence_values": 12,
+    "low_confidence_values": 37,
+    "unavailable_values": 0
+  },
+  "hybrid_metadata": {
+    "htr_model": "aayushpuri01/TrOCR-Devanagari",
+    "htr_state": "unavailable",
+    "header_field_count": 7,
+    "roi_table_rows": 7
+  }
+}

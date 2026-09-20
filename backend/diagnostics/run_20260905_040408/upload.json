@@ -1,0 +1,7 @@
+{
+  "message": "Officer document uploaded and added to processing queue",
+  "document_id": 6,
+  "submission_id": 6,
+  "status": "PROCESSING",
+  "review_url": "/officer/review/6"
+}

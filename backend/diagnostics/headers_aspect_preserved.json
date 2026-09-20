@@ -1,0 +1,1403 @@
+{
+  "village_name": {
+    "selected_text": "भैरवपुर",
+    "selected_engine": "TESSERACT",
+    "confidence": 16.0,
+    "confidence_level": "LOW",
+    "tesseract": {
+      "text": "भैरवपुर",
+      "raw_text": "भैरवपुर",
+      "confidence": 35.0,
+      "config": "--psm 7",
+      "variant": "grayscale",
+      "languages": "hin+eng",
+      "tokens": [
+        {
+          "text": "भैरवपुर",
+          "confidence": 35.0,
+          "bbox": {
+            "left": 0,
+            "top": 1,
+            "width": 405,
+            "height": 223
+          }
+        }
+      ],
+      "format_valid": true,
+      "pass_agreement": 0.25,
+      "passes": [
+        {
+          "text": "भैरवपुर",
+          "raw_text": "भैरवपुर",
+          "confidence": 35.0,
+          "config": "--psm 7",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "भैरवपुर",
+              "confidence": 35.0,
+              "bbox": {
+                "left": 0,
+                "top": 1,
+                "width": 405,
+                "height": 223
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "न",
+          "raw_text": "न",
+          "confidence": 12.0,
+          "config": "--psm 13",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "न",
+              "confidence": 12.0,
+              "bbox": {
+                "left": 0,
+                "top": 5,
+                "width": 504,
+                "height": 219
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "",
+          "raw_text": "",
+          "confidence": null,
+          "config": "--psm 7",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [],
+          "format_valid": false
+        },
+        {
+          "text": "Seg",
+          "raw_text": "Seg",
+          "confidence": 35.0,
+          "config": "--psm 13",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "Seg",
+              "confidence": 35.0,
+              "bbox": {
+                "left": 20,
+                "top": 24,
+                "width": 581,
+                "height": 220
+              }
+            }
+          ],
+          "format_valid": true
+        }
+      ]
+    },
+    "htr": {
+      "text": "रूरा",
+      "model_score": 0.3737438352074064,
+      "score_type": "uncalibrated_token_probability_geometric_mean",
+      "token_log_probabilities": [
+        -2.1203818321228027,
+        -0.11164109408855438,
+        -1.0615394115447998,
+        -0.643176257610321
+      ],
+      "truncated": false,
+      "status": "ready",
+      "model": "aayushpuri01/TrOCR-Devanagari",
+      "device": "cpu"
+    },
+    "agreement": 0.36363636363636365,
+    "selection_reason": "Tesseract supported by recognition evidence or HTR unusable",
+    "confidence_method": "evidence_v1_uncalibrated",
+    "layout_certainty": 0.85,
+    "roi": [
+      0.17,
+      0.052,
+      0.4,
+      0.091
+    ],
+    "recognizer": "relative_khatauni_header_roi"
+  },
+  "tehsil": {
+    "selected_text": "रूर-ए",
+    "selected_engine": "HTR",
+    "confidence": 40.94,
+    "confidence_level": "LOW",
+    "tesseract": {
+      "text": "eri",
+      "raw_text": "eri",
+      "confidence": 53.0,
+      "config": "--psm 7",
+      "variant": "conservative_binary",
+      "languages": "hin+eng",
+      "tokens": [
+        {
+          "text": "eri",
+          "confidence": 53.0,
+          "bbox": {
+            "left": 19,
+            "top": 19,
+            "width": 586,
+            "height": 162
+          }
+        }
+      ],
+      "format_valid": true,
+      "pass_agreement": 0.25,
+      "passes": [
+        {
+          "text": "",
+          "raw_text": "",
+          "confidence": null,
+          "config": "--psm 7",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [],
+          "format_valid": false
+        },
+        {
+          "text": "इक",
+          "raw_text": "इक",
+          "confidence": 31.0,
+          "config": "--psm 13",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "इक",
+              "confidence": 31.0,
+              "bbox": {
+                "left": 0,
+                "top": 0,
+                "width": 861,
+                "height": 163
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "eri",
+          "raw_text": "eri",
+          "confidence": 53.0,
+          "config": "--psm 7",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "eri",
+              "confidence": 53.0,
+              "bbox": {
+                "left": 19,
+                "top": 19,
+                "width": 586,
+                "height": 162
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "Qa",
+          "raw_text": "Qa",
+          "confidence": 0.0,
+          "config": "--psm 13",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "Qa",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 19,
+                "top": 19,
+                "width": 577,
+                "height": 162
+              }
+            }
+          ],
+          "format_valid": true
+        }
+      ]
+    },
+    "htr": {
+      "text": "रूर-ए",
+      "model_score": 0.6581013223278106,
+      "score_type": "uncalibrated_token_probability_geometric_mean",
+      "token_log_probabilities": [
+        -0.02583680860698223,
+        -0.03801065683364868,
+        -0.3881266415119171,
+        -0.43329086899757385,
+        -1.2067168951034546
+      ],
+      "truncated": false,
+      "status": "ready",
+      "model": "aayushpuri01/TrOCR-Devanagari",
+      "device": "cpu"
+    },
+    "agreement": 0.0,
+    "selection_reason": "usable Devanagari HTR; no stable high-scoring Tesseract candidate",
+    "confidence_method": "evidence_v1_uncalibrated",
+    "layout_certainty": 0.85,
+    "roi": [
+      0.19,
+      0.103,
+      0.39,
+      0.132
+    ],
+    "recognizer": "relative_khatauni_header_roi"
+  },
+  "district": {
+    "selected_text": "मुरादाबाद",
+    "selected_engine": "TESSERACT",
+    "confidence": 18.55,
+    "confidence_level": "LOW",
+    "tesseract": {
+      "text": "मुरादाबाद",
+      "raw_text": "मुरादाबाद",
+      "confidence": 38.0,
+      "config": "--psm 7",
+      "variant": "conservative_binary",
+      "languages": "hin+eng",
+      "tokens": [
+        {
+          "text": "मुरादाबाद",
+          "confidence": 38.0,
+          "bbox": {
+            "left": 24,
+            "top": 28,
+            "width": 625,
+            "height": 104
+          }
+        }
+      ],
+      "format_valid": true,
+      "pass_agreement": 0.25,
+      "passes": [
+        {
+          "text": "ाजदायाद i",
+          "raw_text": "ाजदायाद i",
+          "confidence": 2.0,
+          "config": "--psm 7",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "ाजदायाद",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 0,
+                "top": 34,
+                "width": 1040,
+                "height": 146
+              }
+            },
+            {
+              "text": "i",
+              "confidence": 4.0,
+              "bbox": {
+                "left": 575,
+                "top": 30,
+                "width": 113,
+                "height": 150
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "दाजदाबोाद i",
+          "raw_text": "दाजदाबोाद i",
+          "confidence": 2.0,
+          "config": "--psm 13",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "दाजदाबोाद",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 0,
+                "top": 34,
+                "width": 1040,
+                "height": 146
+              }
+            },
+            {
+              "text": "i",
+              "confidence": 4.0,
+              "bbox": {
+                "left": 575,
+                "top": 30,
+                "width": 113,
+                "height": 150
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "मुरादाबाद",
+          "raw_text": "मुरादाबाद",
+          "confidence": 38.0,
+          "config": "--psm 7",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "मुरादाबाद",
+              "confidence": 38.0,
+              "bbox": {
+                "left": 24,
+                "top": 28,
+                "width": 625,
+                "height": 104
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "उुराद्ाबाद",
+          "raw_text": "उुराद्ाबाद",
+          "confidence": 0.0,
+          "config": "--psm 13",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "उुराद्ाबाद",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 24,
+                "top": 28,
+                "width": 625,
+                "height": 104
+              }
+            }
+          ],
+          "format_valid": true
+        }
+      ]
+    },
+    "htr": {
+      "text": "नजर",
+      "model_score": 0.19535938357710572,
+      "score_type": "uncalibrated_token_probability_geometric_mean",
+      "token_log_probabilities": [
+        -1.632914423942566
+      ],
+      "truncated": false,
+      "status": "ready",
+      "model": "aayushpuri01/TrOCR-Devanagari",
+      "device": "cpu"
+    },
+    "agreement": 0.16666666666666663,
+    "selection_reason": "Tesseract supported by recognition evidence or HTR unusable",
+    "confidence_method": "evidence_v1_uncalibrated",
+    "layout_certainty": 0.85,
+    "roi": [
+      0.48,
+      0.107,
+      0.72,
+      0.138
+    ],
+    "recognizer": "relative_khatauni_header_roi"
+  },
+  "crop_year": {
+    "selected_text": "2022-23",
+    "selected_engine": "TESSERACT",
+    "confidence": 63.52,
+    "confidence_level": "LOW",
+    "tesseract": {
+      "text": "2022-23",
+      "raw_text": "2022-23",
+      "confidence": 74.0,
+      "config": "--psm 13 -c tessedit_char_whitelist=0123456789./-",
+      "variant": "conservative_binary",
+      "languages": "eng",
+      "tokens": [
+        {
+          "text": "2022-23",
+          "confidence": 74.0,
+          "bbox": {
+            "left": 28,
+            "top": 28,
+            "width": 492,
+            "height": 73
+          }
+        }
+      ],
+      "format_valid": true,
+      "pass_agreement": 0.125,
+      "passes": [
+        {
+          "text": "222 2",
+          "raw_text": "222. 2.",
+          "confidence": 45.0,
+          "config": "--psm 7",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "222.",
+              "confidence": 53.0,
+              "bbox": {
+                "left": 0,
+                "top": 40,
+                "width": 649,
+                "height": 75
+              }
+            },
+            {
+              "text": "2.",
+              "confidence": 37.0,
+              "bbox": {
+                "left": 760,
+                "top": 112,
+                "width": 152,
+                "height": 5
+              }
+            }
+          ],
+          "format_valid": false
+        },
+        {
+          "text": "26022",
+          "raw_text": "26022",
+          "confidence": 44.0,
+          "config": "--psm 13",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "26022",
+              "confidence": 44.0,
+              "bbox": {
+                "left": 0,
+                "top": 40,
+                "width": 912,
+                "height": 77
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "23",
+          "raw_text": "AO Ded — 23,",
+          "confidence": 50.75,
+          "config": "--psm 7",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "AO",
+              "confidence": 34.0,
+              "bbox": {
+                "left": 28,
+                "top": 28,
+                "width": 132,
+                "height": 69
+              }
+            },
+            {
+              "text": "Ded",
+              "confidence": 34.0,
+              "bbox": {
+                "left": 172,
+                "top": 32,
+                "width": 348,
+                "height": 69
+              }
+            },
+            {
+              "text": "—",
+              "confidence": 68.0,
+              "bbox": {
+                "left": 330,
+                "top": 24,
+                "width": 43,
+                "height": 102
+              }
+            },
+            {
+              "text": "23,",
+              "confidence": 67.0,
+              "bbox": {
+                "left": 415,
+                "top": 32,
+                "width": 102,
+                "height": 69
+              }
+            }
+          ],
+          "format_valid": false
+        },
+        {
+          "text": "23",
+          "raw_text": "AO dd — 23",
+          "confidence": 67.5,
+          "config": "--psm 13",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "AO",
+              "confidence": 69.0,
+              "bbox": {
+                "left": 28,
+                "top": 28,
+                "width": 113,
+                "height": 69
+              }
+            },
+            {
+              "text": "dd",
+              "confidence": 61.0,
+              "bbox": {
+                "left": 182,
+                "top": 32,
+                "width": 110,
+                "height": 69
+              }
+            },
+            {
+              "text": "—",
+              "confidence": 76.0,
+              "bbox": {
+                "left": 340,
+                "top": 60,
+                "width": 32,
+                "height": 9
+              }
+            },
+            {
+              "text": "23",
+              "confidence": 64.0,
+              "bbox": {
+                "left": 424,
+                "top": 35,
+                "width": 96,
+                "height": 66
+              }
+            }
+          ],
+          "format_valid": false
+        },
+        {
+          "text": "0",
+          "raw_text": "0",
+          "confidence": 0.0,
+          "config": "--psm 7 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "grayscale",
+          "languages": "eng",
+          "tokens": [
+            {
+              "text": "0",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 0,
+                "top": 40,
+                "width": 912,
+                "height": 77
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "2023",
+          "raw_text": "2023",
+          "confidence": 0.0,
+          "config": "--psm 13 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "grayscale",
+          "languages": "eng",
+          "tokens": [
+            {
+              "text": "2023",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 0,
+                "top": 40,
+                "width": 912,
+                "height": 77
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "23",
+          "raw_text": "-23",
+          "confidence": 0.0,
+          "config": "--psm 7 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "conservative_binary",
+          "languages": "eng",
+          "tokens": [
+            {
+              "text": "-23",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 28,
+                "top": 28,
+                "width": 492,
+                "height": 73
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "2022-23",
+          "raw_text": "2022-23",
+          "confidence": 74.0,
+          "config": "--psm 13 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "conservative_binary",
+          "languages": "eng",
+          "tokens": [
+            {
+              "text": "2022-23",
+              "confidence": 74.0,
+              "bbox": {
+                "left": 28,
+                "top": 28,
+                "width": 492,
+                "height": 73
+              }
+            }
+          ],
+          "format_valid": true
+        }
+      ]
+    },
+    "htr": {
+      "text": "",
+      "model_score": null,
+      "status": "skipped"
+    },
+    "agreement": null,
+    "selection_reason": "numeric Tesseract candidate; verify format and digits",
+    "confidence_method": "evidence_v1_uncalibrated",
+    "layout_certainty": 0.85,
+    "roi": [
+      0.18,
+      0.136,
+      0.39,
+      0.162
+    ],
+    "recognizer": "relative_khatauni_header_roi"
+  },
+  "khata_number": {
+    "selected_text": "25",
+    "selected_engine": "TESSERACT",
+    "confidence": 2.5,
+    "confidence_level": "LOW",
+    "tesseract": {
+      "text": "25",
+      "raw_text": "25.",
+      "confidence": 0.0,
+      "config": "--psm 7 -c tessedit_char_whitelist=0123456789./-",
+      "variant": "conservative_binary",
+      "languages": "eng",
+      "tokens": [
+        {
+          "text": "25.",
+          "confidence": 0.0,
+          "bbox": {
+            "left": 19,
+            "top": 28,
+            "width": 221,
+            "height": 80
+          }
+        }
+      ],
+      "format_valid": true,
+      "pass_agreement": 0.5,
+      "passes": [
+        {
+          "text": "",
+          "raw_text": "oe PSE",
+          "confidence": 29.0,
+          "config": "--psm 7",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "oe",
+              "confidence": 32.0,
+              "bbox": {
+                "left": 21,
+                "top": 104,
+                "width": 8,
+                "height": 3
+              }
+            },
+            {
+              "text": "PSE",
+              "confidence": 26.0,
+              "bbox": {
+                "left": 36,
+                "top": 27,
+                "width": 415,
+                "height": 84
+              }
+            }
+          ],
+          "format_valid": false
+        },
+        {
+          "text": "",
+          "raw_text": "oe PRO",
+          "confidence": 46.0,
+          "config": "--psm 13",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "oe",
+              "confidence": 49.0,
+              "bbox": {
+                "left": 21,
+                "top": 103,
+                "width": 64,
+                "height": 5
+              }
+            },
+            {
+              "text": "PRO",
+              "confidence": 43.0,
+              "bbox": {
+                "left": 98,
+                "top": 27,
+                "width": 353,
+                "height": 84
+              }
+            }
+          ],
+          "format_valid": false
+        },
+        {
+          "text": "25",
+          "raw_text": "{25°",
+          "confidence": 33.0,
+          "config": "--psm 7",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "{25°",
+              "confidence": 33.0,
+              "bbox": {
+                "left": 19,
+                "top": 28,
+                "width": 221,
+                "height": 80
+              }
+            }
+          ],
+          "format_valid": false
+        },
+        {
+          "text": "25",
+          "raw_text": "{25°",
+          "confidence": 33.0,
+          "config": "--psm 13",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "{25°",
+              "confidence": 33.0,
+              "bbox": {
+                "left": 19,
+                "top": 28,
+                "width": 221,
+                "height": 80
+              }
+            }
+          ],
+          "format_valid": false
+        },
+        {
+          "text": "",
+          "raw_text": "",
+          "confidence": null,
+          "config": "--psm 7 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "grayscale",
+          "languages": "eng",
+          "tokens": [],
+          "format_valid": false
+        },
+        {
+          "text": "",
+          "raw_text": "",
+          "confidence": null,
+          "config": "--psm 13 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "grayscale",
+          "languages": "eng",
+          "tokens": [],
+          "format_valid": false
+        },
+        {
+          "text": "25",
+          "raw_text": "25.",
+          "confidence": 0.0,
+          "config": "--psm 7 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "conservative_binary",
+          "languages": "eng",
+          "tokens": [
+            {
+              "text": "25.",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 19,
+                "top": 28,
+                "width": 221,
+                "height": 80
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "25",
+          "raw_text": "25",
+          "confidence": 0.0,
+          "config": "--psm 13 -c tessedit_char_whitelist=0123456789./-",
+          "variant": "conservative_binary",
+          "languages": "eng",
+          "tokens": [
+            {
+              "text": "25",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 19,
+                "top": 28,
+                "width": 221,
+                "height": 80
+              }
+            }
+          ],
+          "format_valid": true
+        }
+      ]
+    },
+    "htr": {
+      "text": "",
+      "model_score": null,
+      "status": "skipped"
+    },
+    "agreement": null,
+    "selection_reason": "numeric Tesseract candidate; verify format and digits",
+    "confidence_method": "evidence_v1_uncalibrated",
+    "layout_certainty": 0.85,
+    "roi": [
+      0.85,
+      0.114,
+      0.96,
+      0.141
+    ],
+    "recognizer": "relative_khatauni_header_roi"
+  },
+  "holder_name": {
+    "selected_text": "सम कुमार",
+    "selected_engine": "TESSERACT",
+    "confidence": 18.98,
+    "confidence_level": "LOW",
+    "tesseract": {
+      "text": "सम कुमार",
+      "raw_text": "सम कुमार",
+      "confidence": 38.5,
+      "config": "--psm 13",
+      "variant": "conservative_binary",
+      "languages": "hin+eng",
+      "tokens": [
+        {
+          "text": "सम",
+          "confidence": 47.0,
+          "bbox": {
+            "left": 28,
+            "top": 28,
+            "width": 185,
+            "height": 77
+          }
+        },
+        {
+          "text": "कुमार",
+          "confidence": 30.0,
+          "bbox": {
+            "left": 277,
+            "top": 0,
+            "width": 241,
+            "height": 148
+          }
+        }
+      ],
+      "format_valid": true,
+      "pass_agreement": 0.25,
+      "passes": [
+        {
+          "text": "",
+          "raw_text": "",
+          "confidence": null,
+          "config": "--psm 7",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [],
+          "format_valid": false
+        },
+        {
+          "text": "जाम कर 3",
+          "raw_text": "जाम कर 3.",
+          "confidence": 14.333333333333334,
+          "config": "--psm 13",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "जाम",
+              "confidence": 20.0,
+              "bbox": {
+                "left": 0,
+                "top": 0,
+                "width": 205,
+                "height": 156
+              }
+            },
+            {
+              "text": "कर",
+              "confidence": 0.0,
+              "bbox": {
+                "left": 0,
+                "top": 53,
+                "width": 1064,
+                "height": 92
+              }
+            },
+            {
+              "text": "3.",
+              "confidence": 23.0,
+              "bbox": {
+                "left": 916,
+                "top": 0,
+                "width": 147,
+                "height": 156
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "",
+          "raw_text": "",
+          "confidence": null,
+          "config": "--psm 7",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [],
+          "format_valid": false
+        },
+        {
+          "text": "सम कुमार",
+          "raw_text": "सम कुमार",
+          "confidence": 38.5,
+          "config": "--psm 13",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "सम",
+              "confidence": 47.0,
+              "bbox": {
+                "left": 28,
+                "top": 28,
+                "width": 185,
+                "height": 77
+              }
+            },
+            {
+              "text": "कुमार",
+              "confidence": 30.0,
+              "bbox": {
+                "left": 277,
+                "top": 0,
+                "width": 241,
+                "height": 148
+              }
+            }
+          ],
+          "format_valid": true
+        }
+      ]
+    },
+    "htr": {
+      "text": "राम क्षम",
+      "model_score": 0.6177176057601597,
+      "score_type": "uncalibrated_token_probability_geometric_mean",
+      "token_log_probabilities": [
+        -0.8477699756622314,
+        -0.00014351768186315894,
+        -0.0007192885386757553,
+        -1.7402976751327515,
+        -3.564294092939235e-05,
+        -0.30137714743614197
+      ],
+      "truncated": false,
+      "status": "ready",
+      "model": "aayushpuri01/TrOCR-Devanagari",
+      "device": "cpu",
+      "segmentation": "word_gaps_in_line_crop",
+      "word_candidates": [
+        {
+          "text": "राम",
+          "model_score": 0.7536120288776286,
+          "score_type": "uncalibrated_token_probability_geometric_mean",
+          "token_log_probabilities": [
+            -0.8477699756622314,
+            -0.00014351768186315894,
+            -0.0007192885386757553
+          ],
+          "truncated": false,
+          "status": "ready",
+          "model": "aayushpuri01/TrOCR-Devanagari",
+          "device": "cpu"
+        },
+        {
+          "text": "क्षम",
+          "model_score": 0.5063282243973101,
+          "score_type": "uncalibrated_token_probability_geometric_mean",
+          "token_log_probabilities": [
+            -1.7402976751327515,
+            -3.564294092939235e-05,
+            -0.30137714743614197
+          ],
+          "truncated": false,
+          "status": "ready",
+          "model": "aayushpuri01/TrOCR-Devanagari",
+          "device": "cpu"
+        }
+      ],
+      "line_candidate": {
+        "text": "22",
+        "model_score": 0.1453560168467763,
+        "score_type": "uncalibrated_token_probability_geometric_mean",
+        "token_log_probabilities": [
+          -2.327768087387085,
+          -1.5293704271316528
+        ],
+        "truncated": false,
+        "status": "ready",
+        "model": "aayushpuri01/TrOCR-Devanagari",
+        "device": "cpu"
+      }
+    },
+    "agreement": 0.5,
+    "selection_reason": "Tesseract supported by recognition evidence or HTR unusable",
+    "confidence_method": "evidence_v1_uncalibrated",
+    "layout_certainty": 0.85,
+    "roi": [
+      0.275,
+      0.163,
+      0.52,
+      0.19
+    ],
+    "recognizer": "relative_khatauni_header_roi"
+  },
+  "guardian_name": {
+    "selected_text": "श्री मोहन लाल",
+    "selected_engine": "HTR",
+    "confidence": 64.9,
+    "confidence_level": "LOW",
+    "tesseract": {
+      "text": "sit मोहन लाल",
+      "raw_text": "sit मोहन लाल,",
+      "confidence": 85.66666666666667,
+      "config": "--psm 13",
+      "variant": "conservative_binary",
+      "languages": "hin+eng",
+      "tokens": [
+        {
+          "text": "sit",
+          "confidence": 69.0,
+          "bbox": {
+            "left": 24,
+            "top": 24,
+            "width": 156,
+            "height": 144
+          }
+        },
+        {
+          "text": "मोहन",
+          "confidence": 94.0,
+          "bbox": {
+            "left": 252,
+            "top": 0,
+            "width": 200,
+            "height": 168
+          }
+        },
+        {
+          "text": "लाल,",
+          "confidence": 94.0,
+          "bbox": {
+            "left": 514,
+            "top": 75,
+            "width": 190,
+            "height": 74
+          }
+        }
+      ],
+      "format_valid": true,
+      "pass_agreement": 0.25,
+      "passes": [
+        {
+          "text": "",
+          "raw_text": "",
+          "confidence": null,
+          "config": "--psm 7",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [],
+          "format_valid": false
+        },
+        {
+          "text": "i जोटन लाल ee",
+          "raw_text": "i जोटन लाल ee",
+          "confidence": 46.25,
+          "config": "--psm 13",
+          "variant": "grayscale",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "i",
+              "confidence": 70.0,
+              "bbox": {
+                "left": 41,
+                "top": 13,
+                "width": 121,
+                "height": 103
+              }
+            },
+            {
+              "text": "जोटन",
+              "confidence": 14.0,
+              "bbox": {
+                "left": 243,
+                "top": 0,
+                "width": 207,
+                "height": 144
+              }
+            },
+            {
+              "text": "लाल",
+              "confidence": 59.0,
+              "bbox": {
+                "left": 521,
+                "top": 0,
+                "width": 244,
+                "height": 144
+              }
+            },
+            {
+              "text": "ee",
+              "confidence": 42.0,
+              "bbox": {
+                "left": 1057,
+                "top": 98,
+                "width": 136,
+                "height": 36
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "sft मोहन लाल",
+          "raw_text": "sft मोहन लाल,",
+          "confidence": 84.33333333333333,
+          "config": "--psm 7",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "sft",
+              "confidence": 68.0,
+              "bbox": {
+                "left": 28,
+                "top": 28,
+                "width": 160,
+                "height": 117
+              }
+            },
+            {
+              "text": "मोहन",
+              "confidence": 93.0,
+              "bbox": {
+                "left": 240,
+                "top": 28,
+                "width": 224,
+                "height": 113
+              }
+            },
+            {
+              "text": "लाल,",
+              "confidence": 92.0,
+              "bbox": {
+                "left": 508,
+                "top": 75,
+                "width": 196,
+                "height": 74
+              }
+            }
+          ],
+          "format_valid": true
+        },
+        {
+          "text": "sit मोहन लाल",
+          "raw_text": "sit मोहन लाल,",
+          "confidence": 85.66666666666667,
+          "config": "--psm 13",
+          "variant": "conservative_binary",
+          "languages": "hin+eng",
+          "tokens": [
+            {
+              "text": "sit",
+              "confidence": 69.0,
+              "bbox": {
+                "left": 24,
+                "top": 24,
+                "width": 156,
+                "height": 144
+              }
+            },
+            {
+              "text": "मोहन",
+              "confidence": 94.0,
+              "bbox": {
+                "left": 252,
+                "top": 0,
+                "width": 200,
+                "height": 168
+              }
+            },
+            {
+              "text": "लाल,",
+              "confidence": 94.0,
+              "bbox": {
+                "left": 514,
+                "top": 75,
+                "width": 190,
+                "height": 74
+              }
+            }
+          ],
+          "format_valid": true
+        }
+      ]
+    },
+    "htr": {
+      "text": "श्री मोहन लाल",
+      "model_score": 0.8459279001186774,
+      "score_type": "uncalibrated_token_probability_geometric_mean",
+      "token_log_probabilities": [
+        -0.000709282117895782,
+        -1.156323378381785e-05,
+        -1.2636104656849056e-05,
+        -0.00012754580529872328,
+        -0.4119822084903717,
+        -0.5631797313690186,
+        -0.647343099117279,
+        -0.04703393206000328,
+        -0.001334610627964139,
+        -0.001476865611039102
+      ],
+      "truncated": false,
+      "status": "ready",
+      "model": "aayushpuri01/TrOCR-Devanagari",
+      "device": "cpu",
+      "segmentation": "word_gaps_in_line_crop",
+      "word_candidates": [
+        {
+          "text": "श्री",
+          "model_score": 0.9997847663506773,
+          "score_type": "uncalibrated_token_probability_geometric_mean",
+          "token_log_probabilities": [
+            -0.000709282117895782,
+            -1.156323378381785e-05,
+            -1.2636104656849056e-05,
+            -0.00012754580529872328
+          ],
+          "truncated": false,
+          "status": "ready",
+          "model": "aayushpuri01/TrOCR-Devanagari",
+          "device": "cpu"
+        },
+        {
+          "text": "मोहन",
+          "model_score": 0.582261853115174,
+          "score_type": "uncalibrated_token_probability_geometric_mean",
+          "token_log_probabilities": [
+            -0.4119822084903717,
+            -0.5631797313690186,
+            -0.647343099117279
+          ],
+          "truncated": false,
+          "status": "ready",
+          "model": "aayushpuri01/TrOCR-Devanagari",
+          "device": "cpu"
+        },
+        {
+          "text": "लाल",
+          "model_score": 0.9835221339690362,
+          "score_type": "uncalibrated_token_probability_geometric_mean",
+          "token_log_probabilities": [
+            -0.04703393206000328,
+            -0.001334610627964139,
+            -0.001476865611039102
+          ],
+          "truncated": false,
+          "status": "ready",
+          "model": "aayushpuri01/TrOCR-Devanagari",
+          "device": "cpu"
+        }
+      ],
+      "line_candidate": {
+        "text": "रूश",
+        "model_score": 0.5361929515787337,
+        "score_type": "uncalibrated_token_probability_geometric_mean",
+        "token_log_probabilities": [
+          -0.7840754985809326,
+          -0.17900307476520538,
+          -0.9067050218582153
+        ],
+        "truncated": false,
+        "status": "ready",
+        "model": "aayushpuri01/TrOCR-Devanagari",
+        "device": "cpu"
+      }
+    },
+    "agreement": 0.72,
+    "selection_reason": "usable Devanagari HTR; no stable high-scoring Tesseract candidate",
+    "confidence_method": "evidence_v1_uncalibrated",
+    "layout_certainty": 0.85,
+    "roi": [
+      0.275,
+      0.189,
+      0.55,
+      0.214
+    ],
+    "recognizer": "relative_khatauni_header_roi"
+  }
+}

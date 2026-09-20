@@ -1,0 +1,157 @@
+/* All rules are scoped to the login environment. */
+.login-page.cadastral-login {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 64px 32px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: #f2f0e7;
+  background: radial-gradient(ellipse at 55% 45%, #175653 0, #0b3536 42%, #051d22 100%);
+  color-scheme: dark;
+}
+.cadastral-login .cadastral-environment { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.cadastral-login .cadastral-environment::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 55% 50%, transparent 20%, rgba(2, 15, 20, .52) 100%); }
+.cadastral-login .cadastral-map { width: 100%; height: 100%; position: absolute; inset: 0; animation: cadastral-reveal 700ms ease-out both; }
+.cadastral-login .map-parcels { stroke: #79b6a7; stroke-opacity: .21; stroke-width: 1; }
+.cadastral-login .map-insets { stroke: #8ebcb0; stroke-opacity: .16; stroke-width: .8; }
+.cadastral-login .map-gold-parcel { stroke: #c9a35e; stroke-opacity: .53; fill: #c9a35e; fill-opacity: .035; }
+.cadastral-login .map-gold-edge { stroke: #c9a35e; stroke-opacity: .5; stroke-width: 1.5; }
+.cadastral-login .map-guides { stroke: #a3c1b4; stroke-opacity: .13; stroke-width: .75; }
+.cadastral-login .map-nodes { stroke: #c3b27e; stroke-opacity: .5; fill: #0d3536; }
+.cadastral-login .map-labels { fill: #b8c9b8; fill-opacity: .28; font: 10px ui-monospace, monospace; letter-spacing: 3px; }
+.cadastral-login .survey-compass { position: absolute; top: 48px; right: 54px; display: grid; justify-items: center; gap: 10px; color: #b2b795; opacity: .44; font: 10px ui-monospace, monospace; }
+.cadastral-login .survey-compass svg { width: 32px; height: 44px; stroke: currentColor; stroke-width: .8; }
+.cadastral-login .map-scale { position: absolute; bottom: 36px; left: 48px; color: #a9b7a6; opacity: .45; }
+.cadastral-login .map-scale span { display: block; width: 100px; height: 6px; border: 1px solid currentColor; border-top: 0; margin-bottom: 10px; }
+.cadastral-login .map-scale small { font: 9px ui-monospace, monospace; letter-spacing: 2px; }
+
+.cadastral-login .login-branding { position: absolute; top: 42px; left: 48px; max-width: 300px; }
+.cadastral-login .logo-line { display: flex; align-items: center; gap: 12px; font-size: 27px; letter-spacing: -.8px; }
+.cadastral-login .logo-mark { width: 42px; height: 42px; border-radius: 10px; background: #c5a363; color: #0b3032; box-shadow: 0 4px 14px #0002; }
+.cadastral-login .logo-line b span { color: #d1af70; }
+.cadastral-login .initiative-line { margin: 16px 0 0; color: #b5c7c1; font-size: 12px; line-height: 1.75; }
+.cadastral-login .team-attribution { display: flex; align-items: center; gap: 9px; margin: 12px 0 0; color: #c5a363; font-size: 10px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
+.cadastral-login .team-attribution::before { content: ""; width: 20px; height: 1px; background: currentColor; }
+
+.cadastral-login .login-form-wrap {
+  position: relative;
+  display: block;
+  width: min(460px, 100%);
+  justify-self: center;
+  margin-left: 8%;
+  padding: 0;
+  background: transparent;
+  animation: cadastral-console-entry 600ms ease-out both;
+}
+.cadastral-login .login-form-wrap::before,
+.cadastral-login .login-form-wrap::after { content: ""; position: absolute; pointer-events: none; width: 18px; height: 18px; border-color: #bda269; border-style: solid; opacity: .55; }
+.cadastral-login .login-form-wrap::before { top: -9px; left: -9px; border-width: 1px 0 0 1px; }
+.cadastral-login .login-form-wrap::after { right: -9px; bottom: 38px; border-width: 0 1px 1px 0; }
+.cadastral-login .login-card {
+  position: relative;
+  width: 100%;
+  padding: 36px 38px 34px;
+  border: 1px solid #44635b;
+  border-radius: 12px;
+  background: rgba(8, 34, 37, .94);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 28px 80px rgba(0, 10, 13, .42), inset 0 1px rgba(223, 208, 159, .06);
+}
+.cadastral-login .login-card::before { content: ""; position: absolute; top: -1px; left: 38px; width: 58px; height: 2px; background: #c5a363; }
+.cadastral-login .login-card-heading { margin-bottom: 26px; }
+.cadastral-login .login-card-heading .eyebrow { display: flex; align-items: center; gap: 8px; color: #cfb782; font-size: 10px; letter-spacing: .17em; margin-bottom: 17px; }
+.cadastral-login .login-card h1 { margin: 0; color: #f2f0e7; font-size: 29px; font-weight: 650; letter-spacing: -.04em; line-height: 1.25; }
+.cadastral-login .login-card-heading p { margin: 8px 0 0; color: #aabeb8; font-size: 13px; line-height: 1.55; }
+.cadastral-login .login-card-heading + .login-field { margin-top: 0; }
+.cadastral-login .login-field { margin-top: 18px; }
+.cadastral-login .login-field label { display: block; margin: 0 0 7px; color: #d3ddd6; font-size: 12px; font-weight: 550; }
+.cadastral-login .login-field input,
+.cadastral-login .login-field select {
+  width: 100%;
+  height: 50px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #3d5955;
+  border-radius: 6px;
+  background: #0b292d;
+  color: #ecede5;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+.cadastral-login .login-field input::placeholder { color: #9bb0a9; opacity: 1; }
+.cadastral-login .login-field select { cursor: pointer; }
+.cadastral-login .login-field input:hover,
+.cadastral-login .login-field select:hover { border-color: #68887c; }
+.cadastral-login .login-field input:focus,
+.cadastral-login .login-field select:focus { outline: none; border-color: #91b9a4; background: #0e3033; box-shadow: 0 0 0 3px rgba(183, 164, 108, .12); }
+.cadastral-login .password-field { position: relative; }
+.cadastral-login .password-field input { padding-right: 52px; }
+.cadastral-login .password-toggle { position: absolute; top: 3px; right: 3px; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 5px; color: #adc4ba; background: transparent; cursor: pointer; transition: color 180ms ease, background 180ms ease; }
+.cadastral-login .password-toggle:hover { color: #eee3c5; background: #23433f; }
+.cadastral-login .password-rule { display: block; margin-top: 7px; color: #8fa59f; font-size: 10px; }
+.cadastral-login .password-toggle:focus-visible,
+.cadastral-login .login-card > .button:focus-visible { outline: 2px solid #e1c587; outline-offset: 4px; }
+.cadastral-login .login-card > .button { width: 100%; min-height: 50px; margin-top: 26px; padding: 12px 18px; gap: 18px; border: 1px solid #ccb078; border-radius: 6px; background: #c5a363; color: #122d2c; font-size: 13px; font-weight: 750; box-shadow: 0 5px 18px #0002; transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease; }
+.cadastral-login .login-card > .button:hover:not(:disabled) { background: #d5b477; border-color: #d5b477; transform: translateY(-1px); box-shadow: 0 8px 22px #0004; }
+.cadastral-login .login-card > .button:disabled { transform: none; }
+.cadastral-login .google-auth-button { width: 100%; min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin-top: 18px; padding: 12px 18px; border: 1px solid #8aa79c; border-radius: 6px; background: #f8fbf9; color: #173435; font: inherit; font-size: 13px; font-weight: 750; cursor: pointer; transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease; }
+.cadastral-login .google-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 -6px; color: #8fa59f; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.cadastral-login .google-divider::before, .cadastral-login .google-divider::after { content: ""; height: 1px; flex: 1; background: #38534f; }
+.cadastral-login .google-auth-button:hover:not(:disabled) { background: #fff; transform: translateY(-1px); box-shadow: 0 8px 22px #0004; }
+.cadastral-login .google-auth-button:disabled { cursor: wait; opacity: .72; }
+.cadastral-login .google-auth-button:focus-visible { outline: 2px solid #e1c587; outline-offset: 4px; }
+.cadastral-login .google-auth-button svg { margin-left: auto; }
+.cadastral-login .google-g { display: grid; place-items: center; width: 22px; height: 22px; margin-right: 2px; border-radius: 50%; background: conic-gradient(from -35deg, #4285f4 0 25%, #34a853 0 46%, #fbbc05 0 70%, #ea4335 0); color: #fff; font-size: 13px; font-weight: 800; font-family: Arial, sans-serif; }
+.cadastral-login .auth-context { margin: 15px 0 0; color: #99afa8; text-align: center; font-size: 12px; line-height: 1.5; }
+.cadastral-login .auth-context button { margin: 0 0 0 3px; padding: 0; border: 0; background: transparent; color: #d1af70; font: inherit; font-weight: 700; cursor: pointer; transition: color 180ms ease; }
+.cadastral-login .auth-context button:hover { color: #ead19a; text-decoration: underline; text-underline-offset: 3px; }
+.cadastral-login .auth-context button:focus-visible { outline: 2px solid #e1c587; outline-offset: 3px; border-radius: 2px; }
+.cadastral-login .login-card > .error { margin: 18px 0 0; border-color: #85625a; background: #382d2b; color: #f3c5b8; }
+.cadastral-login .login-success { margin-top: 18px; padding: 11px 13px; border: 1px solid #466f5a; border-radius: 6px; background: #173a31; color: #bfe4c9; font-size: 12px; line-height: 1.5; }
+.cadastral-login .login-system-label { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 22px 0 0; color: #a4b9ae; font-size: 9px; letter-spacing: .19em; }
+.cadastral-login .login-system-label span { width: 4px; height: 4px; background: #c5a363; border-radius: 50%; }
+
+@keyframes cadastral-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cadastral-console-entry { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 1100px) {
+  .login-page.cadastral-login { padding: 32px; gap: 32px; align-content: center; }
+  .cadastral-login .login-branding { position: relative; top: auto; left: auto; max-width: 330px; }
+  .cadastral-login .login-form-wrap { margin-left: 0; }
+  .cadastral-login .map-scale { bottom: 22px; left: 28px; }
+}
+@media (max-width: 600px) {
+  .login-page.cadastral-login { padding: 24px 20px; gap: 28px; }
+  .cadastral-login .login-branding { max-width: 310px; }
+  .cadastral-login .logo-line { font-size: 25px; }
+  .cadastral-login .logo-mark { width: 36px; height: 36px; border-radius: 8px; }
+  .cadastral-login .initiative-line { margin-top: 12px; font-size: 11px; line-height: 1.6; }
+  .cadastral-login .team-attribution { margin-top: 9px; font-size: 9px; }
+  .cadastral-login .login-card { padding: 28px 22px; border-radius: 10px; }
+  .cadastral-login .login-card h1 { font-size: clamp(22px, 6vw, 28px); }
+  .cadastral-login .login-card-heading { margin-bottom: 22px; }
+  .cadastral-login .login-field { margin-top: 15px; }
+  .cadastral-login .login-system-label { font-size: 8px; letter-spacing: .13em; margin-top: 18px; }
+  .cadastral-login .map-labels,
+  .cadastral-login .map-guides,
+  .cadastral-login .map-insets,
+  .cadastral-login .survey-compass,
+  .cadastral-login .map-scale { display: none; }
+  .cadastral-login .cadastral-map { opacity: .45; animation: none; }
+  .cadastral-login .login-form-wrap::before,
+  .cadastral-login .login-form-wrap::after { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cadastral-login .cadastral-map,
+  .cadastral-login .login-form-wrap { animation: none; }
+  .cadastral-login input,
+  .cadastral-login select,
+  .cadastral-login button { transition: none !important; }
+  .cadastral-login .login-card > .button:hover:not(:disabled) { transform: none; }
+}
