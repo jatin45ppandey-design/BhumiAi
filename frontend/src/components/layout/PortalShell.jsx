@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ClipboardList, Database, Files, LayoutDashboard, LogOut, MapPinned, ScrollText, ShieldCheck, Upload, UserRound } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, ClipboardList, Code2, Database, Files, LayoutDashboard, LogOut, MapPinned, ShieldCheck, Upload, UserRound } from 'lucide-react';
 import { signOut } from '../../lib/auth';
 import { api } from '../../lib/api';
 
@@ -19,17 +20,28 @@ const links = {
     ['Digitize Record', '/officer/upload', Upload],
     ['Review Queue', '/officer/submissions', ClipboardList],
     ['Verified Records', '/officer/records', Database],
-    ['Audit Trail', '/officer/audit', ScrollText],
+    ['Activity History', '/officer/audit', Activity],
   ],
 };
 
 export default function PortalShell({ role, user, children }) {
   const path = usePathname();
   const router = useRouter();
+  const [developerMode, setDeveloperMode] = useState(false);
   const workspace = role === 'officer' ? 'Verification workspace' : 'Land record workspace';
   const [primaryLink, ...recordLinks] = links[role];
   const activeLink = links[role].find(([, href]) => path === href || path.startsWith(`${href}/`)) || primaryLink;
   const roleLabel = role === 'officer' ? 'Verification Officer' : 'Record submitter';
+
+  useEffect(() => {
+    if (role === 'officer') setDeveloperMode(window.localStorage.getItem('bhumiai-developer-mode') === 'on');
+  }, [role]);
+
+  function toggleDeveloperMode() {
+    const next = !developerMode;
+    setDeveloperMode(next);
+    window.localStorage.setItem('bhumiai-developer-mode', next ? 'on' : 'off');
+  }
 
   async function logout() {
     try { await api.logout(); } catch { /* Session may already be expired. */ }
@@ -37,7 +49,7 @@ export default function PortalShell({ role, user, children }) {
     router.push('/login');
   }
 
-  return <div className="portal">
+  return <div className={`portal ${developerMode ? 'developer-mode' : ''}`}>
     <aside className="sidebar">
       <Link href={`/${role}`} className="brand" aria-label="BhumiAI home">
         <span className="brand-mark"><MapPinned size={19} /></span>
@@ -56,6 +68,7 @@ export default function PortalShell({ role, user, children }) {
       </nav>
       <div className="sidebar-bottom">
         <div className="sidebar-user"><span>{user?.name?.slice(0, 1) || 'U'}</span><div><b>{user?.name || 'Portal user'}</b><small>{roleLabel}</small></div></div>
+        {role === 'officer' && <button className="developer-toggle" type="button" aria-label={`Developer Mode ${developerMode ? 'on' : 'off'}`} aria-pressed={developerMode} onClick={toggleDeveloperMode}><Code2 size={16} /> Developer Mode <span>{developerMode ? 'On' : 'Off'}</span></button>}
         <button onClick={logout}><LogOut size={16} /> Sign out</button>
       </div>
     </aside>

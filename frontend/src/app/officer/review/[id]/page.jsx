@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, CheckCircle, Clipboard, Download, FileText, Minus, Plus, RefreshCw, Save, ScanLine, Search, Trash2, XCircle, ZoomIn } from 'lucide-react';
 import { API_URL, api } from '../../../../lib/api';
 import { bilingualKhatauniLabel } from '../../../../lib/khatauniLabels';
+import { activityLabel } from '../../../../lib/activity';
 import { Button, ErrorMessage, Loader, StatusBadge } from '../../../../components/common/UI';
 import ConfidenceBadge from '../../../../components/officer/ConfidenceBadge';
 
@@ -18,7 +19,7 @@ function RecognitionEvidence({ entry }) {
   const warnings = Array.isArray(evidence.warnings) ? evidence.warnings : [];
   const disagreement = warnings.includes('engine_disagreement') || warnings.includes('tesseract_digit_disagreement');
   if (!evidence.selected_engine && !disagreement) return null;
-  return <details className="recognition-details">
+  return <details className="recognition-details developer-only">
     <summary>Recognition Details</summary>
     <div>
       {evidence.selected_engine && <span>Selected recognizer: {evidence.selected_engine}</span>}
@@ -145,6 +146,7 @@ export default function Review() {
   }, [query]);
 
   async function execute(kind) {
+    if (work) return;
     setWork(kind); setError(''); setNotice('');
     try {
       if (kind === 'preprocess') {
@@ -161,6 +163,7 @@ export default function Review() {
   }
 
   async function mutate(key, action, message) {
+    if (work) return;
     setWork(key); setError('');
     try { await action(); await refreshDigitization(); await refreshAudits(); setNotice(message); } catch (mutationError) { setError(mutationError.message); } finally { setWork(''); }
   }
@@ -171,6 +174,7 @@ export default function Review() {
   const deleteRow = (row) => { if (confirm(`Remove row ${row.row_index + 1}?`)) mutate('delete-row', () => api.deleteDynamicTableRow(id, digitization.table.id, row.row_index), 'Khatauni row removed and audited.'); };
 
   async function decide(action, rejection) {
+    if (work) return;
     if (!confirm(`Confirm ${action.replace('-', ' ')} for this document?`)) return;
     setWork(action); setError('');
     try { await api.decision(id, action, rejection); router.push(action === 'approve' ? '/officer/records' : '/officer/submissions'); } catch (decisionError) { setError(decisionError.message); setWork(''); }
@@ -187,7 +191,7 @@ export default function Review() {
 
   return <>
     <div className="page-title"><div><div className="eyebrow">VERIFICATION WORKSPACE</div><h2>Land Record #{sourceDocument.id}</h2><p>{sourceDocument.original_filename} · {sourceDocument.file_size ? `${(sourceDocument.file_size / 1024).toFixed(1)} KB` : 'file size unavailable'} · Uploaded {new Date(sourceDocument.uploaded_at || submission.submitted_at).toLocaleString()}</p><p>Uploader: {submission.user?.name} ({submission.user?.email})</p></div><StatusBadge status={submission.status} /></div>
-    <ErrorMessage>{error}</ErrorMessage>{notice && <div className="notice success" role="status">{notice}</div>}{isRejected && <div className="notice warn"><b>Rejected record — read-only.</b><br/>Reason: {submission.rejection?.reason_category || 'Unavailable'}{submission.rejection?.officer_note && <><br/>{submission.rejection.officer_note}</>}</div>}
+    <ErrorMessage>{error}</ErrorMessage>{notice && <div className="notice success" role="status">{notice}</div>}{work.startsWith('field-') || work.startsWith('cell-') ? <div className="notice" role="status">Saving correction…</div> : null}{isRejected && <div className="notice warn"><b>Rejected record — read-only.</b><br/>Reason: {submission.rejection?.reason_category || 'Unavailable'}{submission.rejection?.officer_note && <><br/>{submission.rejection.officer_note}</>}</div>}
     <section className="card khatauni-stepper" aria-label="Document processing progress"><ol>{steps.map(([label, done], index) => <li className={done ? 'complete' : (index === currentStep ? 'current' : '')} key={label}><span aria-hidden="true">{done ? '✓' : index + 1}</span><b>{label}</b></li>)}</ol></section>
     <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} /><DigitalKhatauni digitization={digitization} work={isRejected ? 'read-only' : work} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} /></div>
 
@@ -195,15 +199,15 @@ export default function Review() {
       {work === 'ocr' && <div className="ocr-live-state"><span className="ocr-live-spinner" /><b>Running OCR on the actual document with Tesseract hin+eng…</b></div>}{work === 'extract' && <div className="ocr-live-state"><span className="ocr-live-spinner" /><b>Extracting Khatauni structure from OCR tokens…</b></div>}
     </section>}
 
-    <section className="card raw-ocr-card"><div className="section-head"><div><div className="eyebrow">RAW OCR OUTPUT · मूल OCR परिणाम</div><h3>Complete Tesseract output</h3><p>Unmodified, selectable, scrollable OCR evidence from the uploaded document.</p></div><div className="actions"><Button variant="secondary" onClick={copyRaw} disabled={!ocr}><Clipboard size={14} /> Copy Raw OCR</Button><Button variant="secondary" onClick={downloadRaw} disabled={!ocr}><Download size={14} /> Download OCR Text</Button></div></div>
+    <section className="card raw-ocr-card developer-only"><div className="section-head"><div><div className="eyebrow">TECHNICAL EVIDENCE</div><h3>Raw OCR output</h3><p>Unmodified recognition output and token details for diagnostics.</p></div><div className="actions"><Button variant="secondary" onClick={copyRaw} disabled={!ocr}><Clipboard size={14} /> Copy Raw OCR</Button><Button variant="secondary" onClick={downloadRaw} disabled={!ocr}><Download size={14} /> Download OCR Text</Button></div></div>
       <div className="ocr-evidence-meta"><div><span>ENGINE</span><b>{ocr?.engine || 'Not run'}</b></div><div><span>LANGUAGES</span><b>Hindi + English ({ocr?.languages || 'hin+eng'})</b></div><div><span>STATUS</span><b>{ocr?.status || 'Not run'}</b></div><div><span>CHARACTERS</span><b>{ocr?.character_count ?? '—'}</b></div><div><span>TOKENS</span><b>{ocr?.token_count ?? '—'}</b></div><div><span>OVERALL CONFIDENCE</span><b>{ocr?.overall_confidence == null ? 'Unavailable' : `${ocr.overall_confidence.toFixed(2)}%`}</b></div></div>
       <div className="raw-ocr-label">================ RAW OCR TEXT ================</div><pre className="raw-ocr-text">{ocr ? (ocr.raw_text || 'OCR_FAILED — Tesseract returned no readable text.') : 'Run Real OCR to display the exact Tesseract output.'}</pre>
       <details className="token-evidence"><summary>OCR Evidence — token coordinates and confidence ({tokenRows.length})</summary><div className="table-wrap"><table className="data-table"><thead><tr><th>TOKEN</th><th>CONFIDENCE</th><th>X</th><th>Y</th><th>WIDTH</th><th>HEIGHT</th><th>LINE</th><th>BLOCK</th><th>PAGE</th></tr></thead><tbody>{tokenRows.map((token) => <tr key={token.index}><td>{token.text}</td><td>{token.confidence == null ? '—' : `${token.confidence.toFixed(1)}%`}</td><td>{token.bbox?.left}</td><td>{token.bbox?.top}</td><td>{token.bbox?.width}</td><td>{token.bbox?.height}</td><td>{token.line_num}</td><td>{token.block_num}</td><td>{token.page_num}</td></tr>)}</tbody></table></div></details>
     </section>
 
-    <section className="card extraction-summary-card"><div className="section-head"><div><div className="eyebrow">REAL EXTRACTION SUMMARY</div><h3>Khatauni parser result</h3></div></div><div className="extraction-summary-grid"><div><span>HEADER FIELDS</span><b>{summary.header_fields_detected || 0} / {summary.header_fields_total || 12}</b></div><div><span>TABLE ROWS</span><b>{summary.rows_digitized || 0}</b></div><div><span>OCR CELLS POPULATED</span><b>{summary.ocr_cells_populated || 0}</b></div><div><span>HIGH</span><b>{summary.high_confidence_items || 0}</b></div><div><span>MEDIUM</span><b>{summary.medium_confidence_items || 0}</b></div><div><span>LOW</span><b>{summary.low_confidence_items || 0}</b></div><div><span>UNAVAILABLE</span><b>{summary.unavailable_confidence_items || 0}</b></div></div></section>
-    <section className="card review-audit-card"><div className="section-head"><div><div className="eyebrow">AUDIT EVENTS</div><h3>Current document lifecycle</h3></div><Button variant="secondary" onClick={refreshAudits}><RefreshCw size={14} /> Refresh</Button></div><div className="table-wrap"><table className="data-table"><thead><tr><th>TIME</th><th>ACTION</th><th>ACTOR</th><th>DETAIL</th></tr></thead><tbody>{audits.length ? audits.map((row) => <tr key={row.id}><td>{new Date(row.timestamp).toLocaleString()}</td><td>{row.action}</td><td>{row.user_id || 'System'}</td><td><code>{row.metadata_json || '—'}</code></td></tr>) : <tr><td colSpan="4">No lifecycle events yet.</td></tr>}</tbody></table></div></section>
-    {!isRejected && <section className="card final-decision"><div className="section-head"><div><h3>Officer Verification</h3><p>Approve only after comparing the source record, recognition evidence, and final values.</p></div><div className="actions"><Button onClick={() => decide('approve')} loading={work === 'approve'} disabled={!hasExtraction}><CheckCircle size={15} /> Approve & Verify</Button><Button variant="secondary" onClick={() => decide('mark-review')} loading={work === 'mark-review'}><AlertTriangle size={15} /> Needs Review</Button><Button variant="danger" onClick={() => setRejectOpen(true)} loading={work === 'reject'}><XCircle size={15} /> Reject</Button></div></div></section>}
+    <section className="card extraction-summary-card developer-only"><div className="section-head"><div><div className="eyebrow">TECHNICAL SUMMARY</div><h3>Extraction diagnostics</h3></div></div><div className="extraction-summary-grid"><div><span>HEADER FIELDS</span><b>{summary.header_fields_detected || 0} / {summary.header_fields_total || 12}</b></div><div><span>TABLE ROWS</span><b>{summary.rows_digitized || 0}</b></div><div><span>OCR CELLS POPULATED</span><b>{summary.ocr_cells_populated || 0}</b></div><div><span>HIGH</span><b>{summary.high_confidence_items || 0}</b></div><div><span>MEDIUM</span><b>{summary.medium_confidence_items || 0}</b></div><div><span>LOW</span><b>{summary.low_confidence_items || 0}</b></div><div><span>UNAVAILABLE</span><b>{summary.unavailable_confidence_items || 0}</b></div></div></section>
+    <section className="card review-audit-card"><div className="section-head"><div><div className="eyebrow">ACTIVITY</div><h3>Record history</h3></div><Button variant="secondary" onClick={refreshAudits}><RefreshCw size={14} /> Refresh</Button></div><div className="table-wrap"><table className="data-table"><thead><tr><th>TIME</th><th>ACTION</th><th>ACTOR</th><th className="developer-only">RAW EVENT</th><th className="developer-only">TECHNICAL DETAILS</th></tr></thead><tbody>{audits.length ? audits.map((row) => <tr key={row.id}><td>{new Date(row.timestamp).toLocaleString()}</td><td>{activityLabel(row.action)}</td><td>{row.user_id ? `Account #${row.user_id}` : 'System'}</td><td className="developer-only">{row.action}</td><td className="developer-only"><code>{row.metadata_json || '—'}</code></td></tr>) : <tr><td colSpan="5">No lifecycle events yet.</td></tr>}</tbody></table></div></section>
+    {!isRejected && <section className="card final-decision"><div className="section-head"><div><h3>Officer decision</h3><p>Compare the source and structured values before recording a decision.</p></div><div className="actions"><Button onClick={() => decide('approve')} loading={work === 'approve'} loadingText="Verifying…" disabled={!hasExtraction || Boolean(work)}><CheckCircle size={15} /> Approve & Verify</Button><Button variant="secondary" onClick={() => decide('mark-review')} loading={work === 'mark-review'} loadingText="Updating…" disabled={Boolean(work)}><AlertTriangle size={15} /> Needs Review</Button><Button variant="danger" onClick={() => setRejectOpen(true)} loading={work === 'reject'} disabled={Boolean(work)}><XCircle size={15} /> Reject</Button></div></div></section>}
     {rejectOpen && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reject-title"><div className="modal-card"><h3 id="reject-title">Reject record</h3><p>Choose a meaningful reason before confirming. This is saved in the audit trail and shown to the submitting citizen.</p><div className="field"><label>Reason Category</label><select value={reasonCategory} onChange={event => setReasonCategory(event.target.value)}><option value="">Select a reason</option>{['Poor Scan Quality', 'Incomplete Document', 'Incorrect Document', 'Unreadable Information', 'Duplicate Submission', 'Information Mismatch', 'Other'].map(reason => <option key={reason}>{reason}</option>)}</select></div><div className="field"><label>Officer Note {reasonCategory === 'Other' ? '(required)' : '(optional)'}</label><textarea value={officerNote} onChange={event => setOfficerNote(event.target.value)} placeholder="Explain what the citizen needs to correct."/></div><div className="actions" style={{marginTop: 16}}><Button variant="secondary" onClick={() => setRejectOpen(false)}>Cancel</Button><Button variant="danger" disabled={!reasonCategory || (reasonCategory === 'Other' && !officerNote.trim())} onClick={() => { setRejectOpen(false); decide('reject', {reason_category: reasonCategory, officer_note: officerNote.trim() || null}); }}>Confirm rejection</Button></div></div></div>}
   </>;
 }

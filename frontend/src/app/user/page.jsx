@@ -4,7 +4,6 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {Files, Clock, CheckCircle, AlertTriangle, XCircle, RefreshCw} from 'lucide-react';
 import {api} from '../../lib/api';
-import {getUser} from '../../lib/auth';
 import StatCard from '../../components/dashboard/StatCard';
 import {Loader, Empty, ErrorMessage, StatusBadge} from '../../components/common/UI';
 

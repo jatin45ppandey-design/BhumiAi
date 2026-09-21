@@ -4,6 +4,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {useParams} from 'next/navigation';
 import {API_URL, api} from '../../../../lib/api';
 import {bilingualKhatauniLabel} from '../../../../lib/khatauniLabels';
+import {activityLabel} from '../../../../lib/activity';
 import {ErrorMessage, Loader, StatusBadge} from '../../../../components/common/UI';
 
 const sourceUrl = path => path ? `${API_URL}/uploads/${path.split('\\').pop().split('/').pop()}` : '';
@@ -82,13 +83,13 @@ function AuditTrail({auditTrail, digitizationAudit}) {
   ].sort((left, right) => new Date(right.timestamp || 0) - new Date(left.timestamp || 0));
   if (!rows.length) return <p className="muted" style={{padding: '0 18px 18px'}}>No audit events were stored.</p>;
   return <div className="table-wrap"><table className="data-table">
-    <thead><tr><th>TIMESTAMP</th><th>SOURCE</th><th>ACTION</th><th>ACTOR</th><th>DETAIL</th></tr></thead>
+    <thead><tr><th>TIMESTAMP</th><th>SOURCE</th><th>ACTION</th><th>ACTOR</th><th className="developer-only">DETAIL</th></tr></thead>
     <tbody>{rows.map((item, index) => <tr key={`${item.source}-${item.id || index}`}>
       <td>{item.timestamp ? new Date(item.timestamp).toLocaleString() : '—'}</td>
       <td>{item.source}</td>
-      <td>{item.action || '—'}{item.entity_type ? <><br/><small>{item.entity_type}</small></> : null}</td>
-      <td>{item.actor || 'System'}</td>
-      <td><small>{typeof item.detail === 'string' ? item.detail : item.detail ? JSON.stringify(item.detail) : '—'}</small></td>
+      <td>{activityLabel(item.action)}<span className="developer-only"><br/><small>{item.entity_type || item.source}</small></span></td>
+      <td>{item.actor ? `Account #${item.actor}` : 'System'}</td>
+      <td className="developer-only"><small>{typeof item.detail === 'string' ? item.detail : item.detail ? JSON.stringify(item.detail) : '—'}</small></td>
     </tr>)}</tbody>
   </table></div>;
 }
@@ -164,14 +165,14 @@ export default function Detail() {
           ['Filename', document.original_filename], ['Document type', document.document_type], ['State', document.state],
           ['District', document.district], ['Tehsil', document.tehsil], ['Village', document.village],
         ].map(([name, value]) => <div key={name}><span>{name.toUpperCase()}</span>{display(value)}</div>)}</div>
-        <div className="section-head"><div><h3>Raw OCR Output</h3><p>{ocr.engine || 'OCR engine unavailable'}{ocr.languages ? ` · ${ocr.languages}` : ''}</p></div></div>
-        <pre className="raw-ocr-text">{ocr.raw_text || 'No OCR text stored.'}</pre>
+        <div className="section-head developer-only"><div><h3>Raw OCR Output</h3><p>{ocr.engine || 'OCR engine unavailable'}{ocr.languages ? ` · ${ocr.languages}` : ''}</p></div></div>
+        <pre className="raw-ocr-text developer-only">{ocr.raw_text || 'No OCR text stored.'}</pre>
       </section>
     </div>
 
     <LegacyExtraction fields={ocr.fields || []}/>
     <section className="card" style={{marginTop: 18}}>
-      <div className="section-head"><div><h3>Audit Trail</h3><p>Workflow events and document-native field/table corrections are retained separately.</p></div></div>
+      <div className="section-head"><div><h3>Activity History</h3><p>Key actions for this verified record.</p></div></div>
       <AuditTrail auditTrail={data.audit_trail} digitizationAudit={data.digitization_audit}/>
     </section>
   </>;
