@@ -1,69 +1,19 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import Link from 'next/link';
-import {Search} from 'lucide-react';
+import {CheckCircle2, Search} from 'lucide-react';
 import {api} from '../../../lib/api';
-import {Empty, ErrorMessage, Loader} from '../../../components/common/UI';
-
-function DigitizationSummary({record}) {
-  const summary = record.digitization_summary || {};
-  const parts = [];
-  if (summary.fields_detected) parts.push(`${summary.fields_detected} field${summary.fields_detected === 1 ? '' : 's'}`);
-  if (summary.tables_detected) parts.push(`${summary.tables_detected} table${summary.tables_detected === 1 ? '' : 's'}`);
-  if (summary.cells_digitized) parts.push(`${summary.cells_digitized} cell${summary.cells_digitized === 1 ? '' : 's'}`);
-
-  if (parts.length) return <span>{parts.join(' · ')}</span>;
-  const legacy = [record.owner_name, record.khasra_number].filter(Boolean).join(' · ');
-  return <span>{legacy || 'No document-native fields stored'}</span>;
-}
+import {CitizenVerifiedDownload} from '../../../components/exports/ExportControls';
+import {Empty, ErrorMessage, Loader, Toast} from '../../../components/common/UI';
 
 export default function Records() {
-  const [rows, setRows] = useState(null);
-  const [q, setQ] = useState('');
-  const [err, setErr] = useState('');
-
-  async function find() {
-    try {
-      setErr('');
-      setRows(await api.records(q));
-    } catch (error) {
-      setErr(error.message);
-    }
-  }
-
-  useEffect(() => { find(); }, []);
-
+  const [rows, setRows] = useState(null); const [q, setQ] = useState(''); const [error, setError] = useState(''); const [feedback, setFeedback] = useState(null); const [searching, setSearching] = useState(false);
+  async function find(nextQuery = q) { if (searching) return; setSearching(true); try { setError(''); setRows(await api.userSubmissions({status:'VERIFIED', search:nextQuery})); } catch { setError('We could not load your verified records. Please try again.'); } finally { setSearching(false); } }
+  useEffect(() => { find(''); }, []);
   return <>
-    <div className="page-title">
-      <div>
-        <div className="eyebrow">REPOSITORY</div>
-        <h2>Verified Records</h2>
-        <p>Search permanent records by source metadata or any digitized document label and value.</p>
-      </div>
-    </div>
-    <div className="search">
-      <input
-        value={q}
-        onChange={event => setQ(event.target.value)}
-        onKeyDown={event => event.key === 'Enter' && find()}
-        placeholder="Record ID, document metadata, detected label, or value…"
-      />
-      <button className="button" onClick={find}><Search size={16}/> Search</button>
-    </div>
-    <ErrorMessage>{err}</ErrorMessage>
-    <section className="card" style={{marginTop: 16}}>
-      {!rows ? <Loader/> : !rows.length ? <Empty title="No verified records found" text="Try a document label, a digitized value, or source metadata."/> :
-        <div className="table-wrap"><table className="data-table">
-          <thead><tr><th>RECORD ID</th><th>DOCUMENT</th><th>DIGITIZED CONTENT</th><th>LOCATION</th><th>VERIFIED</th></tr></thead>
-          <tbody>{rows.map(record => <tr key={record.id}>
-            <td><Link href={`/officer/records/${record.id}`}>{record.record_id}</Link></td>
-            <td><b>{record.document_name || '—'}</b><br/><small>{record.document_type || 'Source type unavailable'}</small></td>
-            <td><DigitizationSummary record={record}/></td>
-            <td>{[record.village, record.district, record.state].filter(Boolean).join(', ') || '—'}</td>
-            <td>{record.verified_at ? new Date(record.verified_at).toLocaleDateString() : '—'}</td>
-          </tr>)}</tbody>
-        </table></div>}
-    </section>
+    <div className="page-title citizen-page-title"><div><div className="eyebrow">VERIFIED RECORDS</div><h2>Your verified records</h2><p>Download the verified PDF for records that have completed officer review.</p></div></div>
+    <div className="search citizen-search"><input value={q} onChange={event => setQ(event.target.value)} onKeyDown={event => event.key === 'Enter' && find()} placeholder="Search document name, village, or record type…"/><button className="button" onClick={() => find()} disabled={searching}>{searching ? 'Searching…' : <><Search size={16}/> Search</>}</button></div>
+    <ErrorMessage>{error}</ErrorMessage><Toast message={feedback?.message} tone={feedback?.tone} onDismiss={() => setFeedback(null)}/>
+    <section className="card citizen-verified-records" style={{marginTop:16}}>{!rows ? <Loader label="Loading verified records…"/> : !rows.length ? <Empty title="No verified records found" text="Verified records will appear here after officer review is complete."/> : <div className="table-wrap"><table className="data-table citizen-submission-table"><thead><tr><th>VERIFIED RECORD</th><th>DOCUMENT</th><th>LOCATION</th><th>VERIFIED</th><th>DOWNLOAD</th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><span className="verified-record-label"><CheckCircle2 size={16}/><b>{row.verified_record?.record_id || `Submission #${row.id}`}</b></span></td><td><b>{row.document?.original_filename || 'Land record'}</b><br/><small>{row.document?.document_type || 'Land record'}</small></td><td>{[row.document?.village, row.document?.district, row.document?.state].filter(Boolean).join(', ') || 'Location unavailable'}</td><td>{row.verified_record?.verified_at ? new Date(row.verified_record.verified_at).toLocaleDateString() : 'Verification complete'}</td><td>{row.verified_record_id ? <CitizenVerifiedDownload recordId={row.verified_record_id} onFeedback={setFeedback}/> : <small>Download will be available shortly.</small>}</td></tr>)}</tbody></table></div>}</section>
   </>;
 }

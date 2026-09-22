@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from 'react';
 import Link from 'next/link';
-import {Activity, AlertTriangle, ArrowRight, CheckCircle, ClipboardCheck, FileSearch, Inbox, Upload} from 'lucide-react';
+import {Activity, AlertTriangle, ArrowRight, CheckCircle, ClipboardCheck, FileSearch, Inbox, ListFilter, XCircle} from 'lucide-react';
 import {api} from '../../lib/api';
 import {activityDescription, activityLabel} from '../../lib/activity';
 import StatCard from '../../components/dashboard/StatCard';
@@ -37,18 +37,19 @@ export default function OfficerDashboard() {
 
   if (!stats) return error ? <ErrorMessage>{error}</ErrorMessage> : <Loader label="Preparing today's work queue…"/>;
   return <>
-    <div className="page-title"><div><div className="eyebrow">OFFICER WORKSPACE</div><h2>Good day. Here is the work queue.</h2><p>Review incoming land records, resolve attention items, and maintain the verified repository.</p></div><Link className="button" href="/officer/submissions?status=SUBMITTED"><Inbox size={16}/> Review next record</Link></div>
+    <div className="page-title officer-page-title"><div><div className="eyebrow">OFFICER WORKSPACE</div><h2>Verification work, prioritized.</h2><p>Start with records that need a decision, then keep the verified repository current.</p></div><Link className="button" href="/officer/submissions?status=SUBMITTED"><Inbox size={16}/> Review next record</Link></div>
     <ErrorMessage>{error}</ErrorMessage>
     <div className="stat-grid officer-stat-grid">
       <StatCard label="Pending review" value={stats.pending} icon={Inbox} href="/officer/submissions?status=SUBMITTED"/>
       <StatCard label="Needs attention" value={stats.needs_review} icon={AlertTriangle} tone="amber" href="/officer/submissions?status=NEEDS_REVIEW"/>
-      <StatCard label="Low-confidence records" value={stats.low_confidence} icon={FileSearch} tone="amber" href="/officer/submissions"/>
+      <StatCard label="Rejected" value={stats.rejected} icon={XCircle} tone="red" href="/officer/submissions?status=REJECTED"/>
       <StatCard label="Verified records" value={stats.verified} icon={CheckCircle} tone="green" href="/officer/records"/>
     </div>
-    <div className="quick-actions" aria-label="Quick actions">
+    <div className="quick-actions officer-quick-actions" aria-label="Quick actions">
       <Link className="quick-action" href="/officer/submissions?status=SUBMITTED"><ClipboardCheck size={19}/> Review the next submission</Link>
+      <Link className="quick-action" href="/officer/submissions"><ListFilter size={19}/> Open review queue</Link>
       <Link className="quick-action" href="/officer/records"><FileSearch size={19}/> Search verified records</Link>
-      <Link className="quick-action" href="/officer/upload"><Upload size={19}/> Digitize a record</Link>
+      <Link className="quick-action" href="/officer/records"><CheckCircle size={19}/> View verified records</Link>
     </div>
     <QueueSection title="Needs your attention" eyebrow="ACTION REQUIRED" rows={needsReview} status="NEEDS_REVIEW" emptyTitle="No records waiting for attention" emptyText="Records needing further review will appear here."/>
     <QueueSection title="Pending review" eyebrow="NEW SUBMISSIONS" rows={submitted} status="SUBMITTED" emptyTitle="No records waiting for review" emptyText="New submissions will appear here automatically."/>

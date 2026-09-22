@@ -14,7 +14,7 @@ export default function ActivityHistory() {
   return <>
     <div className="page-title"><div><div className="eyebrow">OFFICER WORKSPACE</div><h2>Activity History</h2><p>A readable timeline of document handling and verification actions.</p></div></div>
     <ErrorMessage>{error}</ErrorMessage>
-    <section className="card">
+    <section className="card activity-history-card">
       {!rows ? <Loader label="Loading recent activity…"/> : !rows.length ? <Empty title="No activity recorded yet" text="Document uploads and review actions will appear here."/> :
         <div className="table-wrap"><table className="data-table"><thead><tr><th>ACTIVITY</th><th>RECORD</th><th>ACTOR</th><th>WHEN</th><th className="developer-only">EVENT NAME</th><th className="developer-only">TECHNICAL DETAILS</th></tr></thead><tbody>{rows.map(event => <tr key={event.id}>
           <td><span className="activity-action">{activityLabel(event.action)}</span><div className="activity-description">{activityDescription(event)}</div></td>

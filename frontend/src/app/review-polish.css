@@ -1,71 +1,11 @@
-/* Presentation-only refinements for the officer verification workspace. */
-.khatauni-stepper { border-color: #d8e4e0; box-shadow: 0 5px 18px rgba(12, 45, 48, .04); }
-.khatauni-stepper ol { padding: 15px 20px; }
-.khatauni-stepper li { font-size: 10px; font-weight: 700; }
-
-.review-workbench { gap: 20px; }
-.evidence-pane, .khatauni-pane { border-color: #d5e2de; }
-.evidence-head { min-height: 84px; }
-.evidence-toolbar { gap: 6px; }
-.evidence-toolbar button { min-height: 30px; border-radius: 6px; padding: 6px 9px; }
-
-.source-canvas {
-  background: #edf2f0;
-  padding: 20px;
-  border-top: 1px solid #e0e9e5;
-}
-
-.source-canvas img { box-shadow: 0 12px 28px rgba(18, 43, 43, .17); }
-
-.khatauni-pane > .section-head { min-height: 84px; padding: 17px 18px; }
-.khatauni-fields { gap: 10px; padding: 14px 16px; background: #fbfcfa; }
-
-.khatauni-field {
-  min-height: 94px;
-  border: 1px solid #e0e9e5;
-  border-radius: 8px;
-  padding: 10px;
-  background: #fff;
-  box-shadow: 0 1px 1px rgba(12, 45, 48, .025);
-}
-
-.khatauni-field:focus-within { border-color: #79aaa2; box-shadow: 0 0 0 3px rgba(12, 103, 103, .08); }
-.khatauni-field > span { color: #37555a; }
-.khatauni-field input, .khatauni-cell input { min-height: 34px; border-color: #cadbd6; }
-.khatauni-field em { padding-top: 2px; }
-
-.recognition-details {
-  border-top: 1px solid #e7eeeb;
-  padding-top: 5px;
-  color: #5a7376;
-}
-
-.recognition-details summary { color: #2e6266; }
-.khatauni-table-head { padding: 13px 16px; background: #f5f9f7; }
-.khatauni-table th { background: #eef5f2; }
-.khatauni-table td { background: #fff; }
-.khatauni-table tr:hover td { background: #f8fbfa; }
-.source-tag { border-radius: 999px; padding: 4px 7px; }
-
-.processing-card .section-head, .raw-ocr-card .section-head, .extraction-summary-card .section-head, .review-audit-card .section-head { min-height: 78px; }
-.ocr-evidence-meta { background: #d7e5e1; }
-.ocr-evidence-meta > div { min-height: 66px; padding: 12px 14px; }
-.raw-ocr-text { border-radius: 8px; box-shadow: inset 0 1px rgba(255, 255, 255, .04); }
-.token-evidence { border-radius: 8px; }
-.extraction-summary-grid { border-top: 1px solid #dce8e4; }
-.extraction-summary-grid > div { min-height: 72px; padding: 13px 14px; }
-
-.final-decision { border-color: #bdd2cd; }
-.final-decision .section-head { min-height: 80px; background: #fffdf8; }
-.final-decision .button { min-width: 126px; }
-
-@media (max-width: 1180px) {
-  .review-workbench { gap: 16px; }
-}
-
-@media (max-width: 700px) {
-  .khatauni-stepper ol { padding: 13px 16px; }
-  .khatauni-fields { padding: 12px; }
-  .khatauni-field { min-height: 0; }
-  .source-canvas { padding: 12px; }
-}
+/* Shared presentation refinements for the officer verification workspace. */
+.khatauni-stepper { border-color:var(--border-warm); box-shadow:none; }
+.khatauni-stepper li.current { color:var(--saffron-deep); }.khatauni-stepper li.current span { border-color:var(--saffron); background:var(--saffron-soft); box-shadow:0 0 0 3px rgba(210,111,28,.12); }.khatauni-stepper li.complete { color:var(--success); }.khatauni-stepper li.complete span { border-color:#a7ceb3; background:#edf8ef; }
+.review-workbench { grid-template-columns:minmax(360px,1fr) minmax(460px,1.12fr); gap:18px; }.evidence-pane,.khatauni-pane { border-color:var(--border-warm); }.evidence-pane { position:sticky; top:18px; }.khatauni-pane { max-height:calc(100vh - 112px); overflow:auto; overscroll-behavior:contain; scrollbar-color:#c6af93 transparent; scrollbar-width:thin; }.evidence-head,.khatauni-pane>.section-head { min-height:78px; background:#fffdf9; }.source-canvas { background:#f2ece2; border-top-color:#e5dacb; }.source-canvas img { box-shadow:0 12px 28px rgba(36,28,20,.19); }
+.evidence-toolbar { gap:6px; }.evidence-toolbar button { min-height:31px; border-color:#d9c8b3; color:#68492c; background:#fffdfa; }.evidence-toolbar button:hover,.evidence-toolbar button.active { border-color:var(--saffron); background:var(--saffron); color:#fffaf2; }.evidence-toolbar button:focus-visible { outline-color:rgba(210,111,28,.38); }
+.khatauni-fields { padding:14px 16px; gap:10px; background:#fcf8f2; }.khatauni-field { min-height:102px; border:1px solid #e2d7c9; border-radius:8px; padding:10px; background:#fffdfa; }.khatauni-field:focus-within { border-color:var(--saffron); box-shadow:0 0 0 3px rgba(210,111,28,.12); }.khatauni-field>span { color:#493a2c; }.khatauni-field input,.khatauni-cell input { min-height:34px; border-color:#d9c8b3; background:#fff; }.khatauni-field input:focus,.khatauni-cell input:focus { border-color:var(--saffron); box-shadow:0 0 0 3px rgba(210,111,28,.12); }
+.recognition-details { border-top:1px solid #e7ded3; padding-top:5px; color:#71614f; }.recognition-details summary { color:#80531d; }.confidence-badge { max-width:100%; line-height:1.25; }.confidence-badge small { display:block; margin-top:2px; text-transform:none; letter-spacing:0; }
+.khatauni-table-head { padding:13px 16px; background:#faf3e8; border-color:#e4d8c8; }.khatauni-table th { background:#f4eadc; color:#65513d; }.khatauni-table td { border-color:#ede4d9; }.khatauni-table tr:hover td { background:#fff9f0; }.source-tag { border-radius:4px; }.source-tag.ocr { background:#edf1f6; color:#4c6279; }.source-tag.manual { background:var(--saffron-soft); color:var(--saffron-deep); }.table-delete-button { display:inline-flex; align-items:center; gap:5px; margin-top:4px; border:0; padding:5px 0; background:transparent; color:var(--error); font:700 10px inherit; cursor:pointer; }.table-delete-button:hover { text-decoration:underline; text-underline-offset:3px; }.table-delete-button:disabled { cursor:not-allowed; opacity:.5; }
+.processing-card { border-top:3px solid var(--saffron); }.processing-card .section-head { background:#fffaf3; }.final-decision { bottom:16px; border:1px solid #d8bd9c; box-shadow:0 12px 30px rgba(47,30,14,.16); }.final-decision .section-head { min-height:80px; background:#fffaf3; }.final-decision .button { min-width:126px; }.decision-modal { border-top:3px solid var(--saffron); }.decision-modal h3 { margin-top:8px; }.modal-card .field textarea { width:100%; min-height:96px; margin-top:7px; border:1px solid #d9c8b3; border-radius:5px; padding:10px; font:inherit; }.modal-card .field textarea:focus { outline:0; border-color:var(--saffron); box-shadow:0 0 0 3px rgba(210,111,28,.12); }
+@media(max-width:1180px){.review-workbench{grid-template-columns:1fr}.evidence-pane{position:static}.khatauni-pane{max-height:none;overflow:visible}.final-decision{position:sticky;bottom:12px}}
+@media(max-width:700px){.khatauni-fields{padding:12px}.khatauni-field{min-height:0}.source-canvas{padding:12px}.final-decision{position:static}.final-decision .button{width:100%}.khatauni-table-wrap{max-width:100%}.evidence-toolbar{justify-content:flex-start}}

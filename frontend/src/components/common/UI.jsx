@@ -1,8 +1,12 @@
 'use client';
 
+import { AlertTriangle, CheckCircle2, CircleDot, FileText, LoaderCircle, XCircle } from 'lucide-react';
+
 export function StatusBadge({status}) {
   const key = (status || '').toLowerCase().replaceAll('_', '-');
-  return <span className={`status ${key}`}>{(status || 'Unknown').replaceAll('_', ' ')}</span>;
+  const label = (status || 'Unknown').replaceAll('_', ' ');
+  const Icon = key === 'verified' ? CheckCircle2 : key === 'rejected' || key === 'failed' || key === 'error' ? XCircle : key === 'needs-review' || key === 'under-review' ? AlertTriangle : key === 'processing' ? LoaderCircle : CircleDot;
+  return <span className={`status ${key}`}><Icon aria-hidden="true" size={12} />{label}</span>;
 }
 
 export function Loader({label = 'Loading data…'}) {
@@ -10,7 +14,7 @@ export function Loader({label = 'Loading data…'}) {
 }
 
 export function Empty({title, text}) {
-  return <div className="empty"><div className="empty-icon" aria-hidden="true">⌂</div><h3>{title}</h3><p>{text}</p></div>;
+  return <div className="empty"><div className="empty-icon" aria-hidden="true"><FileText size={21}/></div><h3>{title}</h3><p>{text}</p></div>;
 }
 
 export function ErrorMessage({children}) {
@@ -19,15 +23,10 @@ export function ErrorMessage({children}) {
 
 export function Toast({message, tone = 'success', onDismiss}) {
   if (!message) return null;
-  return <div className={`toast ${tone}`} role={tone === 'error' ? 'alert' : 'status'} aria-live="polite">
-    <span>{message}</span>
-    <button type="button" onClick={onDismiss} aria-label="Dismiss message">×</button>
-  </div>;
+  return <div className={`toast ${tone}`} role={tone === 'error' ? 'alert' : 'status'} aria-live="polite"><span>{message}</span><button type="button" onClick={onDismiss} aria-label="Dismiss message">×</button></div>;
 }
 
 export function Button({children, variant = '', loading, loadingText = 'Working…', ...props}) {
   const {disabled, ...buttonProps} = props;
-  return <button {...buttonProps} className={`button ${variant}`} aria-busy={Boolean(loading)} disabled={loading || disabled}>
-    {loading ? loadingText : children}
-  </button>;
+  return <button {...buttonProps} className={`button ${variant}`} aria-busy={Boolean(loading)} disabled={loading || disabled}>{loading ? loadingText : children}</button>;
 }

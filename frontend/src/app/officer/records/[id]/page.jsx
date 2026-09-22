@@ -14,7 +14,7 @@ const display = value => isPresent(value) ? String(value) : '—';
 const label = value => isPresent(value) ? bilingualKhatauniLabel(String(value).replaceAll('_', ' ')) : 'Unlabelled item';
 const confidence = value => value === null || value === undefined || value === '' || Number.isNaN(Number(value))
   ? 'Confidence unavailable'
-  : `${Math.round(Number(value))}%`;
+  : `Recognition confidence · ${Math.round(Number(value))}%`;
 
 function DynamicFields({fields}) {
   if (!fields.length) return <p className="muted" style={{padding: '0 18px 18px'}}>No Khatauni header fields were stored for this record.</p>;
@@ -24,7 +24,7 @@ function DynamicFields({fields}) {
       <td><b>{label(field.original_label || field.normalized_label)}</b>{field.normalized_label && field.original_label ? <><br/><small>Normalized: {field.normalized_label}</small></> : null}</td>
       <td>{display(field.display_value || field.final_value || field.officer_value || field.ai_value || field.raw_ocr_value)}</td>
       <td>{display(field.raw_ocr_value || field.ai_value)}</td>
-      <td>{confidence(field.ai_confidence)}{field.confidence_source ? <><br/><small>{field.confidence_source}</small></> : null}</td>
+      <td>{confidence(field.ai_confidence)}{field.confidence_source ? <><br/><small className="developer-only">{field.confidence_source}</small></> : null}</td>
       <td>{field.edited ? 'Officer corrected' : 'OCR-derived'}</td>
     </tr>)}</tbody>
   </table></div>;
@@ -128,7 +128,7 @@ export default function Detail() {
   ].filter(([, value]) => isPresent(value));
 
   return <>
-    <div className="page-title"><div>
+    <div className="page-title record-detail-header"><div>
       <div className="eyebrow">VERIFIED DIGITAL KHATAUNI</div>
       <h2>{record.record_id}</h2>
       <p>Permanent Khatauni values retain the original OCR evidence and every officer correction.</p>
