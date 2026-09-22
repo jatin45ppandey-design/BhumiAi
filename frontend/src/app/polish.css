@@ -342,7 +342,7 @@ body { background:var(--ivory); color:var(--text-primary); }
 .portal { height:100dvh; min-height:100vh; overflow:hidden; }
 .sidebar { height:100dvh; min-height:100vh; position:sticky; top:0; overflow:hidden; }
 .sidebar nav { flex:1; min-height:0; overflow-y:auto; }
-.main { height:100dvh; min-height:100vh; overflow-x:hidden; overflow-y:auto; }
+.main { position:relative; height:100dvh; min-height:100vh; overflow-x:hidden; overflow-y:auto; }
 .brand { flex:none; padding:8px 11px 27px; color:var(--sidebar-navy); }.brand-mark { border-radius:7px; background:var(--sidebar-navy); color:var(--sidebar-ivory); }.brand strong span { color:var(--sidebar-navy); }.brand small { color:#3a4655; letter-spacing:.13em; }
 .sidebar nav { display:block; flex:1; min-height:0; overflow-y:auto; padding:0 2px 12px; scrollbar-color:#8e641f transparent; scrollbar-width:thin; }.nav-group + .nav-group { margin-top:22px; }.nav-label { margin:0 9px 6px; color:#374252; font-size:9px; letter-spacing:.14em; }.nav-label.records-label { border:0; margin:0; padding:0; }
 .sidebar nav a { position:relative; min-height:40px; border-radius:4px; padding:10px 11px 10px 14px; color:var(--sidebar-navy); }.sidebar nav a::before { content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:0 2px 2px 0; background:transparent; }.sidebar nav a:hover { background:var(--sidebar-saffron-hover); color:var(--sidebar-navy); }.sidebar nav a.active { border:0; background:var(--sidebar-navy); color:var(--sidebar-ivory); box-shadow:none; }.sidebar nav a.active::before { background:#f5ca83; }.sidebar nav a:active,.sidebar-bottom button:active,.sidebar-account-link:active { transform:scale(.985); }
@@ -393,3 +393,24 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .khatauni-pane,.source-canvas,.khatauni-table-wrap { overscroll-behavior:contain; }.khatauni-field>span,.khatauni-field em,.khatauni-cell small,.khatauni-table td { overflow-wrap:anywhere; word-break:break-word; }.review-audit-card { scroll-margin-bottom:108px; }
 @media(max-width:800px){.topbar h1,.crumb{max-width:calc(100vw - 104px)}.topbar h1{font-size:15px}.crumb{font-size:8px}.page-title .button{width:auto;min-height:42px}.actions .button{min-height:42px}.form-grid{gap:14px}.data-table th,.data-table td{padding-inline:13px}.modal-card{width:100%;padding:18px}.modal-card .actions{align-items:stretch;flex-direction:column}.modal-card .actions .button{width:100%}}
 @media(max-width:520px){.page{padding-inline:14px}.page-title h2{font-size:24px}.page-title .button,.submission-actions-card .actions .button,.citizen-upload-actions .actions .button{width:100%}.page-title{gap:10px}.stat{padding:13px}.stat strong{font-size:22px}.search{align-items:stretch;flex-wrap:wrap}.search input{min-width:0;flex:1 1 210px}.search .button{flex:none}.status{font-size:8px}.toast{right:14px;bottom:14px;max-width:calc(100vw - 28px)}}
+
+.route-progress { position:absolute; z-index:15; top:0; left:0; right:0; height:3px; overflow:hidden; opacity:0; background:var(--saffron); transform:scaleX(.15); transform-origin:left center; pointer-events:none; transition:opacity .14s ease-out,transform .14s ease-out; }
+.route-progress.visible { opacity:1; transform:scaleX(1); }
+.route-progress::after { content:""; position:absolute; inset:0 auto 0 -35%; width:35%; background:rgba(255,250,241,.7); animation:route-progress-sheen .85s ease-in-out infinite; }
+@keyframes route-progress-sheen { from { transform:translateX(0); } to { transform:translateX(390%); } }
+.route-content { min-height:100%; animation:route-content-enter .16s ease-out both; }
+@keyframes route-content-enter { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+.route-skeleton { padding:2px 0 32px; }
+.skeleton-heading { display:grid; gap:10px; margin-bottom:22px; }
+.skeleton-block { display:block; border-radius:5px; background:linear-gradient(100deg,#eadfd2 25%,#f8efe5 45%,#eadfd2 65%); background-size:220% 100%; animation:skeleton-shimmer 1.2s ease-in-out infinite; }
+.skeleton-eyebrow { width:110px; height:10px; }.skeleton-title { width:min(420px,70%); height:32px; }.skeleton-copy { width:min(620px,90%); height:14px; }
+.skeleton-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:11px; margin-bottom:18px; }.skeleton-stat { height:88px; border:1px solid var(--border-warm); border-radius:var(--radius); }
+.skeleton-panel { padding:16px 18px 20px; border:1px solid var(--border-warm); border-radius:var(--radius); background:var(--surface); }.skeleton-panel-head { width:32%; height:19px; margin-bottom:18px; }.skeleton-row { width:100%; height:42px; margin-top:10px; }.skeleton-workbench { display:grid; grid-template-columns:minmax(0,46fr) minmax(0,54fr); gap:14px; }.skeleton-pane { height:520px; border:1px solid var(--border-warm); border-radius:var(--radius); background:var(--surface); }.route-skeleton-workspace .skeleton-pane:first-child { height:calc(100vh - 250px); }.route-skeleton-profile .skeleton-panel { max-width:900px; }.route-skeleton-audit .skeleton-panel-head { width:45%; }
+@keyframes skeleton-shimmer { from { background-position:100% 0; } to { background-position:-100% 0; } }
+.source-canvas { position:relative; }
+.source-loading-placeholder { position:absolute; inset:0; display:grid; place-items:center; color:var(--muted); font-size:12px; background:rgba(247,243,236,.82); z-index:1; }
+.skeleton-khatauni-field { min-height:68px; border-radius:5px; }
+.skeleton-khatauni-table { height:240px; margin:0 14px 14px; border-radius:5px; }
+@media(max-width:1180px){.skeleton-workbench{grid-template-columns:1fr}.skeleton-pane{height:360px}.route-skeleton-workspace .skeleton-pane:first-child{height:360px}.skeleton-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.skeleton-title{width:85%}.skeleton-stats{gap:8px}.skeleton-stat{height:76px}.skeleton-panel{padding:14px}.skeleton-workbench{gap:10px}.skeleton-pane{height:280px}.route-skeleton-workspace .skeleton-pane:first-child{height:280px}}
+@media(prefers-reduced-motion:reduce){.route-content{animation:none!important}.route-progress::after,.skeleton-block{animation:none!important}}

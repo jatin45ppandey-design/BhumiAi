@@ -51,6 +51,8 @@ function confidenceLabel(value) {
 function SourceDocument({ document, processedPath, sourceMode, setSourceMode, zoom, setZoom, fit, setFit }) {
   const selectedPath = sourceMode === 'enhanced' && processedPath ? processedPath : document?.file_path;
   const isPdf = selectedPath?.toLowerCase().endsWith('.pdf');
+  const [sourceLoading, setSourceLoading] = useState(Boolean(selectedPath));
+  useEffect(() => { setSourceLoading(Boolean(selectedPath)); }, [selectedPath]);
   return <section className="card evidence-pane">
     <div className="section-head evidence-head">
       <div><div className="eyebrow">SOURCE RECORD</div><h3>Source Record</h3><p>Compare the original record with its structured digital version.</p></div>
@@ -64,13 +66,15 @@ function SourceDocument({ document, processedPath, sourceMode, setSourceMode, zo
       </div>
     </div>
     <div className={`source-canvas ${fit ? 'fit' : ''}`}>
-      {selectedPath ? (isPdf ? <iframe src={sourceUrl(selectedPath)} title="Original uploaded PDF" /> : <img src={sourceUrl(selectedPath)} alt="Actual uploaded Khatauni" style={{ transform: `scale(${zoom})` }} />) : <FileText size={46} />}
+      {sourceLoading && <div className="source-loading-placeholder" role="status">Loading source document…</div>}
+      {selectedPath ? (isPdf ? <iframe src={sourceUrl(selectedPath)} title="Original uploaded PDF" onLoad={() => setSourceLoading(false)} onError={() => setSourceLoading(false)} /> : <img src={sourceUrl(selectedPath)} alt="Actual uploaded Khatauni" onLoad={() => setSourceLoading(false)} onError={() => setSourceLoading(false)} style={{ transform: `scale(${zoom})` }} />) : <FileText size={46} />}
     </div>
   </section>;
 }
 
-function DigitalKhatauni({ digitization, work, onFieldChange, onCellChange, onAddRow, onDeleteRow }) {
+function DigitalKhatauni({ digitization, digitizationLoading, work, onFieldChange, onCellChange, onAddRow, onDeleteRow }) {
   const { items, table } = digitization;
+  if (digitizationLoading) return <section className="card khatauni-pane khatauni-loading" aria-label="Loading structured record"><div className="section-head"><div><div className="eyebrow">DIGITAL KHATAUNI</div><h3>Loading structured record…</h3><p>The source record remains available while extracted fields load.</p></div></div><div className="khatauni-fields"><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/></div><div className="skeleton-block skeleton-khatauni-table"/></section>;
   return <section className="card khatauni-pane">
     <div className="section-head"><div><div className="eyebrow">DIGITAL KHATAUNI</div><h3>Digital Khatauni</h3><p>Review and correct the structured record beside the source document.</p></div></div>
     <div className="khatauni-fields">
@@ -103,6 +107,7 @@ export default function Review() {
   const [submission, setSubmission] = useState(null);
   const [ocr, setOcr] = useState(null);
   const [digitization, setDigitization] = useState({ items: [], table: null, summary: {} });
+  const [digitizationLoading, setDigitizationLoading] = useState(true);
   const [processedPath, setProcessedPath] = useState('');
   const [audits, setAudits] = useState([]);
   const [sourceMode, setSourceMode] = useState('original');
@@ -126,16 +131,21 @@ export default function Review() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.submissions(), api.latestOcr(id).catch(() => null), api.digitization(id).catch(() => null), api.audit().catch(() => [])])
-      .then(([submissions, latestOcr, structure, auditRows]) => {
-        if (!active) return;
-        const found = submissions.find((row) => String(row.document_id) === String(id));
-        if (!found) throw new Error('Submission not found');
-        setSubmission(found);
-        if (latestOcr) { setOcr(latestOcr); setProcessedPath(latestOcr.processed_image_path || ''); }
-        if (structure) setDigitization(normalizeDigitization(structure));
-        setAudits(auditRows.filter((row) => String(row.document_id) === String(id)).slice(0, 20));
-      }).catch((loadError) => active && setError(loadError.message));
+    api.submissions().then((submissions) => {
+      if (!active) return;
+      const found = submissions.find((row) => String(row.document_id) === String(id));
+      if (!found) throw new Error('Submission not found');
+      setSubmission(found);
+    }).catch((loadError) => active && setError(loadError.message));
+    api.latestOcr(id).then((latestOcr) => {
+      if (active && latestOcr) { setOcr(latestOcr); setProcessedPath(latestOcr.processed_image_path || ''); }
+    }).catch(() => {});
+    api.digitization(id).then((structure) => {
+      if (active && structure) setDigitization(normalizeDigitization(structure));
+    }).catch(() => {}).finally(() => active && setDigitizationLoading(false));
+    api.audit().then((auditRows) => {
+      if (active) setAudits((Array.isArray(auditRows) ? auditRows : []).filter((row) => String(row.document_id) === String(id)).slice(0, 20));
+    }).catch(() => {});
     return () => { active = false; };
   }, [id]);
 
@@ -174,9 +184,16 @@ export default function Review() {
   const updateCell = (cell, value) => mutate(`cell-${cell.id}`, () => api.updateDynamicTableCell(id, digitization.table.id, cell.id, { officer_value: value }), 'Table correction saved; original OCR remains preserved.');
   const addRow = () => mutate('add-row', () => api.createDynamicTableRow(id, digitization.table.id, {}), 'Manual Khatauni row added and audited.');
   const deleteRow = row => setPendingDeleteRow(row);
+  async function saveCorrections() {
+    if (work) return;
+    setWork('save-corrections'); setError('');
+    try { await refreshDigitization(); await refreshAudits(); setNotice('Corrections refreshed; original OCR remains preserved.'); } catch (saveError) { setError(saveError.message); } finally { setWork(''); }
+  }
 
   async function decide(action, rejection) {
     if (work) return;
+    if (action === 'reject') setRejectOpen(true);
+    else setPendingDecision(action);
     setWork(action); setError('');
     try { await api.decision(id, action, rejection); router.push(action === 'approve' ? '/officer/records' : '/officer/submissions'); } catch (decisionError) { setError(decisionError.message); setWork(''); }
   }
@@ -194,9 +211,9 @@ export default function Review() {
     <div className="page-title"><div><div className="eyebrow">VERIFICATION WORKSPACE</div><h2>Land Record #{sourceDocument.id}</h2><p>{sourceDocument.original_filename} · {sourceDocument.file_size ? `${(sourceDocument.file_size / 1024).toFixed(1)} KB` : 'file size unavailable'} · Uploaded {new Date(sourceDocument.uploaded_at || submission.submitted_at).toLocaleString()}</p><p>Uploader: {submission.user?.name} ({submission.user?.email})</p></div><StatusBadge status={submission.status} /></div>
     <ErrorMessage>{error}</ErrorMessage><Toast message={notice} onDismiss={() => setNotice('')}/>{work.startsWith('field-') || work.startsWith('cell-') ? <div className="notice" role="status">Saving correction…</div> : null}{isRejected && <div className="notice warn"><b>Rejected record — read-only.</b><br/>Reason: {submission.rejection?.reason_category || 'Unavailable'}{submission.rejection?.officer_note && <><br/>{submission.rejection.officer_note}</>}</div>}
     <section className="card khatauni-stepper" aria-label="Document processing progress"><ol>{steps.map(([label, done], index) => <li className={done ? 'complete' : (index === currentStep ? 'current' : '')} key={label}><span aria-hidden="true">{done ? '✓' : index + 1}</span><b>{label}</b></li>)}</ol></section>
-    <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} /><DigitalKhatauni digitization={digitization} work={isRejected ? 'read-only' : work} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} /></div>
+    <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} /><DigitalKhatauni digitization={digitization} digitizationLoading={digitizationLoading} work={isRejected ? 'read-only' : work} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} /></div>
 
-    {!isRejected && <section className="card processing-card"><div className="section-head"><div><div className="eyebrow">DOCUMENT PROCESSING</div><h3>Prepare the digital record</h3><p>Process this source record before reviewing its structured data.</p></div><div className="actions"><Button variant="secondary" onClick={() => execute('preprocess')} loading={work === 'preprocess'} disabled={Boolean(work)}><ScanLine size={15} /> Preprocess</Button><Button onClick={() => execute('ocr')} loading={work === 'ocr'} disabled={!processedPath || Boolean(work)}><Search size={15} /> Run OCR</Button><Button variant="secondary" onClick={() => execute('extract')} loading={work === 'extract'} disabled={!hasRawOcr || Boolean(work)}>Extract Data</Button><Button variant="secondary" onClick={async () => { await refreshDigitization(); setNotice('All corrections are persisted as they are entered.'); }} disabled={!hasExtraction || Boolean(work)}><Save size={15} /> Save Corrections</Button></div></div>
+    {!isRejected && <section className="card processing-card"><div className="section-head"><div><div className="eyebrow">DOCUMENT PROCESSING</div><h3>Prepare the digital record</h3><p>Process this source record before reviewing its structured data.</p></div><div className="actions"><Button variant="secondary" onClick={() => execute('preprocess')} loading={work === 'preprocess'} disabled={Boolean(work)}><ScanLine size={15} /> Preprocess</Button><Button onClick={() => execute('ocr')} loading={work === 'ocr'} disabled={!processedPath || Boolean(work)}><Search size={15} /> Run OCR</Button><Button variant="secondary" onClick={() => execute('extract')} loading={work === 'extract'} disabled={!hasRawOcr || Boolean(work)}>Extract Data</Button><Button variant="secondary" onClick={saveCorrections} loading={work === 'save-corrections'} loadingText="Saving Corrections…" disabled={!hasExtraction || Boolean(work)}><Save size={15} /> Save Corrections</Button></div></div>
       {work === 'ocr' && <div className="ocr-live-state"><span className="ocr-live-spinner" /><b>Running OCR on the actual document with Tesseract hin+eng…</b></div>}{work === 'extract' && <div className="ocr-live-state"><span className="ocr-live-spinner" /><b>Extracting Khatauni structure from OCR tokens…</b></div>}
     </section>}
 
@@ -210,7 +227,7 @@ export default function Review() {
     <section className="card review-audit-card developer-only"><div className="section-head"><div><div className="eyebrow">SYSTEM AUDIT</div><h3>Record audit events</h3></div><Button variant="secondary" onClick={refreshAudits}><RefreshCw size={14} /> Refresh</Button></div><div className="table-wrap"><table className="data-table"><thead><tr><th>TIME</th><th>ACTION</th><th>ACTOR</th><th>RAW EVENT</th><th>TECHNICAL DETAILS</th></tr></thead><tbody>{audits.length ? audits.map((row) => <tr key={row.id}><td>{new Date(row.timestamp).toLocaleString()}</td><td>{activityLabel(row.action)}</td><td>{row.user_id ? `Account #${row.user_id}` : 'System'}</td><td>{row.action}</td><td><code>{row.metadata_json || '—'}</code></td></tr>) : <tr><td colSpan="5">No lifecycle events yet.</td></tr>}</tbody></table></div></section>
     {!isRejected && <section className="card final-decision"><div className="section-head"><div><h3>Officer decision</h3><p>Compare the source and structured values before recording a decision.</p></div><div className="actions"><Button onClick={() => setPendingDecision('approve')} loading={work === 'approve'} loadingText="Verifying…" disabled={!hasExtraction || Boolean(work)}><CheckCircle size={15} /> Approve & Verify</Button><Button variant="secondary" onClick={() => setPendingDecision('mark-review')} loading={work === 'mark-review'} loadingText="Updating…" disabled={Boolean(work)}><AlertTriangle size={15} /> Needs Review</Button><Button variant="danger" onClick={() => setRejectOpen(true)} loading={work === 'reject'} disabled={Boolean(work)}><XCircle size={15} /> Reject</Button></div></div></section>}
     {pendingDecision && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="decision-title"><div className="modal-card decision-modal"><div className="eyebrow">OFFICER DECISION</div><h3 id="decision-title">{pendingDecision === 'approve' ? 'Approve and verify this record?' : 'Mark this record for further review?'}</h3><p>{pendingDecision === 'approve' ? 'This creates or updates the verified digital record using the reviewed values.' : 'The record remains in the review queue for a later decision.'}</p><div className="actions"><Button variant="secondary" onClick={() => setPendingDecision('')}>Cancel</Button><Button onClick={() => { const action = pendingDecision; setPendingDecision(''); decide(action); }} loading={work === pendingDecision} loadingText={pendingDecision === 'approve' ? 'Verifying…' : 'Updating…'}>{pendingDecision === 'approve' ? 'Approve & Verify' : 'Mark Needs Review'}</Button></div></div></div>}
-    {rejectOpen && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reject-title"><div className="modal-card"><h3 id="reject-title">Reject record</h3><p>Choose a meaningful reason before confirming. This is saved in the audit trail and shown to the submitting citizen.</p><div className="field"><label>Reason Category</label><select value={reasonCategory} onChange={event => setReasonCategory(event.target.value)}><option value="">Select a reason</option>{['Poor Scan Quality', 'Incomplete Document', 'Incorrect Document', 'Unreadable Information', 'Duplicate Submission', 'Information Mismatch', 'Other'].map(reason => <option key={reason}>{reason}</option>)}</select></div><div className="field"><label>Officer Note {reasonCategory === 'Other' ? '(required)' : '(optional)'}</label><textarea value={officerNote} onChange={event => setOfficerNote(event.target.value)} placeholder="Explain what the citizen needs to correct."/></div><div className="actions" style={{marginTop: 16}}><Button variant="secondary" onClick={() => setRejectOpen(false)}>Cancel</Button><Button variant="danger" disabled={!reasonCategory || (reasonCategory === 'Other' && !officerNote.trim())} onClick={() => { setRejectOpen(false); decide('reject', {reason_category: reasonCategory, officer_note: officerNote.trim() || null}); }}>Confirm rejection</Button></div></div></div>}
+    {rejectOpen && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reject-title"><div className="modal-card"><h3 id="reject-title">Reject record</h3><p>Choose a meaningful reason before confirming. This is saved in the audit trail and shown to the submitting citizen.</p><div className="field"><label>Reason Category</label><select value={reasonCategory} onChange={event => setReasonCategory(event.target.value)} disabled={Boolean(work)}><option value="">Select a reason</option>{['Poor Scan Quality', 'Incomplete Document', 'Incorrect Document', 'Unreadable Information', 'Duplicate Submission', 'Information Mismatch', 'Other'].map(reason => <option key={reason}>{reason}</option>)}</select></div><div className="field"><label>Officer Note {reasonCategory === 'Other' ? '(required)' : '(optional)'}</label><textarea value={officerNote} onChange={event => setOfficerNote(event.target.value)} placeholder="Explain what the citizen needs to correct." disabled={Boolean(work)}/></div><div className="actions" style={{marginTop: 16}}><Button variant="secondary" onClick={() => setRejectOpen(false)} disabled={Boolean(work)}>Cancel</Button><Button variant="danger" loading={work === 'reject'} loadingText="Rejecting…" disabled={!reasonCategory || (reasonCategory === 'Other' && !officerNote.trim()) || Boolean(work)} onClick={() => decide('reject', {reason_category: reasonCategory, officer_note: officerNote.trim() || null})}>Confirm rejection</Button></div></div></div>}
     {pendingDeleteRow && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-row-title"><div className="modal-card decision-modal"><div className="eyebrow">TABLE CORRECTION</div><h3 id="delete-row-title">Remove row {pendingDeleteRow.row_index + 1}?</h3><p>This removes the row from the digital record and records the action in the audit trail.</p><div className="actions"><Button variant="secondary" onClick={() => setPendingDeleteRow(null)}>Cancel</Button><Button variant="danger" onClick={() => { const row = pendingDeleteRow; setPendingDeleteRow(null); mutate('delete-row', () => api.deleteDynamicTableRow(id, digitization.table.id, row.row_index), 'Khatauni row removed and audited.'); }} loading={work === 'delete-row'} loadingText="Removing…">Remove row</Button></div></div></div>}
   </>;
 }

@@ -13,6 +13,14 @@ export function Loader({label = 'Loading data…'}) {
   return <div className="loader" role="status" aria-live="polite"><span aria-hidden="true" />{label}</div>;
 }
 
+export function RouteSkeleton({variant = 'page'}) {
+  return <div className={`route-skeleton route-skeleton-${variant}`} role="status" aria-live="polite" aria-label="Loading page">
+    <div className="skeleton-heading"><span className="skeleton-block skeleton-eyebrow"/><span className="skeleton-block skeleton-title"/><span className="skeleton-block skeleton-copy"/></div>
+    {variant === 'dashboard' && <div className="skeleton-stats">{[1, 2, 3, 4].map(item => <span className="skeleton-block skeleton-stat" key={item}/>)}</div>}
+    {variant === 'workspace' ? <div className="skeleton-workbench"><span className="skeleton-block skeleton-pane"/><span className="skeleton-block skeleton-pane"/></div> : <div className="skeleton-panel"><span className="skeleton-block skeleton-panel-head"/>{[1, 2, 3, 4, 5].map(item => <span className="skeleton-block skeleton-row" key={item}/>)}</div>}
+  </div>;
+}
+
 export function Empty({title, text}) {
   return <div className="empty"><div className="empty-icon" aria-hidden="true"><FileText size={21}/></div><h3>{title}</h3><p>{text}</p></div>;
 }
