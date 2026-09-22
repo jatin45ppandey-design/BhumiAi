@@ -179,9 +179,36 @@ class VerifiedExportTests(unittest.TestCase):
             self.assertIn(value, csv_text)
             self.assertIn(value, pdf_text)
         self.assertIn("Parcel", pdf_text)
-        self.assertIn("Field", pdf_text)
+        self.assertIn("Land Record Details", pdf_text)
         self.assertNotIn("OCR Owner", csv_text)
         self.assertNotIn("OCR Owner", pdf_text)
+
+    def test_pdf_prioritizes_dynamic_details_and_omits_empty_scalar_rows(self):
+        export = {
+            "record_id": "PRESENTATION-1",
+            "status": "VERIFIED",
+            "document": {"document_type": "Khatauni", "original_filename": "record.pdf"},
+            "fields": {"owner_name": None, "father_guardian_name": None, "district": None, "area": None},
+            "dynamic_fields": [
+                {"label": "\u091c\u0928\u092a\u0926", "normalized_label": "district", "value": "\u0917\u094b\u0902\u0921\u093e", "ai_value": "Wrong OCR"},
+                {"label": "\u0924\u0939\u0938\u0940\u0932", "normalized_label": "tehsil", "value": "\u0924\u0930\u092c\u0917\u0902\u091c"},
+                {"label": "\u0916\u093e\u0924\u093e \u0938\u0902\u0916\u094d\u092f\u093e", "normalized_label": "khata_number", "value": "509"},
+                {"label": "\u0905\u0928\u094d\u092f \u0935\u093f\u0935\u0930\u0923", "normalized_label": "other_detail", "value": "\u0938\u0924\u094d\u092f\u093e\u092a\u093f\u0924"},
+            ],
+            "tables": [{"label": "\u092e\u0941\u0916\u094d\u092f \u0916\u0924\u094c\u0928\u0940 \u0924\u093e\u0932\u093f\u0915\u093e", "headers": [{"label": "\u0917\u093e\u091f\u093e"}], "rows": [{"cells": [{"column_index": 0, "value": "101"}]}]}],
+            "verification": {"status": "VERIFIED", "verified_at": "2026-09-22T09:29:00", "officer": {"name": "Officer"}},
+        }
+        pdf = fitz.open(stream=export_pdf.render_verified_record_pdf(export), filetype="pdf")
+        text = "\n".join(page.get_text() for page in pdf).replace("\xa0", " ")
+        pdf.close()
+        for value in ("\u091c\u0928\u092a\u0926", "\u0917\u094b\u0902\u0921\u093e", "\u0924\u0939\u0938\u0940\u0932", "\u0924\u0930\u092c\u0917\u0902\u091c", "509", "\u0917\u093e\u091f\u093e", "101"):
+            self.assertIn(value, text)
+        self.assertLess(text.index("\u091c\u0928\u092a\u0926"), text.index("\u0924\u0939\u0938\u0940\u0932"))
+        self.assertLess(text.index("\u0924\u0939\u0938\u0940\u0932"), text.index("509"))
+        self.assertIn("22 Sep 2026, 09:29", text)
+        self.assertIn("Additional Verified Information", text)
+        self.assertNotIn("owner_name", text)
+        self.assertNotIn("Wrong OCR", text)
 
     def test_pdf_wide_multi_page_table_repeats_headers(self):
         headers = [{"label": f"Column {index}"} for index in range(6)]
