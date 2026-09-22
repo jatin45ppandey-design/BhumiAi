@@ -15,19 +15,43 @@ _INK = (0.10, 0.14, 0.20)
 _MUTED = (0.35, 0.40, 0.46)
 _ACCENT = (0.62, 0.30, 0.08)
 _PALE = (0.98, 0.94, 0.88)
+_FONT_PATH_ENV = "BHUMIAI_PDF_FONT_PATH"
+_DEVANAGARI_SAMPLE = "कृषि भूमि"
+
+
+class PdfFontUnavailableError(RuntimeError):
+    """Raised when PDF export cannot render Devanagari safely."""
+
+
+def _supports_devanagari(path: Path) -> bool:
+    try:
+        font = fitz.Font(fontfile=str(path))
+        return all(font.has_glyph(ord(character)) for character in _DEVANAGARI_SAMPLE if not character.isspace())
+    except (RuntimeError, ValueError):
+        return False
 
 
 def _font_path() -> str:
-    candidates = [
+    configured = os.environ.get(_FONT_PATH_ENV, "").strip()
+    candidates = [Path(configured).expanduser()] if configured else [
         Path(os.environ.get("WINDIR", r"C:\Windows")) / "Fonts" / "mangal.ttf",
         Path(os.environ.get("WINDIR", r"C:\Windows")) / "Fonts" / "Nirmala.ttc",
         Path("/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf"),
-        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+        Path("/usr/share/fonts/opentype/noto/NotoSansDevanagari-Regular.ttf"),
+        Path("/usr/share/fonts/truetype/noto/NotoSerifDevanagari-Regular.ttf"),
+        Path("/usr/share/fonts/truetype/lohit-devanagari/Lohit-Devanagari.ttf"),
     ]
     for candidate in candidates:
-        if candidate.is_file():
+        if candidate.is_file() and _supports_devanagari(candidate):
             return str(candidate)
-    raise RuntimeError("No installed Unicode/Devanagari font is available for PDF export.")
+    if configured:
+        raise PdfFontUnavailableError(
+            f"Configured {_FONT_PATH_ENV} does not point to a usable Devanagari font."
+        )
+    raise PdfFontUnavailableError(
+        "No installed Devanagari-capable font is available for PDF export. "
+        f"Install one or configure {_FONT_PATH_ENV}."
+    )
 
 
 def _text(value: Any) -> str:
@@ -61,12 +85,12 @@ def _wrap(value: Any, width: float, size: float, font: fitz.Font) -> list[str]:
 
 class _PdfWriter:
     def __init__(self, landscape: bool):
-        self.document = fitz.open()
         self.landscape = landscape
         self.width = 842 if landscape else 595
         self.height = 595 if landscape else 842
         self.font_path = _font_path()
         self.font = fitz.Font(fontfile=self.font_path)
+        self.document = fitz.open()
         self.page = self.document.new_page(width=self.width, height=self.height)
         self.y = _MARGINS
 
@@ -126,11 +150,12 @@ class _PdfWriter:
         for row_index, row in enumerate(rows):
             wrapped = [_wrap(value, widths[index] - 8, 8.5, self.font) for index, value in enumerate(row)]
             height = max(len(lines) for lines in wrapped) * 11 + 12
-            if self.y + height > self.height - _MARGINS - 24 and row_index > 0:
+            if row_index == 0:
+                self.ensure(header_height + height + 2)
+                draw_row(headers, 0, header_wrapped, header_height)
+            elif self.y + height > self.height - _MARGINS - 24:
                 self.new_page()
                 draw_row(headers, 0, header_wrapped, header_height)
-            else:
-                self.ensure(height + 2)
             draw_row(row, 1, wrapped, height)
         if not rows:
             self.ensure(header_height + 2)

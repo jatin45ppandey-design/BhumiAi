@@ -131,7 +131,7 @@ class VerifiedExportTests(unittest.TestCase):
         self.assertTrue(pdf_response.content.startswith(b"%PDF-"))
         self.assertGreater(len(builder.call_args_list), 0)
         pdf = fitz.open(stream=pdf_response.content, filetype="pdf")
-        text = "\n".join(page.get_text() for page in pdf)
+        text = "\n".join(page.get_text() for page in pdf).replace("\xa0", " ")
         pdf.close()
         self.assertIn("Verified Digital Land Record", text.replace("\xa0", " "))
         self.assertIn("स्वीकृत टिप्पणी", text.replace("\xa0", " "))
@@ -159,6 +159,86 @@ class VerifiedExportTests(unittest.TestCase):
         text = "\n".join(page.get_text() for page in pdf).replace("\xa0", " ")
         pdf.close()
         self.assertIn("\u0938\u094d\u0935\u0940\u0915\u0943\u0924 \u091f\u093f\u092a\u094d\u092a\u0923\u0940", text)
+
+    def test_json_csv_and_pdf_share_final_values_and_table_headers(self):
+        self.login_as(self.officer_id)
+        json_response = self.client.get(f"/api/verified-records/{self.record_id}/export/json")
+        csv_response = self.client.get(f"/api/verified-records/{self.record_id}/export/csv")
+        pdf_response = self.client.get(f"/api/verified-records/{self.record_id}/export/pdf")
+        self.assertEqual(json_response.status_code, 200)
+        self.assertEqual(csv_response.status_code, 200)
+        self.assertEqual(pdf_response.status_code, 200)
+        payload = json_response.json()
+        csv_text = csv_response.content.decode("utf-8-sig")
+        pdf = fitz.open(stream=pdf_response.content, filetype="pdf")
+        pdf_text = "\n".join(page.get_text() for page in pdf).replace("\xa0", " ")
+        pdf.close()
+        self.assertEqual(payload["fields"]["owner_name"], "Final Owner")
+        self.assertEqual(payload["tables"][0]["rows"][0]["cells"][0]["value"], "Approved parcel")
+        for value in ("Final Owner", "Approved parcel"):
+            self.assertIn(value, csv_text)
+            self.assertIn(value, pdf_text)
+        self.assertIn("Parcel", pdf_text)
+        self.assertIn("Field", pdf_text)
+        self.assertNotIn("OCR Owner", csv_text)
+        self.assertNotIn("OCR Owner", pdf_text)
+
+    def test_pdf_wide_multi_page_table_repeats_headers(self):
+        headers = [{"label": f"Column {index}"} for index in range(6)]
+        rows = [
+            {"cells": [{"column_index": index, "value": f"Long final value {row} " * 3} for index in range(6)]}
+            for row in range(24)
+        ]
+        export = {"record_id": "WIDE", "status": "VERIFIED", "document": {}, "fields": {}, "dynamic_fields": [],
+                  "tables": [{"label": "Khatauni Table", "headers": headers, "rows": rows}], "verification": {}}
+        pdf = fitz.open(stream=export_pdf.render_verified_record_pdf(export), filetype="pdf")
+        text = "\n".join(page.get_text() for page in pdf).replace("\xa0", " ")
+        self.assertGreater(pdf.page_count, 1)
+        self.assertGreater(pdf[0].rect.width, pdf[0].rect.height)
+        self.assertGreaterEqual(text.count("Column 0"), 2)
+        pdf.close()
+
+    def test_unavailable_configured_pdf_font_fails_cleanly_without_audit(self):
+        with self.sessions() as db:
+            export = build_verified_record_export(db, db.get(models.VerifiedRecord, self.record_id))
+        missing_font = str(Path(self.directory.name) / "missing-deva-font.ttf")
+        with patch.dict(export_pdf.os.environ, {"BHUMIAI_PDF_FONT_PATH": missing_font}):
+            with self.assertRaisesRegex(export_pdf.PdfFontUnavailableError, "BHUMIAI_PDF_FONT_PATH"):
+                export_pdf.render_verified_record_pdf(export)
+        self.login_as(self.officer_id)
+        with patch("routers.records.render_verified_record_pdf", side_effect=export_pdf.PdfFontUnavailableError("No usable font")):
+            response = self.client.get(f"/api/verified-records/{self.record_id}/export/pdf")
+        self.assertEqual(response.status_code, 503)
+        with self.sessions() as db:
+            self.assertFalse(db.query(models.AuditLog).filter_by(action="RECORD_EXPORTED").first())
+
+    def test_successful_exports_record_minimal_audit_metadata(self):
+        self.login_as(self.officer_id)
+        for format in ("json", "csv", "pdf"):
+            response = self.client.get(f"/api/verified-records/{self.record_id}/export/{format}")
+            self.assertEqual(response.status_code, 200, response.text)
+        with self.sessions() as db:
+            rows = db.query(models.AuditLog).filter_by(action="RECORD_EXPORTED").order_by(models.AuditLog.id).all()
+        self.assertEqual({json.loads(row.metadata_json)["format"] for row in rows}, {"JSON", "CSV", "PDF"})
+        for row in rows:
+            self.assertEqual(row.user_id, self.officer_id)
+            self.assertEqual(row.record_id, self.record_id)
+            self.assertIsNotNone(row.submission_id)
+            self.assertIsNotNone(row.timestamp)
+            self.assertEqual(set(json.loads(row.metadata_json)), {"format"})
+
+    def test_non_verified_status_blocks_every_export_format(self):
+        self.login_as(self.officer_id)
+        for format in ("json", "csv", "pdf"):
+            response = self.client.get(f"/api/verified-records/{self.pending_record_id}/export/{format}")
+            self.assertEqual(response.status_code, 409)
+        with self.sessions() as db:
+            record = db.get(models.VerifiedRecord, self.pending_record_id)
+            record.verification_status = "REJECTED"
+            db.commit()
+        for format in ("json", "csv", "pdf"):
+            response = self.client.get(f"/api/verified-records/{self.pending_record_id}/export/{format}")
+            self.assertEqual(response.status_code, 409)
 
 
 if __name__ == "__main__":

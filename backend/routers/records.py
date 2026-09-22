@@ -24,7 +24,7 @@ from security import require_officer
 from services.export_service import build_verified_record_export
 from services.export_service import export_filename
 from services.export_csv import render_verified_record_csv
-from services.export_pdf import render_verified_record_pdf
+from services.export_pdf import PdfFontUnavailableError, render_verified_record_pdf
 
 
 router = APIRouter()
@@ -610,7 +610,10 @@ def export_verified_record_pdf(
         raise HTTPException(status_code=404, detail="Record not found")
     if str(record.verification_status or "").upper() != "VERIFIED":
         raise HTTPException(status_code=409, detail="Only verified records can be exported.")
-    content = render_verified_record_pdf(build_verified_record_export(db, record))
+    try:
+        content = render_verified_record_pdf(build_verified_record_export(db, record))
+    except PdfFontUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     db.add(models.AuditLog(user_id=current_officer.id, submission_id=record.submission_id, record_id=record.id,
                            action="RECORD_EXPORTED", metadata_json=json.dumps({"format": "PDF"})))
     db.commit()

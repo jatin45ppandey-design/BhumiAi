@@ -9,7 +9,7 @@ from security import require_active_citizen
 from services.export_service import build_verified_record_export
 from services.export_service import export_filename
 from services.export_csv import render_verified_record_csv
-from services.export_pdf import render_verified_record_pdf
+from services.export_pdf import PdfFontUnavailableError, render_verified_record_pdf
 from fastapi import Response
 
 router = APIRouter()
@@ -168,7 +168,10 @@ def export_my_verified_record_csv(id: int, current_user: models.User = Depends(r
 @router.get("/records/{id}/export/pdf")
 def export_my_verified_record_pdf(id: int, current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
     record = _owned_verified_record(id, current_user, db)
-    content = render_verified_record_pdf(build_verified_record_export(db, record))
+    try:
+        content = render_verified_record_pdf(build_verified_record_export(db, record))
+    except PdfFontUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     db.add(models.AuditLog(user_id=current_user.id, submission_id=record.submission_id, record_id=record.id,
                            action="RECORD_EXPORTED", metadata_json=json.dumps({"format": "PDF"})))
     db.commit()
