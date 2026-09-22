@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {Activity, AlertTriangle, ArrowRight, CheckCircle, ClipboardCheck, FileSearch, Inbox, ListFilter, XCircle} from 'lucide-react';
 import {api} from '../../lib/api';
-import {activityDescription, activityLabel} from '../../lib/activity';
+import {activityDescription, activityLabel, isWorkLogEvent} from '../../lib/activity';
 import StatCard from '../../components/dashboard/StatCard';
 import {Empty, ErrorMessage, Loader, StatusBadge} from '../../components/common/UI';
 
@@ -31,7 +31,7 @@ export default function OfficerDashboard() {
   useEffect(() => {
     Promise.all([api.officerDashboard(), api.submissions({status: 'SUBMITTED'}), api.submissions({status: 'NEEDS_REVIEW'}), api.submissions(), api.audit().catch(() => [])])
       .then(([dashboard, pendingRows, reviewRows, allRows, events]) => {
-        setStats(dashboard); setSubmitted(pendingRows); setNeedsReview(reviewRows); setRecent(allRows.slice(0, 5)); setActivity(events.slice(0, 5));
+        setStats(dashboard); setSubmitted(pendingRows); setNeedsReview(reviewRows); setRecent(allRows.slice(0, 5)); setActivity(events.filter(isWorkLogEvent).slice(0, 5));
       }).catch(loadError => setError(loadError.message));
   }, []);
 
@@ -56,8 +56,8 @@ export default function OfficerDashboard() {
     <section className="card" style={{marginTop: 18}}><div className="section-head"><div><div className="eyebrow">LATEST INTAKE</div><h3>Recent submissions</h3></div><Link href="/officer/submissions">View all <ArrowRight size={14}/></Link></div>
       {!recent.length ? <Empty title="No submissions yet" text="New citizen and officer submissions will appear here."/> : <div className="table-wrap"><table className="data-table"><thead><tr><th>RECORD</th><th>SUBMITTED BY</th><th>LOCATION</th><th>RECEIVED</th><th>STATUS</th></tr></thead><tbody>{recent.map(row => <tr key={row.id}><td><Link href={`/officer/review/${row.document_id}`}>#{row.id} · {row.document?.original_filename || 'Land record'}</Link></td><td>{row.user?.name || '—'}</td><td>{[row.document?.village, row.document?.district].filter(Boolean).join(', ') || '—'}</td><td>{new Date(row.submitted_at).toLocaleString()}</td><td><StatusBadge status={row.status}/></td></tr>)}</tbody></table></div>}
     </section>
-    <section className="card" style={{marginTop: 18}}><div className="section-head"><div><div className="eyebrow">RECENT ACTIVITY</div><h3>Latest actions</h3></div><Link href="/officer/audit">Activity history <ArrowRight size={14}/></Link></div>
-      {!activity.length ? <Empty title="No recent activity" text="Document uploads and review actions will appear here."/> : <div className="activity-list">{activity.map(event => <div className="activity-list-item" key={event.id}><span className="activity-list-icon"><Activity size={15}/></span><div><b>{activityLabel(event.action)}</b><p>{activityDescription(event)}</p></div><time>{new Date(event.timestamp).toLocaleString()}</time></div>)}</div>}
+    <section className="card" style={{marginTop: 18}}><div className="section-head"><div><div className="eyebrow">RECENT WORK</div><h3>Latest actions</h3></div><Link href="/officer/audit">Work Log <ArrowRight size={14}/></Link></div>
+      {!activity.length ? <Empty title="No recent work" text="Document uploads and review actions will appear here."/> : <div className="activity-list">{activity.map(event => <div className="activity-list-item" key={event.id}><span className="activity-list-icon"><Activity size={15}/></span><div><b>{activityLabel(event.action)}</b><p>{activityDescription(event)}</p></div><time>{new Date(event.timestamp).toLocaleString()}</time></div>)}</div>}
     </section>
   </>;
 }

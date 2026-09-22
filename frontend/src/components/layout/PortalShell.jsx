@@ -23,7 +23,7 @@ const navigation = {
       ['Review queue', '/officer/submissions', ClipboardList],
       ['Verified records', '/officer/records', Database],
     ]],
-    ['ACTIVITY', [['Activity history', '/officer/audit', Activity]]],
+    ['ACTIVITY', [['Work Log', '/officer/audit', Activity]]],
   ],
 };
 
@@ -33,7 +33,10 @@ export default function PortalShell({ role, user, children }) {
   const [developerMode, setDeveloperMode] = useState(false);
   const workspace = role === 'officer' ? 'Verification workspace' : 'Land record workspace';
   const allLinks = navigation[role].flatMap(([, items]) => items);
-  const activeLink = allLinks.find(([, href]) => path === href || path.startsWith(`${href}/`)) || allLinks[0];
+  const isActiveRoute = (href) => href === `/${role}`
+    ? path === href
+    : path === href || path.startsWith(`${href}/`);
+  const activeLink = allLinks.find(([, href]) => isActiveRoute(href)) || allLinks[0];
   const roleLabel = role === 'officer' ? 'Verification Officer' : 'Record submitter';
 
   useEffect(() => {
@@ -62,7 +65,7 @@ export default function PortalShell({ role, user, children }) {
       <nav aria-label="Primary navigation">
         {navigation[role].map(([group, items]) => <section className="nav-group" key={group} aria-label={group}>
           <span className="nav-label">{group}</span>
-          {items.map(([label, href, Icon]) => <Link className={path === href || path.startsWith(`${href}/`) ? 'active' : ''} href={href} key={href}>
+          {items.map(([label, href, Icon]) => <Link className={isActiveRoute(href) ? 'active' : ''} aria-current={isActiveRoute(href) ? 'page' : undefined} href={href} key={href}>
             <Icon size={17} />{label}
           </Link>)}
         </section>)}
