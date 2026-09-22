@@ -13,13 +13,18 @@ import json
 from collections import defaultdict
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import String, cast, inspect as sa_inspect, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from database import get_db
 import models
+from security import require_officer
+from services.export_service import build_verified_record_export
+from services.export_service import export_filename
+from services.export_csv import render_verified_record_csv
+from services.export_pdf import render_verified_record_pdf
 
 
 router = APIRouter()
@@ -549,6 +554,67 @@ def get_verified_records(
         )
         for record in records
     ]
+
+
+@router.get("/{id}/export/json")
+def export_verified_record_json(
+    id: int,
+    current_officer: models.User = Depends(require_officer),
+    db: Session = Depends(get_db),
+):
+    """Export one verified record using the persisted, canonical DTO."""
+
+    record = db.query(models.VerifiedRecord).filter(models.VerifiedRecord.id == id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    if str(record.verification_status or "").upper() != "VERIFIED":
+        raise HTTPException(status_code=409, detail="Only verified records can be exported.")
+    payload = build_verified_record_export(db, record)
+    db.add(models.AuditLog(
+        user_id=current_officer.id,
+        submission_id=record.submission_id,
+        record_id=record.id,
+        action="RECORD_EXPORTED",
+        metadata_json=json.dumps({"format": "JSON"}),
+    ))
+    db.commit()
+    return payload
+
+
+@router.get("/{id}/export/csv")
+def export_verified_record_csv(
+    id: int,
+    current_officer: models.User = Depends(require_officer),
+    db: Session = Depends(get_db),
+):
+    record = db.query(models.VerifiedRecord).filter(models.VerifiedRecord.id == id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    if str(record.verification_status or "").upper() != "VERIFIED":
+        raise HTTPException(status_code=409, detail="Only verified records can be exported.")
+    content = render_verified_record_csv(build_verified_record_export(db, record))
+    db.add(models.AuditLog(user_id=current_officer.id, submission_id=record.submission_id, record_id=record.id,
+                           action="RECORD_EXPORTED", metadata_json=json.dumps({"format": "CSV"})))
+    db.commit()
+    return Response(content=content, media_type="text/csv", headers={"Content-Disposition": f'attachment; filename="{export_filename(record.record_id, "csv")}"'})
+
+
+@router.get("/{id}/export/pdf")
+def export_verified_record_pdf(
+    id: int,
+    current_officer: models.User = Depends(require_officer),
+    db: Session = Depends(get_db),
+):
+    record = db.query(models.VerifiedRecord).filter(models.VerifiedRecord.id == id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    if str(record.verification_status or "").upper() != "VERIFIED":
+        raise HTTPException(status_code=409, detail="Only verified records can be exported.")
+    content = render_verified_record_pdf(build_verified_record_export(db, record))
+    db.add(models.AuditLog(user_id=current_officer.id, submission_id=record.submission_id, record_id=record.id,
+                           action="RECORD_EXPORTED", metadata_json=json.dumps({"format": "PDF"})))
+    db.commit()
+    return Response(content=content, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{export_filename(record.record_id, "pdf")}"'})
 
 
 @router.get("/{id}")

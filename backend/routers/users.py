@@ -1,9 +1,16 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import String, cast, or_
 from sqlalchemy.orm import Session
 from database import get_db
 import models, schemas
 from security import require_active_citizen
+from services.export_service import build_verified_record_export
+from services.export_service import export_filename
+from services.export_csv import render_verified_record_csv
+from services.export_pdf import render_verified_record_pdf
+from fastapi import Response
 
 router = APIRouter()
 SUBMISSION_STATUSES = {"SUBMITTED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "REJECTED"}
@@ -107,3 +114,62 @@ def get_my_submissions(status: str | None = None, search: str | None = None, cur
         ))
     rows = query.order_by(models.Submission.submitted_at.desc(), models.Submission.id.desc()).all()
     return [_submission_payload(db, row) for row in rows]
+
+
+@router.get("/records/{id}/export/json")
+def export_my_verified_record_json(
+    id: int,
+    current_user: models.User = Depends(require_active_citizen),
+    db: Session = Depends(get_db),
+):
+    """Export only a verified record belonging to the authenticated citizen."""
+
+    record = db.query(models.VerifiedRecord).filter(models.VerifiedRecord.id == id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    submission = record.submission
+    if not submission or submission.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You may export only your own verified records.")
+    if str(record.verification_status or "").upper() != "VERIFIED":
+        raise HTTPException(status_code=409, detail="Only verified records can be exported.")
+    payload = build_verified_record_export(db, record)
+    db.add(models.AuditLog(
+        user_id=current_user.id,
+        submission_id=record.submission_id,
+        record_id=record.id,
+        action="RECORD_EXPORTED",
+        metadata_json=json.dumps({"format": "JSON"}),
+    ))
+    db.commit()
+    return payload
+
+
+def _owned_verified_record(id: int, current_user: models.User, db: Session):
+    record = db.query(models.VerifiedRecord).filter(models.VerifiedRecord.id == id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+    if not record.submission or record.submission.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You may export only your own verified records.")
+    if str(record.verification_status or "").upper() != "VERIFIED":
+        raise HTTPException(status_code=409, detail="Only verified records can be exported.")
+    return record
+
+
+@router.get("/records/{id}/export/csv")
+def export_my_verified_record_csv(id: int, current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
+    record = _owned_verified_record(id, current_user, db)
+    content = render_verified_record_csv(build_verified_record_export(db, record))
+    db.add(models.AuditLog(user_id=current_user.id, submission_id=record.submission_id, record_id=record.id,
+                           action="RECORD_EXPORTED", metadata_json=json.dumps({"format": "CSV"})))
+    db.commit()
+    return Response(content=content, media_type="text/csv", headers={"Content-Disposition": f'attachment; filename="{export_filename(record.record_id, "csv")}"'})
+
+
+@router.get("/records/{id}/export/pdf")
+def export_my_verified_record_pdf(id: int, current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
+    record = _owned_verified_record(id, current_user, db)
+    content = render_verified_record_pdf(build_verified_record_export(db, record))
+    db.add(models.AuditLog(user_id=current_user.id, submission_id=record.submission_id, record_id=record.id,
+                           action="RECORD_EXPORTED", metadata_json=json.dumps({"format": "PDF"})))
+    db.commit()
+    return Response(content=content, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{export_filename(record.record_id, "pdf")}"'})
