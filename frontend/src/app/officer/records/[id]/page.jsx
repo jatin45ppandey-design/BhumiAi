@@ -178,8 +178,8 @@ export default function Detail() {
     </div>
 
     <LegacyExtraction fields={ocr.fields || []}/>
-    <section className="card" style={{marginTop: 18}}>
-      <div className="section-head"><div><h3>Activity History</h3><p>Key actions for this verified record.</p></div></div>
+    <section className="card developer-only" style={{marginTop: 18}}>
+      <div className="section-head"><div><h3>System Audit</h3><p>Technical audit events for this verified record.</p></div></div>
       <AuditTrail auditTrail={data.audit_trail} digitizationAudit={data.digitization_audit}/>
     </section>
   </>;

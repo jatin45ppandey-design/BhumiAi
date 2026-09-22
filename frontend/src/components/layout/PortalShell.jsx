@@ -19,11 +19,9 @@ const navigation = {
   officer: [
     ['WORKSPACE', [
       ['Overview', '/officer', LayoutDashboard],
-      ['Digitize record', '/officer/upload', Upload],
-      ['Review queue', '/officer/submissions', ClipboardList],
-      ['Verified records', '/officer/records', Database],
+      ['Review Queue', '/officer/submissions', ClipboardList],
+      ['Verified Records', '/officer/records', Database],
     ]],
-    ['ACTIVITY', [['Work Log', '/officer/audit', Activity]]],
   ],
 };
 
@@ -32,11 +30,9 @@ export default function PortalShell({ role, user, children }) {
   const router = useRouter();
   const [developerMode, setDeveloperMode] = useState(false);
   const workspace = role === 'officer' ? 'Verification workspace' : 'Land record workspace';
-  const allLinks = navigation[role].flatMap(([, items]) => items);
   const isActiveRoute = (href) => href === `/${role}`
     ? path === href
     : path === href || path.startsWith(`${href}/`);
-  const activeLink = allLinks.find(([, href]) => isActiveRoute(href)) || allLinks[0];
   const roleLabel = role === 'officer' ? 'Verification Officer' : 'Record submitter';
 
   useEffect(() => {
@@ -47,7 +43,15 @@ export default function PortalShell({ role, user, children }) {
     const next = !developerMode;
     setDeveloperMode(next);
     window.localStorage.setItem('bhumiai-developer-mode', next ? 'on' : 'off');
+    if (!next && role === 'officer' && path.startsWith('/officer/audit')) router.replace('/officer');
   }
+
+  const officerNavigation = role === 'officer' && developerMode
+    ? [...navigation.officer, ['DEVELOPER TOOLS', [['System Audit', '/officer/audit', Activity]]]]
+    : navigation[role];
+  const visibleNavigation = role === 'officer' ? officerNavigation : navigation[role];
+  const allLinks = visibleNavigation.flatMap(([, items]) => items);
+  const activeLink = allLinks.find(([, href]) => isActiveRoute(href)) || allLinks[0];
 
   async function logout() {
     try { await api.logout(); } catch { /* Session may already be expired. */ }
@@ -63,7 +67,7 @@ export default function PortalShell({ role, user, children }) {
         <small>LAND RECORD WORKSPACE</small>
       </Link>
       <nav aria-label="Primary navigation">
-        {navigation[role].map(([group, items]) => <section className="nav-group" key={group} aria-label={group}>
+        {visibleNavigation.map(([group, items]) => <section className="nav-group" key={group} aria-label={group}>
           <span className="nav-label">{group}</span>
           {items.map(([label, href, Icon]) => <Link className={isActiveRoute(href) ? 'active' : ''} aria-current={isActiveRoute(href) ? 'page' : undefined} href={href} key={href}>
             <Icon size={17} />{label}
