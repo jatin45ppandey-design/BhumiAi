@@ -5,7 +5,8 @@ import {useParams} from 'next/navigation';
 import {API_URL, api} from '../../../../lib/api';
 import {bilingualKhatauniLabel} from '../../../../lib/khatauniLabels';
 import {activityLabel} from '../../../../lib/activity';
-import {ErrorMessage, Loader, StatusBadge} from '../../../../components/common/UI';
+import {OfficerExportMenu} from '../../../../components/exports/ExportControls';
+import {ErrorMessage, Loader, StatusBadge, Toast} from '../../../../components/common/UI';
 
 const sourceUrl = path => path ? `${API_URL}/uploads/${path.split('\\').pop().split('/').pop()}` : '';
 const isPresent = value => value !== null && value !== undefined && value !== '';
@@ -98,6 +99,7 @@ export default function Detail() {
   const {id} = useParams();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     setData(null);
@@ -111,6 +113,7 @@ export default function Detail() {
   const record = data.record || {};
   const document = data.document || {};
   const ocr = data.ocr || {};
+  const isVerified = String(record.verification_status || '').toUpperCase() === 'VERIFIED';
   const summary = digitized.summary || {};
   const legacyPairs = [
     ['Owner name', record.owner_name],
@@ -129,8 +132,12 @@ export default function Detail() {
       <div className="eyebrow">VERIFIED DIGITAL KHATAUNI</div>
       <h2>{record.record_id}</h2>
       <p>Permanent Khatauni values retain the original OCR evidence and every officer correction.</p>
-    </div><StatusBadge status={record.verification_status || 'VERIFIED'}/></div>
+    </div><div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+      <StatusBadge status={record.verification_status || 'VERIFIED'}/>
+      {isVerified ? <OfficerExportMenu recordId={record.id || id} onFeedback={setFeedback}/> : null}
+    </div></div>
     <ErrorMessage>{error}</ErrorMessage>
+    <Toast message={feedback?.message} tone={feedback?.tone} onDismiss={() => setFeedback(null)}/>
 
     <section className="card">
       <div className="section-head"><div><h3>Verified Digital Khatauni</h3><p>Predefined Hindi headings with values originating only from OCR or officer verification.</p></div></div>

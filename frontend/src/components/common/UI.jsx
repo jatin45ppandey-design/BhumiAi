@@ -17,6 +17,14 @@ export function ErrorMessage({children}) {
   return children ? <div className="error" role="alert">{children}</div> : null;
 }
 
+export function Toast({message, tone = 'success', onDismiss}) {
+  if (!message) return null;
+  return <div className={`toast ${tone}`} role={tone === 'error' ? 'alert' : 'status'} aria-live="polite">
+    <span>{message}</span>
+    <button type="button" onClick={onDismiss} aria-label="Dismiss message">×</button>
+  </div>;
+}
+
 export function Button({children, variant = '', loading, loadingText = 'Working…', ...props}) {
   const {disabled, ...buttonProps} = props;
   return <button {...buttonProps} className={`button ${variant}`} aria-busy={Boolean(loading)} disabled={loading || disabled}>

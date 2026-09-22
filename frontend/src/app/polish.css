@@ -138,6 +138,18 @@ body { letter-spacing: .002em; background: var(--canvas); color: var(--ink); }
 .notice.success { border: 1px solid #c8e2d0; }
 .notice.warn { border: 1px solid #f0ddb7; }
 .error { border-color: #e7c3bf; }
+.toast { position: fixed; right: 24px; bottom: 24px; z-index: 40; display: flex; align-items: center; gap: 14px; max-width: min(420px, calc(100vw - 32px)); padding: 12px 12px 12px 14px; border: 1px solid #c8e2d0; border-radius: var(--radius-sm); background: #f5fcf7; box-shadow: 0 12px 32px rgba(23, 35, 52, .18); color: #246a42; font-size: 12px; font-weight: 650; }
+.toast.error { border-color: #e7c3bf; background: #fff5f3; color: #983d35; }
+.toast button { flex: none; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: currentColor; font-size: 18px; line-height: 1; cursor: pointer; }
+.toast button:hover { background: rgba(23, 35, 52, .08); }
+.export-menu { position: relative; }
+.export-menu-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; display: grid; min-width: 150px; padding: 5px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; box-shadow: 0 10px 26px rgba(23, 35, 52, .16); }
+.export-menu-list button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 10px; border: 0; border-radius: 5px; background: transparent; color: var(--ink); font: 700 12px inherit; text-align: left; cursor: pointer; }
+.export-menu-list button:hover { background: var(--teal-soft); color: var(--teal-dark); }
+.export-menu-list button:disabled { cursor: progress; opacity: .62; }
+.verified-download { display: grid; justify-items: start; gap: 8px; }
+.verified-download > span { color: var(--muted); font-size: 11px; }
+.verified-download .button { min-height: 34px; padding: 7px 10px; font-size: 11px; }
 .empty { padding: 38px 20px; }
 .empty p { max-width: 480px; margin: 7px auto 0; line-height: 1.55; }
 .empty-icon { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 8px; border-radius: 50%; background: var(--teal-soft); color: var(--teal); font-size: 23px; }
