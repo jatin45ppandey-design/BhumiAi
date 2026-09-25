@@ -43,6 +43,9 @@ backend/models--*/
 **/models--*/
 **/.cache/
 
+# Local/internal project notes
+docs/APPLICATION_REBUILD_NOTES.md
+
 # Logs / temporary files
 *.log
 *.tmp
