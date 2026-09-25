@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BhumiAI Frontend
 
-## Getting Started
+This directory contains the current BhumiAI web interface for **SIH 2026 • PS26018**.
 
-First, run the development server:
+It is not a stock Create Next App demo. The active UI contains separate citizen and officer workflows for land-record submission, review, verification and export.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+- Next.js 15 App Router
+- React 19
+- JavaScript / JSX
+- custom CSS
+- Lucide React icons
+- native `fetch` / `FormData` through the project API wrapper
+
+## Main UI Areas
+
+### Citizen
+
+- phone-OTP register/login
+- profile completion
+- document upload / camera capture
+- submission tracking
+- in-app notifications
+- verified-record access and exports
+
+### Officer
+
+- Officer ID/password login
+- dashboard and review queue
+- officer direct upload
+- Source Document ↔ Structured Record review workspace
+- Khatauni table correction
+- confidence and validation indicators
+- EN / deterministic Hindi phonetic correction mode
+- duplicate-match evidence
+- Save Corrections / Needs Review / Verify / Reject
+- read-only terminal records
+- verified-record browsing/export
+
+## Officer Review Flow
+
+```text
+Upload → Enhance → Recognize → Extract → Review → Verified
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Desktop review layout:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+Source Document        | Structured Record
+-------------------------------------------
+Khatauni / Parcel Table| Officer Decision
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The original source remains available while the officer reviews machine-recognized values.
 
-## Learn More
+## Run Locally
 
-To learn more about Next.js, take a look at the following resources:
+Install dependencies:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```powershell
+cd frontend
+npm install
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Start development mode:
 
-## Deploy on Vercel
+```powershell
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+http://127.0.0.1:3000
+```
+
+The backend is expected at the configured API origin (local default: `http://127.0.0.1:8000`).
+
+## Production Build Check
+
+```powershell
+npm run build
+```
+
+## Important Behavior
+
+- Authentication is enforced by the backend; the browser UI is not the security boundary.
+- Document content is loaded through authenticated backend routes.
+- Hindi correction is deterministic client-side phonetic transliteration only.
+- Numeric/revenue identifiers are excluded from phonetic conversion.
+- Switching EN/हिंदी typing mode does not create a dirty edit.
+- VERIFIED and REJECTED records are read-only.
+- The frontend does not call a GenAI/LLM/RAG service for land-record correction.
+
+For the full project architecture, OCR/HTR setup, limitations and backend instructions, see the repository root **README.md**.
