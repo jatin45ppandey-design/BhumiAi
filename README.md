@@ -209,7 +209,6 @@ BhumiAi/
 │   ├── src/components/
 │   └── src/lib/
 ├── docs/
-│   ├── APPLICATION_REBUILD_NOTES.md
 │   └── SIH_DEMO_GUIDE.md
 └── README.md
 ```
