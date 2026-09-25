@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Text, JSON, Index
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Text, JSON, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
@@ -308,6 +308,45 @@ class DynamicDigitizationAudit(Base):
     def audit_id(self):
         """Stable API-friendly synonym for the primary key."""
         return self.id
+
+
+class AITrainingFeedback(Base):
+    """Officer-corrected recognition evidence, gated for controlled offline use."""
+    __tablename__ = "ai_training_feedback"
+    __table_args__ = (
+        UniqueConstraint("document_id", "entity_type", "entity_id", name="uq_ai_feedback_document_entity"),
+        Index("ix_ai_feedback_status_schema", "sample_status", "schema_key"),
+        Index("ix_ai_feedback_document_status", "document_id", "sample_status"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, index=True)
+    ocr_result_id = Column(Integer, ForeignKey("ocr_results.id"), nullable=True, index=True)
+    entity_type = Column(String, nullable=False)
+    entity_id = Column(Integer, nullable=False, index=True)
+    schema_key = Column(String, nullable=True, index=True)
+
+    raw_ocr_value = Column(Text, nullable=True)
+    ai_prediction = Column(Text, nullable=True)
+    officer_correction = Column(Text, nullable=False)
+    ai_confidence = Column(Float, nullable=True)
+    confidence_source = Column(String, nullable=True)
+    bounding_box = Column(JSON, nullable=True)
+    source_token_ids = Column(JSON, nullable=True)
+    recognition_engine = Column(String, nullable=True)
+    model_version = Column(String, nullable=True)
+    image_trainable = Column(Boolean, nullable=False, default=False)
+
+    sample_status = Column(String, nullable=False, default="PENDING", index=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False, index=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow, nullable=False)
+    verified_at = Column(DateTime, nullable=True, index=True)
+    verified_by = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    exclusion_reason = Column(Text, nullable=True)
+
+    document = relationship("Document")
+    ocr_result = relationship("OCRResult")
+    verifier = relationship("User")
 
 class VerifiedRecord(Base):
     __tablename__ = "verified_records"

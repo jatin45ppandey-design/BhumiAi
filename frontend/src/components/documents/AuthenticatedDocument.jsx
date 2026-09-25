@@ -3,7 +3,7 @@
 import {useEffect, useState} from 'react';
 import {api} from '../../lib/api';
 
-export default function AuthenticatedDocument({documentId, variant = 'original', isPdf = false, alt, title, style}) {
+export default function AuthenticatedDocument({documentId, variant = 'original', isPdf = false, alt, title, style, className, onImageLoad}) {
   const [source, setSource] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,6 +33,6 @@ export default function AuthenticatedDocument({documentId, variant = 'original',
   if (error) return <div className="document-source-state error" role="alert">{error}</div>;
   if (!source) return null;
   return isPdf
-    ? <iframe src={source} title={title || alt || 'Land record document'} style={style}/>
-    : <img src={source} alt={alt || 'Land record document'} style={style}/>;
+    ? <iframe src={source} title={title || alt || 'Land record document'} style={style} className={className}/>
+    : <img src={source} alt={alt || 'Land record document'} style={style} className={className} onLoad={onImageLoad}/>;
 }

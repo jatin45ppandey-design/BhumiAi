@@ -23,12 +23,13 @@ export default function OfficerDashboard() {
   const [stats, setStats] = useState(null);
   const [submitted, setSubmitted] = useState([]);
   const [needsReview, setNeedsReview] = useState([]);
+  const [feedback, setFeedback] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    Promise.all([api.officerDashboard(), api.submissions({status: 'SUBMITTED'}), api.submissions({status: 'NEEDS_REVIEW'})])
-      .then(([dashboard, pendingRows, reviewRows]) => {
-        setStats(dashboard); setSubmitted(pendingRows); setNeedsReview(reviewRows);
+    Promise.all([api.officerDashboard(), api.submissions({status: 'SUBMITTED'}), api.submissions({status: 'NEEDS_REVIEW'}), api.aiFeedbackSummary()])
+      .then(([dashboard, pendingRows, reviewRows, feedbackSummary]) => {
+        setStats(dashboard); setSubmitted(pendingRows); setNeedsReview(reviewRows); setFeedback(feedbackSummary);
       }).catch(loadError => setError(loadError.message));
   }, []);
 
@@ -42,6 +43,7 @@ export default function OfficerDashboard() {
       <StatCard label="Rejected" value={stats.rejected} icon={XCircle} tone="red" href="/officer/submissions?status=REJECTED"/>
       <StatCard label="Verified records" value={stats.verified} icon={CheckCircle} tone="green" href="/officer/records"/>
     </div>
+    {feedback && <section className="card dashboard-attention" style={{marginTop: 18}}><div className="section-head"><div><div className="eyebrow">CONTROLLED AI LEARNING FEEDBACK</div><h3>Verified Correction Dataset</h3><p>Only officer-verified corrections become learning samples; model training and promotion remain offline and manual.</p></div></div><div className="review-meta"><div><span>VERIFIED SAMPLES</span>{feedback.verified_samples}</div><div><span>PENDING CORRECTIONS</span>{feedback.pending}</div><div><span>EXCLUDED</span>{feedback.excluded}</div></div></section>}
     <QueueSection title="Needs your attention" eyebrow="ACTION REQUIRED" rows={needsReview} emptyTitle="No records waiting for attention" emptyText="Records needing further review will appear here."/>
     {submitted.length ? <QueueSection title="Pending review" eyebrow="NEW SUBMISSIONS" rows={submitted} emptyTitle="No records waiting for review" emptyText="New submissions will appear here automatically."/> : null}
   </>;

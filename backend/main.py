@@ -85,6 +85,11 @@ def apply_local_migrations():
             ("ix_dynamic_extracted_cells_document_id", "dynamic_extracted_cells", "document_id"),
             ("ix_dynamic_extracted_cells_table_id", "dynamic_extracted_cells", "table_id"),
             ("ix_dynamic_digitization_audits_document_id", "dynamic_digitization_audits", "document_id"),
+            ("ix_ai_training_feedback_document_id", "ai_training_feedback", "document_id"),
+            ("ix_ai_training_feedback_ocr_result_id", "ai_training_feedback", "ocr_result_id"),
+            ("ix_ai_training_feedback_entity_id", "ai_training_feedback", "entity_id"),
+            ("ix_ai_training_feedback_schema_key", "ai_training_feedback", "schema_key"),
+            ("ix_ai_training_feedback_sample_status", "ai_training_feedback", "sample_status"),
         )
         for index_name, table, column in indexes:
             connection.execute(text(f"CREATE INDEX IF NOT EXISTS {index_name} ON {table} ({column})"))

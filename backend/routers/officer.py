@@ -30,6 +30,7 @@ from khatauni_structured import compact_recognition_evidence
 from services.cross_record_validation import validate_cross_record
 from services.rule_validation import validate_rule_based
 from services.structured_duplicate import check_structured_duplicate
+from services.training_feedback import FEEDBACK_STATUSES, capture_correction_feedback, exclude_document_feedback, feedback_list, feedback_summary, promote_document_feedback
 import models
 import schemas
 from security import require_officer
@@ -771,6 +772,22 @@ def get_structured_duplicate_check(id: int, current_officer: models.User = Depen
     return result
 
 
+@router.get("/ai-feedback/summary")
+def get_ai_feedback_summary(current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    _officer(db, current_officer.id)
+    return feedback_summary(db)
+
+
+@router.get("/ai-feedback")
+def get_ai_feedback(status: str | None = None, schema_key: str | None = None,
+                    current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    _officer(db, current_officer.id)
+    normalized_status = status.strip().upper() if status else None
+    if normalized_status and normalized_status not in FEEDBACK_STATUSES:
+        raise HTTPException(status_code=422, detail="Unknown feedback status")
+    return feedback_list(db, status=normalized_status, schema_key=schema_key.strip() if schema_key else None)
+
+
 @router.get("/documents/{id}/fields", response_model=list[schemas.ExtractedField])
 def get_extracted_fields(id: int, db: Session = Depends(get_db)):
     ocr = _latest_ocr(db, id)
@@ -852,6 +869,15 @@ def edit_dynamic_field(id: int, field_id: int, payload: schemas.DynamicExtracted
     elif "final_value" in changed:
         item.final_value = changed["final_value"]
     item.edited_by, item.edited_at = officer_id, datetime.datetime.utcnow()
+    if "officer_value" in changed or "final_value" in changed:
+        feedback, feedback_event = capture_correction_feedback(db, item, "field", officer_id)
+        if feedback and feedback_event in {"created", "updated", "excluded"}:
+            db.add(models.AuditLog(document_id=id, user_id=officer_id, action={
+                "excluded": "AI_FEEDBACK_EXCLUDED",
+            }.get(feedback_event, "AI_FEEDBACK_CAPTURED"), metadata_json=_json({
+                "feedback_id": feedback.id, "entity_type": "field", "entity_id": item.id,
+                "schema_key": feedback.schema_key, "event": feedback_event,
+            })))
     _audit(db, document_id=id, ocr_result_id=item.ocr_result_id, action="FIELD_EDITED", entity_type="field",
         entity_id=item.id, item_id=item.id, actor_id=officer_id, before=before, after=_item_json(item))
     db.commit()
@@ -995,6 +1021,15 @@ def edit_dynamic_cell(id: int, table_id: int, cell_id: int, payload: schemas.Dyn
     elif "final_value" in changed:
         cell.final_value = changed["final_value"]
     cell.edited_by, cell.edited_at = officer_id, datetime.datetime.utcnow()
+    if "officer_value" in changed or "final_value" in changed:
+        feedback, feedback_event = capture_correction_feedback(db, cell, "cell", officer_id)
+        if feedback and feedback_event in {"created", "updated", "excluded"}:
+            db.add(models.AuditLog(document_id=id, user_id=officer_id, action={
+                "excluded": "AI_FEEDBACK_EXCLUDED",
+            }.get(feedback_event, "AI_FEEDBACK_CAPTURED"), metadata_json=_json({
+                "feedback_id": feedback.id, "entity_type": "cell", "entity_id": cell.id,
+                "schema_key": feedback.schema_key, "event": feedback_event,
+            })))
     _audit(db, document_id=id, ocr_result_id=cell.ocr_result_id, action="FIELD_EDITED", entity_type="cell", entity_id=cell.id,
         table_id=table_id, cell_id=cell.id, actor_id=officer_id, before=before, after=_cell_json(cell))
     db.commit()
@@ -1085,6 +1120,10 @@ def verify_document(id: int, action: str, rejection: schemas.RejectionDecision |
             action="VERIFIED",
             metadata_json=_json({"record_id": record.record_id, "actor_role": "OFFICER"}),
         ))
+        feedback_count = promote_document_feedback(db, id, officer_id)
+        if feedback_count:
+            db.add(models.AuditLog(document_id=id, user_id=officer_id, submission_id=submission.id,
+                action="AI_FEEDBACK_VERIFIED", metadata_json=_json({"sample_count": feedback_count})))
         if submission.user and submission.user.role == "user":
             existing_notice = db.query(models.UserNotification).filter(
                 models.UserNotification.user_id == submission.user_id,
@@ -1128,6 +1167,10 @@ def verify_document(id: int, action: str, rejection: schemas.RejectionDecision |
                     ))
         else:
             metadata = {"reason_category": category, "officer_note": note or None, "actor_role": "OFFICER"}
+            feedback_count = exclude_document_feedback(db, id, f"Submission rejected: {category}.")
+            if feedback_count:
+                db.add(models.AuditLog(document_id=id, user_id=officer_id, submission_id=submission.id,
+                    action="AI_FEEDBACK_EXCLUDED", metadata_json=_json({"sample_count": feedback_count, "reason_category": category})))
             if category == "Duplicate Submission":
                 uploader_notice = db.query(models.UserNotification).filter(
                     models.UserNotification.user_id == submission.user_id,

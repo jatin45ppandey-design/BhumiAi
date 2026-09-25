@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AlertTriangle, CheckCircle, FileText, Minus, Plus, Save, ScanLine, Search, Trash2, XCircle, ZoomIn } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, FileText, LocateFixed, Minus, Plus, Save, ScanLine, Search, Trash2, XCircle, ZoomIn } from 'lucide-react';
 import { api } from '../../../../lib/api';
 import { bilingualKhatauniLabel } from '../../../../lib/khatauniLabels';
 import { supportsHindiPhoneticInput } from '../../../../lib/hindiTransliteration';
@@ -15,6 +15,7 @@ const valueOf = (entry) => entry?.officer_value ?? entry?.final_value ?? entry?.
 const ocrValueOf = (entry) => entry?.raw_ocr_value ?? entry?.ai_value ?? '';
 const validationOf = (entry) => entry?.validation ?? entry?.audit_metadata?.validation;
 const hasDraft = (drafts, key) => Object.prototype.hasOwnProperty.call(drafts, key);
+const LOW_CONFIDENCE_THRESHOLD = 65;
 const safeErrorMessage = (error) => {
   const message = String(error?.message || '');
   return /(?:\bat\s+\w+\s*\(|traceback|[A-Za-z]:\\|\/[^\s]+\.(?:py|js))/i.test(message)
@@ -48,10 +49,46 @@ function normalizeDigitization(payload) {
   return { items, table: { ...table, headers, rows }, summary: payload?.summary || {} };
 }
 
-function SourceDocument({ document, processedPath, sourceMode, setSourceMode, zoom, setZoom, fit, setFit, processingActions }) {
+function SourceDocument({ document, processedPath, sourceMode, setSourceMode, zoom, setZoom, fit, setFit, processingActions, selectedEvidence }) {
   const selectedPath = sourceMode === 'enhanced' && processedPath ? processedPath : document?.file_path;
   const isPdf = selectedPath?.toLowerCase().endsWith('.pdf');
   const variant = sourceMode === 'enhanced' && processedPath ? 'processed' : 'original';
+  const canvasRef = useRef(null);
+  const [naturalSize, setNaturalSize] = useState({width: 0, height: 0});
+  const [canvasSize, setCanvasSize] = useState({width: 0, height: 0});
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const measure = () => setCanvasSize({width: canvas.clientWidth, height: canvas.clientHeight});
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => setNaturalSize({width: 0, height: 0}), [variant]);
+  useEffect(() => {
+    if (selectedEvidence?.boundingBox && processedPath && sourceMode !== 'enhanced') setSourceMode('enhanced');
+  }, [selectedEvidence?.key, selectedEvidence?.boundingBox, processedPath, sourceMode, setSourceMode]);
+
+  const fitScale = naturalSize.width && naturalSize.height && canvasSize.width && canvasSize.height
+    ? Math.min(Math.max(1, canvasSize.width - 36) / naturalSize.width, Math.max(1, canvasSize.height - 36) / naturalSize.height)
+    : 1;
+  const displayScale = fit ? fitScale : zoom;
+  const box = clampBoundingBox(selectedEvidence?.boundingBox, naturalSize.width, naturalSize.height);
+  const compatibleVariant = !processedPath || sourceMode === 'enhanced';
+  const showHighlight = Boolean(box && compatibleVariant && !isPdf);
+  const stageStyle = naturalSize.width ? {width: naturalSize.width * displayScale, height: naturalSize.height * displayScale} : undefined;
+  const boxStyle = showHighlight ? {left: box.left * displayScale, top: box.top * displayScale, width: Math.max(3, box.width * displayScale), height: Math.max(3, box.height * displayScale)} : undefined;
+
+  useEffect(() => {
+    if (!showHighlight || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const centerX = (box.left + box.width / 2) * displayScale;
+    const centerY = (box.top + box.height / 2) * displayScale;
+    canvas.scrollTo({left: Math.max(0, centerX - canvas.clientWidth / 2), top: Math.max(0, centerY - canvas.clientHeight / 2), behavior: 'smooth'});
+  }, [selectedEvidence?.key, showHighlight, box?.left, box?.top, box?.width, box?.height, displayScale]);
+
   return <section className="card evidence-pane">
     <div className="section-head evidence-head">
       <div><div className="eyebrow">SOURCE DOCUMENT</div><h3>Source Document</h3><p>Compare the original record with its structured digital version.</p></div>
@@ -64,11 +101,112 @@ function SourceDocument({ document, processedPath, sourceMode, setSourceMode, zo
         <button onClick={() => { setFit(false); setZoom(1); }} type="button">Reset</button>
       </div>
     </div>
-    <div className={`source-canvas ${fit ? 'fit' : ''}`}>
-      {selectedPath ? <AuthenticatedDocument documentId={document.id} variant={variant} isPdf={isPdf} title="Original uploaded PDF" alt="Actual uploaded Khatauni" style={isPdf ? undefined : { transform: `scale(${zoom})` }}/> : <FileText size={46} />}
+    {selectedEvidence && <div className="source-evidence-info" role="status"><div><span className="eyebrow">SOURCE EVIDENCE</span><b>{selectedEvidence.label}</b></div><small><span>Recognized: {selectedEvidence.recognizedValue || 'Unavailable'}</span><span>Reviewed: {selectedEvidence.value || 'Blank'}</span><span>Recognition evidence: {selectedEvidence.confidence === null || selectedEvidence.confidence === undefined ? 'Unavailable' : `${Math.round(selectedEvidence.confidence)} / ${selectedEvidence.confidence < 65 ? 'Low' : selectedEvidence.confidence < 85 ? 'Medium' : 'High'}`}</span></small>{!selectedEvidence.boundingBox && <em>Source region unavailable for this value.</em>}{selectedEvidence.boundingBox && naturalSize.width > 0 && !box && <em>Stored source region is invalid or outside this image.</em>}{selectedEvidence.boundingBox && !compatibleVariant && <em>Open Enhanced view to display this recognition region accurately.</em>}</div>}
+    <div ref={canvasRef} className={`source-canvas ${fit ? 'fit' : ''}`}>
+      {selectedPath ? (isPdf
+        ? <AuthenticatedDocument documentId={document.id} variant={variant} isPdf title="Original uploaded PDF" alt="Actual uploaded Khatauni"/>
+        : <div className="source-image-stage" style={stageStyle}>
+          <AuthenticatedDocument documentId={document.id} variant={variant} alt="Actual uploaded Khatauni" onImageLoad={(event) => setNaturalSize({width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight})}/>
+          {showHighlight && <div className="source-evidence-highlight" style={boxStyle} aria-label={`Selected source evidence for ${selectedEvidence.label}`}><span>{selectedEvidence.label}</span></div>}
+        </div>) : <FileText size={46} />}
     </div>
     {processingActions}
   </section>;
+}
+
+function comparableValue(value) {
+  const digits = {'०':'0','१':'1','२':'2','३':'3','४':'4','५':'5','६':'6','७':'7','८':'8','९':'9'};
+  return String(value || '').normalize('NFKC').replace(/[०-९]/g, digit => digits[digit]).replace(/\s+/g, ' ').trim().toLocaleLowerCase();
+}
+function clampBoundingBox(box, naturalWidth, naturalHeight) {
+  if (!box || !naturalWidth || !naturalHeight) return null;
+  const left = Number(box.left); const top = Number(box.top);
+  const rawRight = box.right !== undefined ? Number(box.right) : left + Number(box.width);
+  const rawBottom = box.bottom !== undefined ? Number(box.bottom) : top + Number(box.height);
+  if (![left, top, rawRight, rawBottom].every(Number.isFinite)) return null;
+  const safeLeft = Math.max(0, Math.min(naturalWidth, left));
+  const safeTop = Math.max(0, Math.min(naturalHeight, top));
+  const right = Math.max(0, Math.min(naturalWidth, rawRight));
+  const bottom = Math.max(0, Math.min(naturalHeight, rawBottom));
+  return right > safeLeft && bottom > safeTop ? {left: safeLeft, top: safeTop, width: right - safeLeft, height: bottom - safeTop} : null;
+}
+function schemaKeyOf(entry) {
+  return entry?.audit_metadata?.schema_key || entry?.normalized_label || '';
+}
+function evidenceEntity(entry, entityType, label, order, plotNumber = '') {
+  return {
+    key: `${entityType}:${entry.id}`, entityType, entityId: entry.id, schemaKey: schemaKeyOf(entry), label,
+    value: valueOf(entry), recognizedValue: ocrValueOf(entry), boundingBox: entry.bounding_box || null,
+    sourceTokenIds: entry.source_token_ids || [], confidence: entry.ai_confidence, validation: validationOf(entry),
+    rowIndex: entry.row_index, columnIndex: entry.column_index, plotNumber, order,
+  };
+}
+function cellEvidence(cell, row, header, rowOrder = row.row_index) {
+  const plotCell = row.cells.find(candidate => schemaKeyOf(candidate) === 'plot_number');
+  const plot = valueOf(plotCell);
+  const baseLabel = bilingualKhatauniLabel(header?.label || cell.header_label || schemaKeyOf(cell) || 'Table value');
+  const label = plot && schemaKeyOf(cell) !== 'plot_number' ? `${baseLabel} · Plot ${plot}` : baseLabel;
+  return evidenceEntity(cell, 'cell', label, 1000 + rowOrder * 100 + cell.column_index, plot);
+}
+function collectEvidenceEntities(digitization) {
+  const fields = digitization.items.map((field, index) => evidenceEntity(
+    field, 'field', bilingualKhatauniLabel(field.original_label || field.normalized_label || 'Field'), index,
+  ));
+  const rows = digitization.table?.rows || [];
+  const cells = [];
+  rows.forEach((row, rowOrder) => {
+    row.cells.forEach((cell) => {
+      const header = digitization.table?.headers?.find(candidate => candidate.column_index === cell.column_index);
+      cells.push(cellEvidence(cell, row, header, rowOrder));
+    });
+  });
+  return [...fields, ...cells];
+}
+function buildReviewIssues(entities, ruleValidation, crossValidation, structuredDuplicate) {
+  const issues = new Map();
+  const add = (entity, reason, priority, fallbackKey) => {
+    const key = entity?.key || fallbackKey;
+    if (!key) return;
+    const existing = issues.get(key) || {
+      key, evidence: entity || {key, entityType: 'record', entityId: key, label: 'Record-level review', boundingBox: null, order: 999999},
+      reasons: new Set(), priority, order: entity?.order ?? 999999,
+    };
+    existing.priority = Math.min(existing.priority, priority);
+    existing.reasons.add(reason);
+    issues.set(key, existing);
+  };
+  const findEntity = ({field, scope, plotNumber, rowIndex}) => {
+    if (scope === 'header' || scope === 'record') return entities.find(entity => entity.entityType === 'field' && entity.schemaKey === field);
+    const plot = comparableValue(plotNumber);
+    const rowCells = entities.filter(entity => entity.entityType === 'cell' && (
+      plot ? comparableValue(entity.plotNumber) === plot : rowIndex !== null && rowIndex !== undefined ? entity.rowIndex === rowIndex : true
+    ));
+    return rowCells.find(entity => entity.schemaKey === field) || ((field === 'plot_number' || (!field && plot)) ? rowCells.find(entity => entity.schemaKey === 'plot_number') : null);
+  };
+
+  entities.forEach((entity) => {
+    const status = entity.validation?.status;
+    if (['NEEDS_REVIEW', 'UNRESOLVED'].includes(status)) add(entity, `Validation: ${status.replaceAll('_', ' ')}`, 1);
+  });
+  ruleValidation?.rules?.filter(rule => rule.status === 'REVIEW').forEach((rule, index) => {
+    const entity = findEntity({field: rule.field, scope: rule.scope, plotNumber: rule.plot_number, rowIndex: rule.row_index});
+    add(entity, rule.message || `${rule.name.replaceAll('_', ' ')} requires review`, 1, `rule:${rule.rule_id}:row:${rule.row_index ?? index}`);
+  });
+  crossValidation?.references?.forEach(reference => reference.differences?.forEach((difference, index) => {
+    const entity = findEntity({field: difference.field, scope: difference.scope, plotNumber: difference.plot_number});
+    add(entity, `Cross-record difference in ${difference.field.replaceAll('_', ' ')}`, 2, `cross:${reference.record_db_id}:${difference.field}:${index}`);
+  }));
+  entities.forEach((entity) => {
+    if (entity.confidence !== null && entity.confidence !== undefined && entity.confidence < LOW_CONFIDENCE_THRESHOLD) {
+      add(entity, `Low recognition evidence (${Math.round(entity.confidence)}%)`, 3);
+    }
+  });
+  if (structuredDuplicate?.status === 'POSSIBLE_DUPLICATE') {
+    add(null, 'Possible structured duplicate found in verified BhumiAI records', 4, 'record:structured-duplicate');
+  }
+  return [...issues.values()].map(issue => ({...issue, reasons: [...issue.reasons]})).sort(
+    (left, right) => left.priority - right.priority || left.order - right.order || left.key.localeCompare(right.key),
+  );
 }
 
 function ExactDuplicateReview({match, onContinue, onReject}) {
@@ -97,7 +235,21 @@ function ValidationSummaryCard({ruleValidation, crossValidation, structuredDupli
   </section>;
 }
 
-function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, typingMode, setTypingMode, drafts, isDirty, error, onFieldChange, onCellChange, onAddRow, onDeleteRow, onSave, onNeedsReview, onVerify, onReject }) {
+function EvidenceButton({evidence, onSelect}) {
+  return <button type="button" className="evidence-link" aria-label={`${evidence.boundingBox ? 'Show source evidence' : 'Source region unavailable'} for ${evidence.label}`} onMouseDown={(event) => event.preventDefault()} onClick={(event) => { event.preventDefault(); event.stopPropagation(); onSelect(evidence); }}><LocateFixed size={12}/>{evidence.boundingBox ? 'Show source' : 'Source unavailable'}</button>;
+}
+
+function ReviewIssueNavigator({issues, activeIndex, onNavigate}) {
+  if (!issues.length) return <section className="review-issue-nav no-issues" aria-live="polite"><CheckCircle size={15}/><span>No review flags detected.</span></section>;
+  const current = issues[Math.max(0, activeIndex)] || issues[0];
+  return <section className="review-issue-nav" aria-label="Review issue navigation">
+    <div><div className="eyebrow">REVIEW ISSUES</div><b>{issues.length} item{issues.length === 1 ? '' : 's'} require attention</b></div>
+    <div className="review-issue-current"><small>Issue {Math.max(0, activeIndex) + 1} of {issues.length}</small><strong>{current.evidence.label}</strong><span>{current.reasons.join(' · ')}</span></div>
+    <div className="review-issue-actions"><button type="button" onClick={() => onNavigate(Math.max(0, activeIndex) - 1)} disabled={activeIndex <= 0} aria-label="Previous review issue"><ChevronLeft size={14}/> Previous Issue</button><button type="button" onClick={() => onNavigate(Math.min(issues.length - 1, Math.max(0, activeIndex) + 1))} disabled={activeIndex >= issues.length - 1} aria-label="Next review issue">Next Issue <ChevronRight size={14}/></button></div>
+  </section>;
+}
+
+function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, typingMode, setTypingMode, drafts, isDirty, error, selectedEvidence, onSelectEvidence, onFieldChange, onCellChange, onAddRow, onDeleteRow, onSave, onNeedsReview, onVerify, onReject }) {
   const { items, table } = digitization;
   const fieldGroups = groupedFields(items);
   if (digitizationLoading) return <section className="card khatauni-pane khatauni-loading" aria-label="Loading structured record"><div className="section-head"><div><div className="eyebrow">DIGITAL KHATAUNI</div><h3>Loading structured record…</h3><p>The source record remains available while extracted fields load.</p></div></div><div className="khatauni-fields"><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/></div><div className="skeleton-block skeleton-khatauni-table"/></section>;
@@ -108,10 +260,10 @@ function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, 
       const field = items.find((item) => String(item.id) === fieldId);
       if (field) onFieldChange(field, event.target.value);
     }}>
-      {items.length ? fieldGroups.map(([title, fields]) => <section className="field-group" key={title}><h4>{title}</h4>{fields.map((field) => <label className="khatauni-field" data-field-id={field.id} key={field.id}>
+      {items.length ? fieldGroups.map(([title, fields]) => <section className="field-group" key={title}><h4>{title}</h4>{fields.map((field) => <label className={`khatauni-field ${selectedEvidence?.key === `field:${field.id}` ? 'evidence-selected' : ''}`} data-field-id={field.id} data-evidence-entity={`field-${field.id}`} key={field.id}>
         <span>{bilingualKhatauniLabel(field.original_label)}</span>
         {supportsHindiPhoneticInput(bilingualKhatauniLabel(field.original_label)) ? <HindiPhoneticInput key={`${field.id}-${valueOf(field)}`} defaultValue={valueOf(field)} hindiMode={typingMode === 'hi'} placeholder="स्वचालित रूप से पता नहीं चला / Not automatically detected" onValueChange={value => onFieldChange(field, value)} onCommit={value => value !== String(valueOf(field)) && onFieldChange(field, value)} disabled={Boolean(work)} /> : <input key={`${field.id}-${valueOf(field)}`} defaultValue={valueOf(field)} placeholder="स्वचालित रूप से पता नहीं चला / Not automatically detected" onBlur={(event) => event.target.value !== String(valueOf(field)) && onFieldChange(field, event.target.value)} disabled={Boolean(work)} />}
-        <small className="recognition-indicators"><span className="indicator-label">Recognition evidence</span><ConfidenceBadge value={field.ai_confidence} /><ValidationBadge validation={validationOf(field)} /></small>
+        <small className="recognition-indicators"><span className="indicator-label">Recognition evidence</span><ConfidenceBadge value={field.ai_confidence} /><ValidationBadge validation={validationOf(field)} /><EvidenceButton evidence={evidenceEntity(field, 'field', bilingualKhatauniLabel(field.original_label || field.normalized_label || 'Field'), field.display_order || 0)} onSelect={onSelectEvidence}/></small>
         {hasDraft(drafts, `field-${field.id}`) && <em title={`Original OCR: ${ocrValueOf(field) || 'Blank'}`}><span className="edited-tag">Edited</span> Unsaved correction</em>}
         {field.officer_value !== null && field.officer_value !== undefined && <em><span className="edited-tag">Edited</span> OCR: {ocrValueOf(field) || 'रिक्त / Blank'}</em>}
       </label>)}</section>) : <div className="khatauni-empty">Extract Khatauni Data to create the empty schema and populate OCR matches.</div>}
@@ -137,7 +289,7 @@ function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, 
   </section>;
 }
 
-function LandParcelReview({digitization, work, isTerminal, typingMode, drafts, onCellChange, onAddRow, onDeleteRow}) {
+function LandParcelReview({digitization, work, isTerminal, typingMode, drafts, selectedEvidence, onSelectEvidence, onCellChange, onAddRow, onDeleteRow}) {
   const {table} = digitization;
   if (!table) return <section className="card land-table-pane"><div className="section-head"><div><div className="eyebrow">LAND RECORD REVIEW</div><h3>Khatauni / Land Parcel Table</h3></div></div><div className="khatauni-empty">No Khatauni table has been extracted yet.</div></section>;
   return <section className="card land-table-pane">
@@ -154,7 +306,7 @@ function LandParcelReview({digitization, work, isTerminal, typingMode, drafts, o
         return <tr key={row.row_index} data-row-index={row.row_index}>{table.headers.map((header) => {
           const cell = row.cells.find((candidate) => candidate.column_index === header.column_index);
           const supportsHindi = supportsHindiPhoneticInput(bilingualKhatauniLabel(header.label));
-          return <td key={header.column_index} className={cell && hasDraft(drafts, `cell-${cell.id}`) ? 'has-unsaved-correction' : ''}>{cell ? <div className="khatauni-cell">{supportsHindi ? <HindiPhoneticInput key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} hindiMode={typingMode === 'hi'} placeholder="मान दर्ज करें / Enter value" onValueChange={(value) => onCellChange(cell, value)} onCommit={(value) => value !== String(valueOf(cell)) && onCellChange(cell, value)} disabled={Boolean(work)} /> : <input key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} placeholder="Enter value" onBlur={(event) => event.target.value !== String(valueOf(cell)) && onCellChange(cell, event.target.value)} disabled={Boolean(work)} />}<span className="recognition-indicators"><ConfidenceBadge value={cell.ai_confidence} /><ValidationBadge validation={validationOf(cell)} /></span>{cell.officer_value !== null && cell.officer_value !== undefined && <small title={`Original OCR: ${ocrValueOf(cell) || 'Blank'}`}><span className="edited-tag">Edited</span> OCR value available</small>}</div> : <span className="empty-cell">Blank</span>}</td>;
+          return <td key={header.column_index} className={cell && hasDraft(drafts, `cell-${cell.id}`) ? 'has-unsaved-correction' : ''}>{cell ? <div className={`khatauni-cell ${selectedEvidence?.key === `cell:${cell.id}` ? 'evidence-selected' : ''}`} data-evidence-entity={`cell-${cell.id}`}>{supportsHindi ? <HindiPhoneticInput key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} hindiMode={typingMode === 'hi'} placeholder="मान दर्ज करें / Enter value" onValueChange={(value) => onCellChange(cell, value)} onCommit={(value) => value !== String(valueOf(cell)) && onCellChange(cell, value)} disabled={Boolean(work)} /> : <input key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} placeholder="Enter value" onBlur={(event) => event.target.value !== String(valueOf(cell)) && onCellChange(cell, event.target.value)} disabled={Boolean(work)} />}<span className="recognition-indicators"><ConfidenceBadge value={cell.ai_confidence} /><ValidationBadge validation={validationOf(cell)} /><EvidenceButton evidence={cellEvidence(cell, row, header)} onSelect={onSelectEvidence}/></span>{cell.officer_value !== null && cell.officer_value !== undefined && <small title={`Original OCR: ${ocrValueOf(cell) || 'Blank'}`}><span className="edited-tag">Edited</span> OCR value available</small>}</div> : <span className="empty-cell">Blank</span>}</td>;
         })}<td><span className={`source-tag ${manual ? 'manual' : 'ocr'}`}>{manual ? 'Added by Officer' : 'OCR'}</span>{!isTerminal && <button className="table-delete-button" type="button" onClick={() => onDeleteRow(row)} disabled={Boolean(work)}><Trash2 size={13} /> Delete row</button>}</td></tr>;
       }) : <tr><td colSpan={table.headers.length + 1} className="dynamic-empty-row">No row was detected reliably. An officer can add the correct row.</td></tr>}</tbody>
     </table></div>
@@ -203,9 +355,17 @@ export default function Review() {
   const [crossValidation, setCrossValidation] = useState(null);
   const [structuredDuplicate, setStructuredDuplicate] = useState(null);
   const [validationLoading, setValidationLoading] = useState(false);
+  const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [activeIssueKey, setActiveIssueKey] = useState('');
   const hasRawOcr = Boolean(ocr?.raw_text?.trim());
   const hasExtraction = digitization.items.length > 0 && Boolean(digitization.table);
   const isDirty = structuralDirty || Object.keys(drafts).length > 0;
+  const evidenceEntities = useMemo(() => collectEvidenceEntities(digitization), [digitization]);
+  const reviewIssues = useMemo(
+    () => buildReviewIssues(evidenceEntities, ruleValidation, crossValidation, structuredDuplicate),
+    [evidenceEntities, ruleValidation, crossValidation, structuredDuplicate],
+  );
+  const activeIssueIndex = Math.max(0, reviewIssues.findIndex(issue => issue.key === activeIssueKey));
 
   useEffect(() => {
     if (!isDirty) return undefined;
@@ -213,6 +373,19 @@ export default function Review() {
     window.addEventListener('beforeunload', warnBeforeUnload);
     return () => window.removeEventListener('beforeunload', warnBeforeUnload);
   }, [isDirty]);
+
+  useEffect(() => {
+    if (!reviewIssues.length) {
+      setActiveIssueKey('');
+      setSelectedEvidence(current => current?.selectionSource === 'issue' ? null : current);
+      return;
+    }
+    if (reviewIssues.some(issue => issue.key === activeIssueKey)) return;
+    const first = reviewIssues[0];
+    setActiveIssueKey(first.key);
+    setSelectedEvidence({...first.evidence, reasons: first.reasons, selectionSource: 'issue'});
+    scrollStructuredEvidence(first.evidence);
+  }, [reviewIssues, activeIssueKey]);
 
   async function refreshDigitization() { setDigitization(normalizeDigitization(await api.digitization(id))); }
   async function refreshValidationSignals() {
@@ -283,6 +456,38 @@ export default function Review() {
       }
       return {...current, [key]: value};
     });
+    setSelectedEvidence(current => current?.key === `${kind}:${entry.id}` ? {...current, value} : current);
+  }
+
+  function scrollStructuredEvidence(evidence) {
+    if (!evidence || evidence.entityType === 'record') return;
+    window.requestAnimationFrame(() => {
+      const target = window.document.querySelector(`[data-evidence-entity="${evidence.entityType}-${evidence.entityId}"]`);
+      const scroller = target?.closest(evidence.entityType === 'cell' ? '.khatauni-table-wrap' : '.structured-pane');
+      if (!target || !scroller) return;
+      const targetRect = target.getBoundingClientRect();
+      const scrollerRect = scroller.getBoundingClientRect();
+      scroller.scrollTo({
+        top: Math.max(0, scroller.scrollTop + targetRect.top - scrollerRect.top - scroller.clientHeight / 2 + targetRect.height / 2),
+        left: Math.max(0, scroller.scrollLeft + targetRect.left - scrollerRect.left - scroller.clientWidth / 2 + targetRect.width / 2),
+        behavior: 'smooth',
+      });
+    });
+  }
+
+  function selectEvidence(evidence) {
+    setSelectedEvidence({...evidence, selectionSource: 'manual'});
+    const matchingIssue = reviewIssues.find(issue => issue.evidence.key === evidence.key);
+    if (matchingIssue) setActiveIssueKey(matchingIssue.key);
+    scrollStructuredEvidence(evidence);
+  }
+
+  function navigateReviewIssue(index) {
+    const issue = reviewIssues[index];
+    if (!issue) return;
+    setActiveIssueKey(issue.key);
+    setSelectedEvidence({...issue.evidence, reasons: issue.reasons, selectionSource: 'issue'});
+    scrollStructuredEvidence(issue.evidence);
   }
 
   const updateField = (field, value) => stageChange('field', field, value);
@@ -344,8 +549,9 @@ export default function Review() {
     <section className="card khatauni-stepper" aria-label="Document processing progress"><ol>{steps.map(([label, done], index) => <li className={done ? 'complete' : (index === currentStep ? 'current' : '')} key={label}><span aria-hidden="true">{done ? '✓' : index === currentStep ? '●' : '○'}</span><b>{label}</b></li>)}</ol></section>
     {!isTerminal && <ExactDuplicateReview match={duplicate} onContinue={continueDuplicateReview} onReject={rejectAsDuplicate}/>}
     <ValidationSummaryCard ruleValidation={ruleValidation} crossValidation={crossValidation} structuredDuplicate={structuredDuplicate} loading={validationLoading}/>
-    <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} processingActions={processingActions} /><DigitalKhatauni digitization={digitization} digitizationLoading={isTerminal ? false : digitizationLoading} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} setTypingMode={setTypingMode} drafts={drafts} isDirty={isDirty} error={error} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)} /></div>
-    <section className={`land-review-layout ${isTerminal ? 'terminal-land-review' : ''}`}><LandParcelReview digitization={digitization} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} drafts={drafts} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow}/><OfficerDecisionPanel digitization={digitization} drafts={drafts} isDirty={isDirty} error={error} work={work} isTerminal={isTerminal} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)}/></section>
+    <ReviewIssueNavigator issues={reviewIssues} activeIndex={activeIssueIndex} onNavigate={navigateReviewIssue}/>
+    <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} processingActions={processingActions} selectedEvidence={selectedEvidence}/><DigitalKhatauni digitization={digitization} digitizationLoading={isTerminal ? false : digitizationLoading} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} setTypingMode={setTypingMode} drafts={drafts} isDirty={isDirty} error={error} selectedEvidence={selectedEvidence} onSelectEvidence={selectEvidence} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)} /></div>
+    <section className={`land-review-layout ${isTerminal ? 'terminal-land-review' : ''}`}><LandParcelReview digitization={digitization} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} drafts={drafts} selectedEvidence={selectedEvidence} onSelectEvidence={selectEvidence} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow}/><OfficerDecisionPanel digitization={digitization} drafts={drafts} isDirty={isDirty} error={error} work={work} isTerminal={isTerminal} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)}/></section>
 
     {pendingDecision && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="decision-title"><div className="modal-card decision-modal"><div className="eyebrow">OFFICER DECISION</div><h3 id="decision-title">{pendingDecision === 'approve' ? 'Verify this record?' : 'Mark this record for further review?'}</h3><p><b>Submission #{submission.id || sourceDocument.id}</b></p><p>{pendingDecision === 'approve' ? 'Final decision: verification creates or updates the verified digital record using the reviewed values.' : 'The record remains in the review queue for a later decision.'}</p>{error && <p className="review-action-error" role="alert">{error}</p>}<div className="actions"><Button variant="secondary" onClick={() => setPendingDecision('')} disabled={Boolean(work)}>Cancel</Button><Button onClick={() => decide(pendingDecision)} loading={work === pendingDecision} loadingText={pendingDecision === 'approve' ? 'Verifying…' : 'Updating…'} disabled={Boolean(work)}>{pendingDecision === 'approve' ? 'Verify Record' : 'Mark Needs Review'}</Button></div></div></div>}
     {rejectOpen && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reject-title"><div className="modal-card decision-modal"><div className="eyebrow">OFFICER DECISION</div><h3 id="reject-title">Reject this record?</h3><p><b>Submission #{submission.id || sourceDocument.id}</b></p><p>Final decision: rejection is recorded in the audit trail and shown to the submitting citizen.</p><div className="field"><label>Reason Category</label><select value={reasonCategory} onChange={event => setReasonCategory(event.target.value)} disabled={Boolean(work)}><option value="">Select a reason</option>{['Poor Scan Quality', 'Incomplete Document', 'Incorrect Document', 'Unreadable Information', 'Duplicate Submission', 'Information Mismatch', 'Other'].map(reason => <option key={reason}>{reason}</option>)}</select></div><div className="field"><label>Officer Note {reasonCategory === 'Other' ? '(required)' : '(optional)'}</label><textarea value={officerNote} onChange={event => setOfficerNote(event.target.value)} placeholder="Explain what the citizen needs to correct." disabled={Boolean(work)}/></div>{error && <p className="review-action-error" role="alert">{error}</p>}<div className="actions" style={{marginTop: 16}}><Button variant="secondary" onClick={() => setRejectOpen(false)} disabled={Boolean(work)}>Cancel</Button><Button variant="danger" loading={work === 'reject'} loadingText="Rejecting…" disabled={!reasonCategory || (reasonCategory === 'Other' && !officerNote.trim()) || Boolean(work)} onClick={() => decide('reject', {reason_category: reasonCategory, officer_note: officerNote.trim() || null})}>Confirm rejection</Button></div></div></div>}

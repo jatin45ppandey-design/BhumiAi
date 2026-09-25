@@ -164,6 +164,35 @@
 .validation-signals summary small { color:var(--muted); font-size:10px; }
 .validation-evidence { display:grid; gap:3px; margin-top:8px; padding-top:8px; border-top:1px solid #f0e9df; color:#68492c; font-size:10px; overflow-wrap:anywhere; }
 
+.review-issue-nav { display:grid; grid-template-columns:minmax(170px,.75fr) minmax(260px,1.6fr) auto; align-items:center; gap:14px; margin:0 0 14px; border:1px solid #e1d4c3; border-left:3px solid #d69a3a; border-radius:8px; padding:10px 12px; background:#fffdf8; box-shadow:0 3px 12px rgba(61,43,26,.04); }
+.review-issue-nav.no-issues { display:flex; gap:7px; border-left-color:#76a985; color:#376348; font-size:11px; font-weight:750; }
+.review-issue-nav>div:first-child { display:grid; gap:2px; }
+.review-issue-nav>div:first-child>b { color:#173b54; font-size:12px; }
+.review-issue-current { display:grid; min-width:0; gap:1px; border-left:1px solid #eadfd2; padding-left:14px; }
+.review-issue-current small { color:#806648; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.review-issue-current strong { overflow:hidden; color:#34291f; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.review-issue-current span { color:#806648; font-size:10px; line-height:1.35; overflow-wrap:anywhere; }
+.review-issue-actions { display:flex; gap:5px; }
+.review-issue-actions button,.evidence-link { display:inline-flex; align-items:center; justify-content:center; gap:4px; border:1px solid #d9c8b3; border-radius:5px; background:#fff; color:#68492c; font:750 9px inherit; cursor:pointer; }
+.review-issue-actions button { min-height:30px; padding:5px 8px; }
+.review-issue-actions button:hover:not(:disabled),.evidence-link:hover { border-color:var(--saffron); color:var(--saffron-deep); }
+.review-issue-actions button:focus-visible,.evidence-link:focus-visible { outline:3px solid rgba(210,111,28,.24); outline-offset:2px; }
+.review-issue-actions button:disabled { opacity:.42; cursor:not-allowed; }
+
+.source-evidence-info { flex:none; display:grid; grid-template-columns:minmax(135px,.8fr) minmax(240px,1.4fr); gap:6px 14px; border-bottom:1px solid #e5dacb; padding:8px 16px; background:#fffaf2; }
+.source-evidence-info>div { display:grid; min-width:0; gap:1px; }
+.source-evidence-info b { overflow:hidden; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.source-evidence-info small { display:flex; flex-wrap:wrap; align-items:center; gap:5px 12px; color:#65584b; font-size:9px; }
+.source-evidence-info em { grid-column:1/-1; color:#8a5d1b; font-size:9px; font-style:normal; }
+.source-canvas { padding:18px; }
+.source-image-stage { position:relative; flex:none; margin:auto; }
+.source-image-stage img { width:100%; height:100%; max-width:none; max-height:none; object-fit:fill; transform:none !important; }
+.source-evidence-highlight { position:absolute; z-index:2; border:2px solid #c95f16; outline:1px solid rgba(255,255,255,.92); background:rgba(238,133,40,.18); box-shadow:0 0 0 1px rgba(55,33,15,.2),0 3px 12px rgba(55,33,15,.18); pointer-events:none; }
+.source-evidence-highlight span { position:absolute; left:-2px; bottom:calc(100% + 4px); max-width:220px; overflow:hidden; border-radius:3px; padding:2px 5px; background:#9d4312; color:#fff; font-size:9px; font-weight:800; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+.evidence-link { min-height:23px; margin-left:auto; padding:3px 6px; white-space:nowrap; }
+.evidence-selected { position:relative; z-index:1; outline:2px solid #d26f1c !important; outline-offset:1px; background:#fff6e9 !important; box-shadow:0 0 0 4px rgba(210,111,28,.11); }
+.khatauni-cell.evidence-selected { border-radius:4px; padding:5px; }
+
 .review-workbench { grid-template-columns:minmax(340px,44fr) minmax(440px,56fr); height:min(720px,calc(100dvh - 220px)); min-height:520px; margin-bottom:22px; }
 .evidence-pane,.structured-pane { height:100%; min-height:0; }
 .structured-pane { display:flex; flex-direction:column; overflow:auto; scroll-padding-bottom:24px; }
@@ -225,6 +254,11 @@
   .cross-record-counts span { text-align:left; }
   .cross-record-difference { grid-template-columns:1fr; }
   .validation-signals { grid-template-columns:1fr; }
+  .review-issue-nav { grid-template-columns:1fr; gap:8px; }
+  .review-issue-current { border-left:0; border-top:1px solid #eadfd2; padding:7px 0 0; }
+  .review-issue-actions button { flex:1; }
+  .source-evidence-info { grid-template-columns:1fr; padding-inline:12px; }
+  .source-evidence-info em { grid-column:auto; }
   .field-group { grid-template-columns:1fr; }
   .review-workbench { margin-bottom:16px; }
   .land-table-head { align-items:flex-start; flex-direction:column; }
