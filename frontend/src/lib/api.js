@@ -42,6 +42,9 @@ export const api = {
   // particular document. These helpers deliberately do not impose a land-record
   // schema on the client.
   digitization: (id) => request(`/api/officer/documents/${id}/digitization`),
+  ruleValidation: (id) => request(`/api/officer/documents/${id}/rule-validation`),
+  crossRecordValidation: (id) => request(`/api/officer/documents/${id}/cross-record-validation`),
+  structuredDuplicateCheck: (id) => request(`/api/officer/documents/${id}/structured-duplicate-check`),
   updateDynamicField: (id, fieldId, payload) => request(`/api/officer/documents/${id}/dynamic-fields/${fieldId}`, jsonRequest('PATCH', payload)),
   createDynamicTableRow: (id, tableId, payload) => request(
     `/api/officer/documents/${id}/tables/${tableId}/rows`,

@@ -80,6 +80,23 @@ function ExactDuplicateReview({match, onContinue, onReject}) {
   </section>;
 }
 
+function ValidationSummaryCard({ruleValidation, crossValidation, structuredDuplicate, loading}) {
+  if (!loading && !ruleValidation && !crossValidation && !structuredDuplicate) return null;
+  const reviewRequired = ruleValidation?.status === 'REVIEW_REQUIRED' || crossValidation?.status === 'REVIEW_REQUIRED' || structuredDuplicate?.status === 'POSSIBLE_DUPLICATE';
+  if (loading && !ruleValidation && !crossValidation && !structuredDuplicate) return <section className="card validation-summary"><div className="eyebrow">VALIDATION SUMMARY</div><small>Checking reviewed values against deterministic advisory rules and verified BhumiAI records…</small></section>;
+  const ruleReview = ruleValidation?.summary?.review || 0;
+  const differences = crossValidation?.summary?.differences || 0;
+  const duplicateCount = structuredDuplicate?.summary?.possible_duplicates || 0;
+  return <section className={`card validation-summary ${reviewRequired ? 'review-required' : 'consistent'}`}>
+    <div className="validation-summary-head"><div><div className="eyebrow">VALIDATION SUMMARY</div><h3>{reviewRequired ? 'REVIEW REQUIRED' : 'NO REVIEW FLAGS'}</h3><p>Advisory signals only — the officer retains the final decision.</p></div>{loading && <small>Refreshing…</small>}</div>
+    <div className="validation-signals">
+      <details><summary><span>Rule-based validation</span><b>{ruleValidation?.status?.replaceAll('_', ' ') || 'UNAVAILABLE'}</b><small>{ruleValidation ? `${ruleValidation.summary?.passed || 0} passed · ${ruleReview} requires review` : 'Not available'}</small></summary>{ruleValidation?.rules?.filter((rule) => rule.status === 'REVIEW').map((rule, index) => <div className="validation-evidence" key={`${rule.rule_id}-${index}`}><b>{rule.rule_id} · {rule.name.replaceAll('_', ' ')}</b><span>{rule.message}</span>{rule.plot_number && <span>Plot {rule.plot_number}</span>}</div>)}</details>
+      <details><summary><span>Cross-record validation</span><b>{crossValidation?.status?.replaceAll('_', ' ') || 'UNAVAILABLE'}</b><small>{crossValidation ? `${crossValidation.candidate_count || 0} references · ${differences} differences` : 'Not available'}</small></summary>{crossValidation?.references?.map((reference) => <div className="validation-evidence" key={reference.record_db_id}><b>Compared with {reference.record_id}</b><span>Matched on: {reference.matched_on.join(', ')} · Differences: {reference.difference_count}</span>{reference.differences.map((difference, index) => <span key={`${difference.field}-${index}`}>{difference.field.replaceAll('_', ' ')}: {difference.current_value} → {difference.reference_value}</span>)}</div>)}</details>
+      <details><summary><span>Structured duplicate check</span><b>{structuredDuplicate?.status?.replaceAll('_', ' ') || 'UNAVAILABLE'}</b><small>{structuredDuplicate ? `${duplicateCount} possible duplicate${duplicateCount === 1 ? '' : 's'}` : 'Not available'}</small></summary>{structuredDuplicate?.matches?.map((match) => <div className="validation-evidence" key={match.record_db_id}><b>Possible match: {match.record_id}</b><span>Matched on {match.matched_identity.join(', ')} · Plots: {match.matched_plots.join(', ')}</span><span>Matching fields: {match.matching_fields.join(', ')}</span></div>)}</details>
+    </div>
+  </section>;
+}
+
 function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, typingMode, setTypingMode, drafts, isDirty, error, onFieldChange, onCellChange, onAddRow, onDeleteRow, onSave, onNeedsReview, onVerify, onReject }) {
   const { items, table } = digitization;
   const fieldGroups = groupedFields(items);
@@ -182,6 +199,10 @@ export default function Review() {
   const [reasonCategory, setReasonCategory] = useState('');
   const [officerNote, setOfficerNote] = useState('');
   const [duplicate, setDuplicate] = useState(null);
+  const [ruleValidation, setRuleValidation] = useState(null);
+  const [crossValidation, setCrossValidation] = useState(null);
+  const [structuredDuplicate, setStructuredDuplicate] = useState(null);
+  const [validationLoading, setValidationLoading] = useState(false);
   const hasRawOcr = Boolean(ocr?.raw_text?.trim());
   const hasExtraction = digitization.items.length > 0 && Boolean(digitization.table);
   const isDirty = structuralDirty || Object.keys(drafts).length > 0;
@@ -194,6 +215,17 @@ export default function Review() {
   }, [isDirty]);
 
   async function refreshDigitization() { setDigitization(normalizeDigitization(await api.digitization(id))); }
+  async function refreshValidationSignals() {
+    setValidationLoading(true);
+    try {
+      const [rules, crossRecord, structured] = await Promise.all([
+        api.ruleValidation(id).catch(() => null),
+        api.crossRecordValidation(id).catch(() => null),
+        api.structuredDuplicateCheck(id).catch(() => null),
+      ]);
+      setRuleValidation(rules); setCrossValidation(crossRecord); setStructuredDuplicate(structured);
+    } finally { setValidationLoading(false); }
+  }
 
   useEffect(() => {
     let active = true;
@@ -211,7 +243,10 @@ export default function Review() {
       if (active && latestOcr) { setOcr(latestOcr); setProcessedPath(latestOcr.processed_image_path || ''); }
     }).catch(() => {});
     api.digitization(id).then((structure) => {
-      if (active && structure) setDigitization(normalizeDigitization(structure));
+      if (active && structure) {
+        setDigitization(normalizeDigitization(structure));
+        if (structure.items?.length || structure.tables?.length) refreshValidationSignals();
+      }
     }).catch(() => {}).finally(() => active && setDigitizationLoading(false));
     return () => { active = false; };
   }, [id]);
@@ -221,13 +256,13 @@ export default function Review() {
     setWork(kind); setError(''); setNotice('');
     try {
       if (kind === 'preprocess') {
-        const result = await api.preprocess(id); setProcessedPath(result.processed_file_path); setSourceMode('enhanced'); setOcr(null); setDigitization({ items: [], table: null, summary: {} }); setNotice('OpenCV preprocessing completed. Enhanced evidence is ready.');
+        const result = await api.preprocess(id); setProcessedPath(result.processed_file_path); setSourceMode('enhanced'); setOcr(null); setDigitization({ items: [], table: null, summary: {} }); setRuleValidation(null); setCrossValidation(null); setStructuredDuplicate(null); setNotice('OpenCV preprocessing completed. Enhanced evidence is ready.');
       } else if (kind === 'ocr') {
-        const result = await api.ocr(id, processedPath); setOcr(result); setDigitization({ items: [], table: null, summary: {} });
+        const result = await api.ocr(id, processedPath); setOcr(result); setDigitization({ items: [], table: null, summary: {} }); setRuleValidation(null); setCrossValidation(null); setStructuredDuplicate(null);
         if (result.status !== 'COMPLETED') throw new Error(result.message || 'Document recognition could not process this record.');
         setNotice('Document recognition completed. Technical evidence is available below.');
       } else if (kind === 'extract') {
-        const result = await api.extract(id, ocr?.ocr_id); setDigitization(normalizeDigitization(result)); setNotice(result.message || 'Khatauni extraction completed.');
+        const result = await api.extract(id, ocr?.ocr_id); setDigitization(normalizeDigitization(result)); await refreshValidationSignals(); setNotice(result.message || 'Khatauni extraction completed.');
       }
     } catch (actionError) { setError(safeErrorMessage(actionError)); } finally { setWork(''); }
   }
@@ -235,7 +270,7 @@ export default function Review() {
   async function mutate(key, action, message, marksDirty = true) {
     if (work) return;
     setWork(key); setError('');
-    try { await action(); await refreshDigitization(); if (marksDirty) setStructuralDirty(true); setNotice(message); } catch (mutationError) { setError(safeErrorMessage(mutationError)); } finally { setWork(''); }
+    try { await action(); await refreshDigitization(); await refreshValidationSignals(); if (marksDirty) setStructuralDirty(true); setNotice(message); } catch (mutationError) { setError(safeErrorMessage(mutationError)); } finally { setWork(''); }
   }
 
   function stageChange(kind, entry, value) {
@@ -265,6 +300,7 @@ export default function Review() {
           : api.updateDynamicTableCell(id, digitization.table.id, entityId, {officer_value: value});
       }));
       await refreshDigitization();
+      await refreshValidationSignals();
       setDrafts({}); setStructuralDirty(false);
       setNotice('Corrections saved; original OCR remains preserved.');
     } catch (saveError) { setError(safeErrorMessage(saveError)); } finally { setWork(''); }
@@ -307,6 +343,7 @@ export default function Review() {
     <ErrorMessage>{error}</ErrorMessage><Toast message={notice} onDismiss={() => setNotice('')}/>{work.startsWith('field-') || work.startsWith('cell-') ? <div className="notice" role="status">Saving correction…</div> : null}{isRejected && <div className="notice warn"><b>Rejected record — read-only.</b><br/>Reason: {submission.rejection?.reason_category || 'Unavailable'}{submission.rejection?.officer_note && <><br/>{submission.rejection.officer_note}</>}</div>}{isVerified && <div className="notice"><b>Verified record — read-only.</b><br/>Open the permanent verified record to review or export it.</div>}
     <section className="card khatauni-stepper" aria-label="Document processing progress"><ol>{steps.map(([label, done], index) => <li className={done ? 'complete' : (index === currentStep ? 'current' : '')} key={label}><span aria-hidden="true">{done ? '✓' : index === currentStep ? '●' : '○'}</span><b>{label}</b></li>)}</ol></section>
     {!isTerminal && <ExactDuplicateReview match={duplicate} onContinue={continueDuplicateReview} onReject={rejectAsDuplicate}/>}
+    <ValidationSummaryCard ruleValidation={ruleValidation} crossValidation={crossValidation} structuredDuplicate={structuredDuplicate} loading={validationLoading}/>
     <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} processingActions={processingActions} /><DigitalKhatauni digitization={digitization} digitizationLoading={isTerminal ? false : digitizationLoading} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} setTypingMode={setTypingMode} drafts={drafts} isDirty={isDirty} error={error} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)} /></div>
     <section className={`land-review-layout ${isTerminal ? 'terminal-land-review' : ''}`}><LandParcelReview digitization={digitization} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} drafts={drafts} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow}/><OfficerDecisionPanel digitization={digitization} drafts={drafts} isDirty={isDirty} error={error} work={work} isTerminal={isTerminal} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)}/></section>
 

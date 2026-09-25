@@ -27,6 +27,9 @@ from khatauni_fast import prepare_page, recognize as recognize_fast_khatauni
 from khatauni_extractor import KhatauniExtractor
 from khatauni_schema import HEADER_FIELDS, TABLE_COLUMNS
 from khatauni_structured import compact_recognition_evidence
+from services.cross_record_validation import validate_cross_record
+from services.rule_validation import validate_rule_based
+from services.structured_duplicate import check_structured_duplicate
 import models
 import schemas
 from security import require_officer
@@ -710,6 +713,62 @@ def extract_fields(id: int, ocr_id: int | None = None, db: Session = Depends(get
 def get_digitization(id: int, db: Session = Depends(get_db)):
     _document(db, id)
     return _digitization(db, id)
+
+
+@router.get("/documents/{id}/cross-record-validation")
+def get_cross_record_validation(id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    _document(db, id)
+    result = validate_cross_record(db, id)
+    db.add(models.AuditLog(
+        document_id=id,
+        user_id=current_officer.id,
+        action="CROSS_RECORD_VALIDATION_RUN",
+        metadata_json=_json({
+            "status": result["status"],
+            "candidate_count": result["candidate_count"],
+            "reference_record_ids": [reference["record_id"] for reference in result["references"]],
+            "difference_count": result["summary"]["differences"],
+        }),
+    ))
+    db.commit()
+    return result
+
+
+@router.get("/documents/{id}/rule-validation")
+def get_rule_validation(id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    _document(db, id)
+    result = validate_rule_based(db, id)
+    db.add(models.AuditLog(
+        document_id=id,
+        user_id=current_officer.id,
+        action="RULE_VALIDATION_RUN",
+        metadata_json=_json({
+            "status": result["status"],
+            "passed_count": result["summary"]["passed"],
+            "review_count": result["summary"]["review"],
+            "triggered_rule_ids": sorted({rule["rule_id"] for rule in result["rules"] if rule["status"] == "REVIEW"}),
+        }),
+    ))
+    db.commit()
+    return result
+
+
+@router.get("/documents/{id}/structured-duplicate-check")
+def get_structured_duplicate_check(id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
+    _document(db, id)
+    result = check_structured_duplicate(db, id)
+    db.add(models.AuditLog(
+        document_id=id,
+        user_id=current_officer.id,
+        action="STRUCTURED_DUPLICATE_CHECKED",
+        metadata_json=_json({
+            "status": result["status"],
+            "candidate_count": result["summary"]["candidate_count"],
+            "possible_duplicate_record_ids": [match["record_id"] for match in result["matches"]],
+        }),
+    ))
+    db.commit()
+    return result
 
 
 @router.get("/documents/{id}/fields", response_model=list[schemas.ExtractedField])
