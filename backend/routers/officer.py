@@ -1044,7 +1044,30 @@ def verify_document(id: int, action: str, rejection: schemas.RejectionDecision |
                 ))
     else:
         metadata = None
-        if action == "reject":
+        if action == "mark-review":
+            review_event = models.AuditLog(
+                document_id=id,
+                user_id=officer_id,
+                submission_id=submission.id,
+                action="NEEDS_REVIEW",
+            )
+            db.add(review_event)
+            db.flush()
+            if submission.user and submission.user.role == "user":
+                existing_notice = db.query(models.UserNotification).filter(
+                    models.UserNotification.user_id == submission.user_id,
+                    models.UserNotification.type == "SUBMISSION_NEEDS_REVIEW",
+                    models.UserNotification.document_id == id,
+                ).order_by(models.UserNotification.created_at.desc(), models.UserNotification.id.desc()).first()
+                if not existing_notice or existing_notice.created_at < review_event.timestamp:
+                    db.add(models.UserNotification(
+                        user_id=submission.user_id,
+                        type="SUBMISSION_NEEDS_REVIEW",
+                        title="Additional review required",
+                        message="Your submission requires additional review before verification. Please check the submission status for updates.",
+                        document_id=id,
+                    ))
+        else:
             metadata = {"reason_category": category, "officer_note": note or None, "actor_role": "OFFICER"}
             if category == "Duplicate Submission":
                 uploader_notice = db.query(models.UserNotification).filter(
@@ -1085,7 +1108,7 @@ def verify_document(id: int, action: str, rejection: schemas.RejectionDecision |
                         message=f"Your submission was not verified. Reason: {category}. Review the submission status for details.",
                         document_id=id,
                     ))
-        db.add(models.AuditLog(document_id=id, user_id=officer_id, submission_id=submission.id,
-            action="NEEDS_REVIEW" if action == "mark-review" else "REJECTED", metadata_json=_json(metadata) if metadata else None))
+            db.add(models.AuditLog(document_id=id, user_id=officer_id, submission_id=submission.id,
+                action="REJECTED", metadata_json=_json(metadata)))
     db.commit()
     return {"message": f"Document {action}d successfully"}

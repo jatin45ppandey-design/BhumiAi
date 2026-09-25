@@ -148,6 +148,30 @@ class DashboardWorkspaceTests(unittest.TestCase):
             self.assertEqual(len(notices), 1)
             self.assertNotIn("officer@example.test", notices[0].message)
 
+    def test_mark_review_notifies_only_the_submission_owner_once(self):
+        self.login_as(self.officer_id)
+        with self.sessions() as db:
+            document_id = db.get(models.Submission, self.submissions["SUBMITTED"]).document_id
+        marked = self.client.post(f"/api/officer/documents/{document_id}/mark-review")
+        self.assertEqual(marked.status_code, 200, marked.text)
+        self.assertEqual(self.client.post(f"/api/officer/documents/{document_id}/mark-review").status_code, 409)
+        with self.sessions() as db:
+            submission = db.get(models.Submission, self.submissions["SUBMITTED"])
+            self.assertEqual(submission.status, "NEEDS_REVIEW")
+            notices = db.query(models.UserNotification).filter_by(
+                user_id=self.citizen_id,
+                document_id=document_id,
+                type="SUBMISSION_NEEDS_REVIEW",
+            ).all()
+            self.assertEqual(len(notices), 1)
+            self.assertEqual(notices[0].title, "Additional review required")
+            self.assertIn("additional review", notices[0].message.lower())
+            self.assertIsNone(notices[0].record_id)
+        self.login_as(self.citizen_id)
+        self.assertTrue(any(notice["type"] == "SUBMISSION_NEEDS_REVIEW" for notice in self.client.get("/api/user/notifications").json()))
+        self.login_as(self.other_citizen_id)
+        self.assertFalse(any(notice["type"] == "SUBMISSION_NEEDS_REVIEW" for notice in self.client.get("/api/user/notifications").json()))
+
     def test_existing_verified_record_search_remains_available(self):
         self.assertEqual(self.client.get("/api/verified-records/").status_code, 401)
         self.login_as(self.citizen_id)
