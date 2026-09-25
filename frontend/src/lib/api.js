@@ -33,7 +33,7 @@ export const api = {
   userDashboard: () => request('/api/user/dashboard'),
   userSubmissions: ({status = '', search = ''} = {}) => request(`/api/user/submissions?${new URLSearchParams({...(status ? {status} : {}), ...(search ? {search} : {})})}`),
   officerDashboard: () => request('/api/officer/dashboard'),
-  submissions: ({status = '', search = ''} = {}) => request(`/api/officer/submissions?${new URLSearchParams({...(status ? {status} : {}), ...(search ? {search} : {})})}`),
+  submissions: ({status = '', search = '', documentId = ''} = {}) => request(`/api/officer/submissions?${new URLSearchParams({...(status ? {status} : {}), ...(search ? {search} : {}), ...(documentId ? {document_id: documentId} : {})})}`),
   preprocess: (id) => request(`/api/officer/documents/${id}/preprocess`, {method:'POST'}),
   ocr: (id, processedPath) => request(`/api/officer/documents/${id}/ocr?processed_path=${encodeURIComponent(processedPath || '')}`, {method:'POST'}),
   extract: (id, ocrId) => request(`/api/officer/documents/${id}/extract?ocr_id=${ocrId}`, {method:'POST'}),

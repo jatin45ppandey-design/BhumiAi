@@ -18,7 +18,7 @@ import pytesseract
 from fastapi import APIRouter, Depends, HTTPException
 from PIL import Image
 from sqlalchemy import String, cast, func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from config import TESSERACT_CMD, TESSERACT_LANGUAGES
 from database import get_db
@@ -186,12 +186,14 @@ def _submission_payload(db: Session, submission: models.Submission) -> dict[str,
     return payload
 
 
-def _submission_search_query(db: Session, *, status: str | None, search: str | None):
+def _submission_search_query(db: Session, *, status: str | None, search: str | None, document_id: int | None = None):
     if status:
         status = status.strip().upper()
         if status not in SUBMISSION_STATUSES:
             raise HTTPException(status_code=422, detail="Unsupported submission status")
     query = db.query(models.Submission).join(models.Document).join(models.User)
+    if document_id is not None:
+        query = query.filter(models.Submission.document_id == document_id)
     if status:
         query = query.filter(models.Submission.status == status)
     else:
@@ -319,12 +321,16 @@ def _digitization(db: Session, document_id: int) -> dict[str, Any]:
         fields = fields.filter(or_(models.DynamicExtractedItem.ocr_result_id == ocr.id, models.DynamicExtractedItem.ocr_result_id.is_(None)))
         tables_query = tables_query.filter(or_(models.DynamicExtractedTable.ocr_result_id == ocr.id, models.DynamicExtractedTable.ocr_result_id.is_(None)))
     field_rows = fields.order_by(models.DynamicExtractedItem.display_order, models.DynamicExtractedItem.id).all()
-    table_payloads = []
-    for table in tables_query.order_by(models.DynamicExtractedTable.table_index, models.DynamicExtractedTable.id).all():
+    tables = tables_query.order_by(models.DynamicExtractedTable.table_index, models.DynamicExtractedTable.id).all()
+    cells_by_table: dict[int, list[models.DynamicExtractedCell]] = defaultdict(list)
+    if tables:
         cells = db.query(models.DynamicExtractedCell).filter(
-            models.DynamicExtractedCell.table_id == table.id, models.DynamicExtractedCell.is_deleted.is_(False)
+            models.DynamicExtractedCell.table_id.in_([table.id for table in tables]),
+            models.DynamicExtractedCell.is_deleted.is_(False),
         ).order_by(models.DynamicExtractedCell.row_index, models.DynamicExtractedCell.column_index, models.DynamicExtractedCell.id).all()
-        table_payloads.append(_table_json(table, cells))
+        for cell in cells:
+            cells_by_table[cell.table_id].append(cell)
+    table_payloads = [_table_json(table, cells_by_table[table.id]) for table in tables]
     metadata = {}
     if ocr and ocr.layout_metadata_json:
         try:
@@ -388,8 +394,10 @@ def get_officer_dashboard(db: Session = Depends(get_db)):
 
 
 @router.get("/submissions", response_model=list[schemas.Submission])
-def get_all_submissions(status: str | None = None, search: str | None = None, db: Session = Depends(get_db)):
-    rows = _submission_search_query(db, status=status, search=search).order_by(
+def get_all_submissions(status: str | None = None, search: str | None = None, document_id: int | None = None, db: Session = Depends(get_db)):
+    rows = _submission_search_query(db, status=status, search=search, document_id=document_id).options(
+        joinedload(models.Submission.document), joinedload(models.Submission.user), joinedload(models.Submission.verified_record)
+    ).order_by(
         models.Submission.submitted_at.desc(), models.Submission.id.desc()
     ).all()
     return [_submission_payload(db, row) for row in rows]
