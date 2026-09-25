@@ -35,6 +35,7 @@ uploads/
 **/uploads/
 storage/
 **/storage/
+backup/
 
 # Downloaded / local ML models
 backend/models/

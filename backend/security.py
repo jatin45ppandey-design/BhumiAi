@@ -46,8 +46,11 @@ def get_current_user(
     ).first()
     if not session or not session.user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Your session has expired. Please sign in again.")
-    session.last_seen_at = now
-    db.commit()
+    # Avoid a database write on every authenticated API call while retaining a
+    # useful recent-activity timestamp for session operations.
+    if not session.last_seen_at or now - session.last_seen_at >= datetime.timedelta(minutes=5):
+        session.last_seen_at = now
+        db.commit()
     return session.user
 
 

@@ -500,11 +500,14 @@ def _record_payload(record: Any, digitization: Optional[dict[str, Any]] = None) 
 @router.get("/")
 def get_verified_records(
     search: Optional[str] = Query(default=None),
+    current_officer: models.User = Depends(require_officer),
     db: Session = Depends(get_db),
 ):
     """Search permanent records across metadata and document-specific content."""
 
-    query = db.query(models.VerifiedRecord)
+    query = db.query(models.VerifiedRecord).filter(
+        models.VerifiedRecord.verification_status == "VERIFIED"
+    )
     term = (search or "").strip()
     if term:
         pattern = f"%{term}%"
@@ -621,10 +624,16 @@ def export_verified_record_pdf(
 
 
 @router.get("/{id}")
-def get_verified_record_detail(id: int, db: Session = Depends(get_db)):
+def get_verified_record_detail(
+    id: int,
+    current_officer: models.User = Depends(require_officer),
+    db: Session = Depends(get_db),
+):
     record = db.query(models.VerifiedRecord).filter(models.VerifiedRecord.id == id).first()
     if not record:
         raise HTTPException(status_code=404, detail="Record not found")
+    if str(record.verification_status or "").upper() != "VERIFIED":
+        raise HTTPException(status_code=409, detail="Only verified records are available.")
 
     submission = getattr(record, "submission", None)
     document = getattr(submission, "document", None) if submission is not None else None

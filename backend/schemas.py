@@ -13,9 +13,6 @@ class UserCreate(BaseModel):
     password: str
     role: Optional[str] = None
 
-class UserRegistration(UserBase):
-    password: str
-
 class User(UserBase):
     id: int
     role: str
@@ -23,12 +20,9 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
-class GoogleOAuthTicket(BaseModel):
-    ticket: str
-
-
 class PhoneOtpRequest(BaseModel):
     phone_number: str
+    intent: str
 
 
 class PhoneOtpVerify(PhoneOtpRequest):

@@ -2,19 +2,18 @@
 
 import {useEffect, useMemo, useState} from 'react';
 import {useParams} from 'next/navigation';
-import {API_URL, api} from '../../../../lib/api';
+import {api} from '../../../../lib/api';
 import {bilingualKhatauniLabel} from '../../../../lib/khatauniLabels';
-import {activityLabel} from '../../../../lib/activity';
 import {OfficerExportMenu} from '../../../../components/exports/ExportControls';
 import {ErrorMessage, Loader, StatusBadge, Toast} from '../../../../components/common/UI';
+import AuthenticatedDocument from '../../../../components/documents/AuthenticatedDocument';
 
-const sourceUrl = path => path ? `${API_URL}/uploads/${path.split('\\').pop().split('/').pop()}` : '';
 const isPresent = value => value !== null && value !== undefined && value !== '';
 const display = value => isPresent(value) ? String(value) : '—';
 const label = value => isPresent(value) ? bilingualKhatauniLabel(String(value).replaceAll('_', ' ')) : 'Unlabelled item';
 const confidence = value => value === null || value === undefined || value === '' || Number.isNaN(Number(value))
-  ? 'Confidence unavailable'
-  : `Recognition confidence · ${Math.round(Number(value))}%`;
+  ? 'Recognition Evidence · UNAVAILABLE'
+  : `Recognition Evidence · ${Number(value) >= 85 ? 'HIGH' : Number(value) >= 65 ? 'MEDIUM' : 'LOW'} · ${Math.round(Number(value))}`;
 
 function DynamicFields({fields}) {
   if (!fields.length) return <p className="muted" style={{padding: '0 18px 18px'}}>No Khatauni header fields were stored for this record.</p>;
@@ -24,7 +23,7 @@ function DynamicFields({fields}) {
       <td><b>{label(field.original_label || field.normalized_label)}</b>{field.normalized_label && field.original_label ? <><br/><small>Normalized: {field.normalized_label}</small></> : null}</td>
       <td>{display(field.display_value || field.final_value || field.officer_value || field.ai_value || field.raw_ocr_value)}</td>
       <td>{display(field.raw_ocr_value || field.ai_value)}</td>
-      <td>{confidence(field.ai_confidence)}{field.confidence_source ? <><br/><small className="developer-only">{field.confidence_source}</small></> : null}</td>
+      <td>{confidence(field.ai_confidence)}</td>
       <td>{field.edited ? 'Officer corrected' : 'OCR-derived'}</td>
     </tr>)}</tbody>
   </table></div>;
@@ -70,29 +69,6 @@ function LegacyExtraction({fields}) {
       </tr>)}</tbody>
     </table></div>
   </section>;
-}
-
-function AuditTrail({auditTrail, digitizationAudit}) {
-  const rows = [
-    ...(auditTrail || []).map(item => ({...item, source: 'Workflow', actor: item.user_id, detail: item.metadata})),
-    ...(digitizationAudit || []).map(item => ({
-      ...item,
-      source: 'Digitization',
-      actor: item.actor_id,
-      detail: item.after || item.metadata || item.before,
-    })),
-  ].sort((left, right) => new Date(right.timestamp || 0) - new Date(left.timestamp || 0));
-  if (!rows.length) return <p className="muted" style={{padding: '0 18px 18px'}}>No audit events were stored.</p>;
-  return <div className="table-wrap"><table className="data-table">
-    <thead><tr><th>TIMESTAMP</th><th>SOURCE</th><th>ACTION</th><th>ACTOR</th><th className="developer-only">DETAIL</th></tr></thead>
-    <tbody>{rows.map((item, index) => <tr key={`${item.source}-${item.id || index}`}>
-      <td>{item.timestamp ? new Date(item.timestamp).toLocaleString() : '—'}</td>
-      <td>{item.source}</td>
-      <td>{activityLabel(item.action)}<span className="developer-only"><br/><small>{item.entity_type || item.source}</small></span></td>
-      <td>{item.actor ? `Account #${item.actor}` : 'System'}</td>
-      <td className="developer-only"><small>{typeof item.detail === 'string' ? item.detail : item.detail ? JSON.stringify(item.detail) : '—'}</small></td>
-    </tr>)}</tbody>
-  </table></div>;
 }
 
 export default function Detail() {
@@ -162,9 +138,9 @@ export default function Detail() {
     <div className="split" style={{marginTop: 18}}>
       <section className="card">
         <div className="section-head"><h3>Original Document</h3></div>
-        {document.original ? <div className="document-preview">{document.original.toLowerCase().endsWith('.pdf') ? <iframe src={sourceUrl(document.original)} title="Original source PDF" style={{width:'100%',height:510,border:0}}/> : <img src={sourceUrl(document.original)} alt="Original source document"/>}</div> : <p className="muted" style={{padding: '0 18px 18px'}}>Original source file is unavailable.</p>}
+        {document.original ? <div className="document-preview"><AuthenticatedDocument documentId={document.id} isPdf={document.original.toLowerCase().endsWith('.pdf')} title="Original source PDF" alt="Original source document" style={document.original.toLowerCase().endsWith('.pdf') ? {width:'100%',height:510,border:0} : undefined}/></div> : <p className="muted" style={{padding: '0 18px 18px'}}>Original source file is unavailable.</p>}
         <div className="section-head"><h3>OpenCV-Enhanced Document</h3></div>
-        {document.enhanced ? <div className="document-preview"><img src={sourceUrl(document.enhanced)} alt="OpenCV-enhanced source document"/></div> : <p className="muted" style={{padding: '0 18px 18px'}}>No enhanced image was stored.</p>}
+        {document.enhanced ? <div className="document-preview"><AuthenticatedDocument documentId={document.id} variant="processed" alt="OpenCV-enhanced source document"/></div> : <p className="muted" style={{padding: '0 18px 18px'}}>No enhanced image was stored.</p>}
       </section>
       <section className="card">
         <div className="section-head"><div><h3>Source Metadata</h3><p>Captured with the uploaded document.</p></div></div>
@@ -172,15 +148,9 @@ export default function Detail() {
           ['Filename', document.original_filename], ['Document type', document.document_type], ['State', document.state],
           ['District', document.district], ['Tehsil', document.tehsil], ['Village', document.village],
         ].map(([name, value]) => <div key={name}><span>{name.toUpperCase()}</span>{display(value)}</div>)}</div>
-        <div className="section-head developer-only"><div><h3>Raw OCR Output</h3><p>{ocr.engine || 'OCR engine unavailable'}{ocr.languages ? ` · ${ocr.languages}` : ''}</p></div></div>
-        <pre className="raw-ocr-text developer-only">{ocr.raw_text || 'No OCR text stored.'}</pre>
       </section>
     </div>
 
     <LegacyExtraction fields={ocr.fields || []}/>
-    <section className="card developer-only" style={{marginTop: 18}}>
-      <div className="section-head"><div><h3>System Audit</h3><p>Technical audit events for this verified record.</p></div></div>
-      <AuditTrail auditTrail={data.audit_trail} digitizationAudit={data.digitization_audit}/>
-    </section>
   </>;
 }

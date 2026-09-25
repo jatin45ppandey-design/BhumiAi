@@ -1,7 +1,7 @@
 import json
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import String, cast, or_
+from sqlalchemy import String, cast, func, or_
 from sqlalchemy.orm import Session
 from database import get_db
 import models, schemas
@@ -62,36 +62,23 @@ def mark_notification_read(notification_id: int, current_user: models.User = Dep
 @router.get("/dashboard")
 def get_user_dashboard(current_user: models.User = Depends(require_active_citizen), db: Session = Depends(get_db)):
     user_id = current_user.id
-    # Get user specific stats
-    total = db.query(models.Submission).filter(models.Submission.user_id == user_id).count()
-    pending = db.query(models.Submission).filter(
-        models.Submission.user_id == user_id,
-        models.Submission.status == "SUBMITTED"
-    ).count()
-    processing = db.query(models.Submission).filter(
-        models.Submission.user_id == user_id,
-        models.Submission.status == "PROCESSING"
-    ).count()
-    verified = db.query(models.Submission).filter(
-        models.Submission.user_id == user_id, 
-        models.Submission.status == "VERIFIED"
-    ).count()
-    needs_review = db.query(models.Submission).filter(
-        models.Submission.user_id == user_id, 
-        models.Submission.status == "NEEDS_REVIEW"
-    ).count()
-    rejected = db.query(models.Submission).filter(
-        models.Submission.user_id == user_id, 
-        models.Submission.status == "REJECTED"
-    ).count()
+    counts = dict(
+        db.query(models.Submission.status, func.count(models.Submission.id))
+        .filter(
+            models.Submission.user_id == user_id,
+            models.Submission.status != "UPLOADED",
+        )
+        .group_by(models.Submission.status)
+        .all()
+    )
     
     return {
-        "total_submitted": total,
-        "pending_review": pending,
-        "processing": processing,
-        "verified": verified,
-        "needs_review": needs_review,
-        "rejected": rejected
+        "total_submitted": sum(counts.values()),
+        "pending_review": counts.get("SUBMITTED", 0),
+        "processing": counts.get("PROCESSING", 0),
+        "verified": counts.get("VERIFIED", 0),
+        "needs_review": counts.get("NEEDS_REVIEW", 0),
+        "rejected": counts.get("REJECTED", 0),
     }
 
 @router.get("/submissions", response_model=list[schemas.Submission])
@@ -101,7 +88,10 @@ def get_my_submissions(status: str | None = None, search: str | None = None, cur
         status = status.strip().upper()
         if status not in SUBMISSION_STATUSES:
             raise HTTPException(status_code=422, detail="Unsupported submission status")
-    query = db.query(models.Submission).join(models.Document).filter(models.Submission.user_id == current_user.id)
+    query = db.query(models.Submission).join(models.Document).filter(
+        models.Submission.user_id == current_user.id,
+        models.Submission.status != "UPLOADED",
+    )
     if status:
         query = query.filter(models.Submission.status == status)
     if search and search.strip():

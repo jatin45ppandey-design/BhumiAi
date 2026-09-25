@@ -238,9 +238,9 @@ class KhatauniExtractor:
                 "header_fields_total": len(HEADER_FIELDS),
                 "table_rows_detected": len(rows),
                 "ocr_cells_populated": len(populated_cells),
-                "high_confidence_values": sum(value is not None and value >= 90 for value in confidences),
-                "medium_confidence_values": sum(value is not None and 70 <= value < 90 for value in confidences),
-                "low_confidence_values": sum(value is not None and value < 70 for value in confidences),
+                "high_confidence_values": sum(value is not None and value >= 85 for value in confidences),
+                "medium_confidence_values": sum(value is not None and 65 <= value < 85 for value in confidences),
+                "low_confidence_values": sum(value is not None and value < 65 for value in confidences),
                 "unavailable_values": sum(value is None for value in confidences),
             },
         }

@@ -80,7 +80,9 @@ NUMERIC_KEYS = {
 
 TEXT_KEYS = {"district", "tehsil", "village", "holder_name", "relation_name", "category"}
 SHARE_KEYS = {"holder_share"}
-REVIEW_RECOGNITION_WARNINGS = {"engine_disagreement", "tesseract_digit_disagreement"}
+REVIEW_RECOGNITION_WARNINGS = {
+    "engine_disagreement", "tesseract_digit_disagreement", "recognition_pass_disagreement",
+}
 RELATION_MARKERS = (
     "\u092a\u0941\u0924\u094d\u0930\u0940",  # daughter
     "\u092a\u0941\u0924\u094d\u0930",        # son
@@ -103,15 +105,21 @@ def _value_of(entry: dict[str, Any], names: tuple[str, ...]) -> str | None:
 
 
 def _status(confidence: float | None, warnings: list[str], value: str | None) -> str:
+    """Return deterministic format validation, independent of recognition evidence."""
+
     if not value:
         return "UNRESOLVED"
-    if confidence is None:
-        return "LOW"
     if warnings:
-        return "LOW" if confidence < 80 else "MEDIUM"
-    if confidence >= 90:
+        return "NEEDS_REVIEW"
+    return "PASS"
+
+
+def _evidence_level(confidence: float | None) -> str:
+    if confidence is None:
+        return "UNAVAILABLE"
+    if confidence >= 85:
         return "HIGH"
-    if confidence >= 70:
+    if confidence >= 65:
         return "MEDIUM"
     return "LOW"
 
@@ -146,25 +154,21 @@ def validate_candidate(canonical_key: str, value: str | None, confidence: float 
         "status": _status(confidence, warnings, raw_value),
         "warnings": warnings,
         "confidence": confidence,
-        "confidence_type": "engine_or_composite_quality_score",
+        "recognition_evidence_score": confidence,
+        "recognition_evidence_level": _evidence_level(confidence),
+        "confidence_type": "recognition_evidence_score",
     }
 
 
 def _add_recognition_warnings(
     validation: dict[str, Any], metadata: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    warnings = list(validation.get("warnings") or [])
+    recognition_warnings: list[str] = []
     for warning in (metadata or {}).get("warnings") or []:
-        if warning in REVIEW_RECOGNITION_WARNINGS and warning not in warnings:
-            warnings.append(warning)
-    validation["warnings"] = warnings
-    validation["status"] = _status(
-        validation.get("confidence"), warnings, validation.get("raw_value"),
-    )
-    if validation.get("raw_value") and any(
-        warning in REVIEW_RECOGNITION_WARNINGS for warning in warnings
-    ):
-        validation["status"] = "LOW"
+        if warning in REVIEW_RECOGNITION_WARNINGS and warning not in recognition_warnings:
+            recognition_warnings.append(warning)
+    validation["recognition_warnings"] = recognition_warnings
+    validation["review_status"] = "NEEDS_REVIEW" if recognition_warnings else "CLEAR"
     if isinstance(metadata, dict) and metadata.get("confidence_method"):
         validation["confidence_type"] = metadata["confidence_method"]
     return validation
@@ -184,16 +188,32 @@ def compact_recognition_evidence(metadata: Any) -> dict[str, Any] | None:
     compact = {key: metadata[key] for key in keys if metadata.get(key) is not None}
     candidate_keys = (
         "raw_text", "normalized_text", "confidence", "confidence_type", "status",
-        "reason", "model_id",
+        "reason", "model_id", "truncated",
     )
     candidates = {}
     for engine, candidate in (metadata.get("candidates") or {}).items():
         if isinstance(candidate, dict):
-            candidates[engine] = {
+            compact_candidate = {
                 key: candidate.get(key) for key in candidate_keys if candidate.get(key) is not None
             }
+            passes = candidate.get("passes")
+            if isinstance(passes, list):
+                safe_passes = []
+                for pass_candidate in passes:
+                    if not isinstance(pass_candidate, dict):
+                        continue
+                    safe_passes.append({
+                        key: pass_candidate.get(key)
+                        for key in ("variant", "raw_text", "normalized_text", "confidence", "format_valid")
+                        if pass_candidate.get(key) is not None
+                    })
+                if safe_passes:
+                    compact_candidate["passes"] = safe_passes
+            candidates[engine] = compact_candidate
     if candidates:
         compact["candidates"] = candidates
+    if isinstance(metadata.get("confidence_breakdown"), dict):
+        compact["confidence_breakdown"] = metadata["confidence_breakdown"]
     validation = metadata.get("validation")
     if isinstance(validation, dict):
         compact["validation"] = validation
@@ -343,7 +363,7 @@ def build_digital_khatauni(structure: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "schema_version": "digital_khatauni_part1_v1",
-        "recognition_version": "three_engine_evidence_v2",
+        "recognition_version": "recognition_evidence_v2",
         "khatauni_details": khatauni_details,
         "land_details": land_details,
         "schema_notes": [

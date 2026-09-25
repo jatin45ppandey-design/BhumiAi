@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Activity, ClipboardList, Code2, Database, Files, LayoutDashboard, LogOut, MapPinned, ShieldCheck, Upload, UserRound } from 'lucide-react';
+import { ClipboardList, Database, Files, LayoutDashboard, LogOut, MapPinned, ShieldCheck, Upload, UserRound } from 'lucide-react';
 import { signOut } from '../../lib/auth';
 import { api } from '../../lib/api';
 
@@ -21,6 +21,7 @@ const navigation = {
       ['Overview', '/officer', LayoutDashboard],
       ['Review Queue', '/officer/submissions', ClipboardList],
       ['Verified Records', '/officer/records', Database],
+      ['Upload Record', '/officer/upload', Upload],
     ]],
   ],
 };
@@ -29,7 +30,6 @@ export default function PortalShell({ role, user, children }) {
   const path = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [developerMode, setDeveloperMode] = useState(false);
   const [routePending, setRoutePending] = useState(false);
   const [pendingRoute, setPendingRoute] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
@@ -44,21 +44,7 @@ export default function PortalShell({ role, user, children }) {
   };
   const roleLabel = role === 'officer' ? 'Verification Officer' : 'Record submitter';
 
-  useEffect(() => {
-    if (role === 'officer') setDeveloperMode(window.localStorage.getItem('bhumiai-developer-mode') === 'on');
-  }, [role]);
-
-  function toggleDeveloperMode() {
-    const next = !developerMode;
-    setDeveloperMode(next);
-    window.localStorage.setItem('bhumiai-developer-mode', next ? 'on' : 'off');
-    if (!next && role === 'officer' && path.startsWith('/officer/audit')) router.replace('/officer');
-  }
-
-  const officerNavigation = role === 'officer' && developerMode
-    ? [...navigation.officer, ['DEVELOPER TOOLS', [['System Audit', '/officer/audit', Activity]]]]
-    : navigation[role];
-  const visibleNavigation = role === 'officer' ? officerNavigation : navigation[role];
+  const visibleNavigation = navigation[role];
   const allLinks = visibleNavigation.flatMap(([, items]) => items);
   const activeLink = allLinks.find(([, href]) => isActiveRoute(href)) || allLinks[0];
 
@@ -97,7 +83,7 @@ export default function PortalShell({ role, user, children }) {
     router.push('/login');
   }
 
-  return <div className={`portal ${developerMode ? 'developer-mode' : ''}`} onClickCapture={handleNavigationClick}>
+  return <div className="portal" onClickCapture={handleNavigationClick}>
     <aside className="sidebar">
       <Link href={`/${role}`} className="brand" aria-label="BhumiAI home">
         <span className="brand-mark"><MapPinned size={19} /></span>
@@ -115,7 +101,6 @@ export default function PortalShell({ role, user, children }) {
       <div className="sidebar-bottom">
         <div className="sidebar-user"><span>{user?.name?.slice(0, 1) || 'U'}</span><div><b>{user?.name || 'Portal user'}</b><small>{roleLabel}</small></div></div>
         {role === 'user' && <Link className="sidebar-account-link" href="/user/profile"><UserRound size={16} /> Profile & settings</Link>}
-        {role === 'officer' && <button className="developer-toggle" type="button" aria-label={`Developer Mode ${developerMode ? 'on' : 'off'}`} aria-pressed={developerMode} onClick={toggleDeveloperMode}><Code2 size={16} /> Developer Mode <span>{developerMode ? 'On' : 'Off'}</span></button>}
         <button onClick={logout} disabled={loggingOut} aria-busy={loggingOut}><LogOut size={16} /><span>{loggingOut ? 'Signing out…' : 'Sign out'}</span></button>
       </div>
     </aside>

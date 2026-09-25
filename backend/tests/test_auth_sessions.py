@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import datetime
+import io
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -12,13 +14,17 @@ from sqlalchemy.orm import sessionmaker
 
 from database import Base, get_db
 import models
-from routers import auth, users, officer
+from routers import auth, documents, users, officer
 from security import SESSION_COOKIE_NAME, new_session
 
 
 class AuthSessionTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="bhumi-auth-")
+        self.upload_directory = Path(self.directory.name) / "uploads"
+        self.upload_directory.mkdir()
+        self.upload_patch = patch.object(documents, "UPLOAD_DIR", str(self.upload_directory))
+        self.upload_patch.start()
         self.engine = create_engine(f"sqlite:///{Path(self.directory.name) / 'auth.db'}", connect_args={"check_same_thread": False})
         Base.metadata.create_all(self.engine); self.sessions = sessionmaker(bind=self.engine)
         with self.sessions() as db:
@@ -26,21 +32,21 @@ class AuthSessionTests(unittest.TestCase):
             self.other = models.User(name="Other", email="other@example.test", role="user", phone_number="+919876543211", phone_verified_at=datetime.datetime.utcnow(), state="UP", district="Lucknow", profile_completed_at=datetime.datetime.utcnow())
             self.legacy = models.User(name="Legacy", email="legacy@example.test", role="user", password_hash=auth.hash_password("legacy-password"))
             db.add_all([self.officer, self.other, self.legacy]); db.commit(); self.officer_id, self.other_id, self.legacy_id = self.officer.id, self.other.id, self.legacy.id
-        app = FastAPI(); app.include_router(auth.router, prefix="/api/auth"); app.include_router(users.router, prefix="/api/user"); app.include_router(officer.router, prefix="/api/officer")
+        app = FastAPI(); app.include_router(auth.router, prefix="/api/auth"); app.include_router(users.router, prefix="/api/user"); app.include_router(officer.router, prefix="/api/officer"); app.include_router(documents.router, prefix="/api/documents")
         def database():
             with self.sessions() as db: yield db
         app.dependency_overrides[get_db] = database; self.client = TestClient(app)
 
     def tearDown(self):
-        self.client.close(); self.engine.dispose(); self.directory.cleanup()
+        self.client.close(); self.upload_patch.stop(); self.engine.dispose(); self.directory.cleanup()
 
-    def request_code(self, phone="9876543210"):
-        response = self.client.post("/api/auth/phone/request-otp", json={"phone_number": phone})
+    def request_code(self, phone="9876543210", intent="register"):
+        response = self.client.post("/api/auth/phone/request-otp", json={"phone_number": phone, "intent": intent})
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()["development_otp"]
 
     def authenticate_citizen(self):
-        code = self.request_code(); response = self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "+919876543210", "otp": code})
+        code = self.request_code(); response = self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "+919876543210", "otp": code, "intent": "register"})
         self.assertEqual(response.status_code, 200, response.text); return response
 
     def complete_profile(self):
@@ -53,21 +59,21 @@ class AuthSessionTests(unittest.TestCase):
             challenge = db.query(models.PhoneOtpChallenge).one()
             self.assertEqual(challenge.phone_number, "+919876543210")
             self.assertNotEqual(challenge.otp_hash, code)
-        verified = self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": code})
+        verified = self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": code, "intent": "register"})
         self.assertEqual(verified.status_code, 200)
-        self.assertEqual(self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": code}).status_code, 401)
+        self.assertEqual(self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": code, "intent": "register"}).status_code, 401)
 
     def test_invalid_expired_and_attempt_limited_phone_codes(self):
-        self.assertEqual(self.client.post("/api/auth/phone/request-otp", json={"phone_number": "123"}).status_code, 422)
+        self.assertEqual(self.client.post("/api/auth/phone/request-otp", json={"phone_number": "123", "intent": "register"}).status_code, 422)
         code = self.request_code()
-        for _ in range(5): self.assertEqual(self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": "000000"}).status_code, 401)
-        self.assertEqual(self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": code}).status_code, 401)
+        for _ in range(5): self.assertEqual(self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": "000000", "intent": "register"}).status_code, 401)
+        self.assertEqual(self.client.post("/api/auth/phone/verify-otp", json={"phone_number": "9876543210", "otp": code, "intent": "register"}).status_code, 401)
         with self.sessions() as db:
             db.query(models.PhoneOtpChallenge).update({models.PhoneOtpChallenge.expires_at: datetime.datetime.utcnow() - datetime.timedelta(seconds=1)}); db.commit()
 
     def test_resend_cooldown_and_expired_session_are_rejected(self):
         self.request_code()
-        self.assertEqual(self.client.post("/api/auth/phone/request-otp", json={"phone_number": "+919876543210"}).status_code, 429)
+        self.assertEqual(self.client.post("/api/auth/phone/request-otp", json={"phone_number": "+919876543210", "intent": "register"}).status_code, 429)
         with self.sessions() as db:
             user = db.get(models.User, self.other_id); session, token = new_session(db, user)
             session.expires_at = datetime.datetime.utcnow() - datetime.timedelta(seconds=1); db.commit()
@@ -101,15 +107,76 @@ class AuthSessionTests(unittest.TestCase):
         self.authenticate_citizen()
         self.assertEqual(self.client.get("/api/officer/dashboard").status_code, 403)
 
-    def test_legacy_password_citizen_links_phone_without_new_user(self):
-        login = self.client.post("/api/auth/login", json={"role":"user", "email":"legacy@example.test", "password":"legacy-password"})
-        self.assertEqual(login.status_code, 200, login.text)
-        code = self.request_code("9876543210")
-        verified = self.client.post("/api/auth/phone/verify-otp", json={"phone_number":"9876543210", "otp":code})
+    def test_existing_phone_login_reuses_account_and_registration_does_not_duplicate(self):
+        code = self.request_code("9876543211", "login")
+        verified = self.client.post("/api/auth/phone/verify-otp", json={"phone_number":"+919876543211", "otp":code, "intent":"login"})
         self.assertEqual(verified.status_code, 200, verified.text)
-        self.assertEqual(verified.json()["user"]["id"], self.legacy_id)
+        self.assertEqual(verified.json()["user"]["id"], self.other_id)
         with self.sessions() as db:
-            self.assertEqual(db.query(models.User).filter_by(phone_number="+919876543210").count(), 1)
+            self.assertEqual(db.query(models.User).filter_by(phone_number="+919876543211").count(), 1)
+        self.client.cookies.clear()
+        duplicate = self.client.post("/api/auth/phone/request-otp", json={"phone_number":"9876543211", "intent":"register"})
+        self.assertEqual(duplicate.status_code, 409)
+        missing = self.client.post("/api/auth/phone/request-otp", json={"phone_number":"9876543210", "intent":"login"})
+        self.assertEqual(missing.status_code, 404)
+        password_login = self.client.post("/api/auth/login", json={"role":"user", "email":"legacy@example.test", "password":"legacy-password"})
+        self.assertEqual(password_login.status_code, 403)
+
+    def test_document_access_and_collision_safe_storage(self):
+        self.authenticate_citizen(); self.complete_profile()
+        owner_token = self.client.cookies.get(SESSION_COOKIE_NAME)
+        document_ids = []
+        for content in (b"first-pdf", b"second-pdf"):
+            response = self.client.post(
+                "/api/documents/upload",
+                data={"document_type":"Khatauni", "state":"UP", "district":"Lucknow", "tehsil":"Sadar", "village":"Rampur"},
+                files={"file":("khatauni.pdf", io.BytesIO(content), "application/pdf")},
+            )
+            self.assertEqual(response.status_code, 200, response.text)
+            document_id = response.json()["document_id"]
+            self.assertEqual(response.json()["status"], "UPLOADED")
+            document_ids.append(document_id)
+            self.assertEqual(self.client.get(f"/api/documents/{document_id}/content").content, content)
+            if len(document_ids) == 1:
+                with self.sessions() as db:
+                    _, other_token = new_session(db, db.get(models.User, self.other_id)); db.commit()
+                self.client.cookies.set(SESSION_COOKIE_NAME, other_token)
+                self.assertEqual(self.client.post(f"/api/documents/{document_id}/submit").status_code, 403)
+                self.client.cookies.set(SESSION_COOKIE_NAME, owner_token)
+            self.assertEqual(self.client.post(f"/api/documents/{document_id}/submit").status_code, 200)
+            self.assertEqual(self.client.post(f"/api/documents/{document_id}/submit").status_code, 409)
+        with self.sessions() as db:
+            stored = db.query(models.Document).filter(models.Document.id.in_(document_ids)).order_by(models.Document.id).all()
+            self.assertEqual([item.original_filename for item in stored], ["khatauni.pdf", "khatauni.pdf"])
+            self.assertNotEqual(stored[0].file_path, stored[1].file_path)
+            self.assertEqual(Path(stored[0].file_path).read_bytes(), b"first-pdf")
+            self.assertEqual(Path(stored[1].file_path).read_bytes(), b"second-pdf")
+        self.assertEqual(self.client.get(f"/api/documents/{document_ids[0]}/content").content, b"first-pdf")
+        self.client.cookies.clear()
+        self.assertEqual(self.client.get(f"/api/documents/{document_ids[0]}/content").status_code, 401)
+        with self.sessions() as db:
+            _, other_token = new_session(db, db.get(models.User, self.other_id)); db.commit()
+        self.client.cookies.set(SESSION_COOKIE_NAME, other_token)
+        self.assertEqual(self.client.get(f"/api/documents/{document_ids[0]}/content").status_code, 403)
+        with self.sessions() as db:
+            _, officer_token = new_session(db, db.get(models.User, self.officer_id)); db.commit()
+        self.client.cookies.set(SESSION_COOKIE_NAME, officer_token)
+        self.assertEqual(self.client.get(f"/api/documents/{document_ids[0]}/content").content, b"first-pdf")
+        officer_upload = self.client.post(
+            "/api/documents/officer-upload",
+            data={"document_type":"Khatauni", "state":"UP", "district":"Lucknow", "tehsil":"Sadar", "village":"Rampur"},
+            files={"file":("walk-in.jpg", io.BytesIO(b"camera-or-file-image"), "image/jpeg")},
+        )
+        self.assertEqual(officer_upload.status_code, 200, officer_upload.text)
+        officer_document_id = officer_upload.json()["document_id"]
+        self.assertEqual(self.client.get(f"/api/documents/{officer_document_id}/content").content, b"camera-or-file-image")
+        self.assertEqual(
+            self.client.post(
+                f"/api/officer/documents/{officer_document_id}/ocr",
+                params={"processed_path": str(Path(self.directory.name) / "unrelated.jpg")},
+            ).status_code,
+            422,
+        )
 
 
 if __name__ == "__main__":

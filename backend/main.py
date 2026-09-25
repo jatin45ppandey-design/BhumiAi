@@ -1,17 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import text
 
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+
 from database import engine, Base
 import models
 from routers import auth, users, documents, officer, records
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+auth.validate_auth_configuration()
 
 # Preserve the real Hindi OCR preview in Windows terminal/log output. Without
 # this, a cp1252 console can raise UnicodeEncodeError while reporting success.
@@ -29,7 +30,7 @@ Base.metadata.create_all(bind=engine)
 def apply_local_migrations():
     additions = {
         "users": {
-            "password_hash": "TEXT", "google_subject": "TEXT", "officer_id": "TEXT",
+            "password_hash": "TEXT", "officer_id": "TEXT",
             "phone_number": "TEXT", "phone_verified_at": "DATETIME", "email_verified_at": "DATETIME",
             "state": "TEXT", "district": "TEXT", "pincode": "TEXT", "address": "TEXT",
             "profile_completed_at": "DATETIME", "aadhaar_last4": "TEXT",
@@ -61,10 +62,6 @@ def apply_local_migrations():
                 if name not in present:
                     connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {declaration}"))
         connection.execute(text(
-            "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_subject_unique "
-            "ON users(google_subject) WHERE google_subject IS NOT NULL"
-        ))
-        connection.execute(text(
             "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_officer_id_unique "
             "ON users(officer_id) WHERE officer_id IS NOT NULL"
         ))
@@ -75,6 +72,13 @@ def apply_local_migrations():
         # Explicit indexes keep dynamic document views and later generic search
         # inexpensive without modifying or rebuilding the legacy tables.
         indexes = (
+            ("ix_submissions_document_id", "submissions", "document_id"),
+            ("ix_submissions_status", "submissions", "status"),
+            ("ix_submissions_user_status", "submissions", "user_id, status"),
+            ("ix_ocr_results_document_id", "ocr_results", "document_id"),
+            ("ix_verified_records_submission_id", "verified_records", "submission_id"),
+            ("ix_audit_logs_document_action", "audit_logs", "document_id, action"),
+            ("ix_audit_logs_submission_action", "audit_logs", "submission_id, action"),
             ("ix_dynamic_extracted_items_document_id", "dynamic_extracted_items", "document_id"),
             ("ix_dynamic_extracted_items_normalized_label", "dynamic_extracted_items", "normalized_label"),
             ("ix_dynamic_extracted_tables_document_id", "dynamic_extracted_tables", "document_id"),
@@ -125,7 +129,8 @@ provision_government_officer()
 
 app = FastAPI(title="Land Record Intelligence System API")
 
-default_cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://10.128.94.242:3000"]
+production = os.getenv("LANDSIGHT_ENV", "development").lower() == "production"
+default_cors_origins = [] if production else ["http://localhost:3000", "http://127.0.0.1:3000"]
 configured_cors_origins = [origin.strip().rstrip("/") for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
 allowed_cors_origins = list(dict.fromkeys([*default_cors_origins, *configured_cors_origins]))
 
@@ -143,9 +148,6 @@ app.add_middleware(
 # Ensure upload directories exist
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("storage", exist_ok=True)
-
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-app.mount("/storage", StaticFiles(directory="storage"), name="storage")
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/user", tags=["users"])

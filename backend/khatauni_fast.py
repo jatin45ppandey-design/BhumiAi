@@ -149,7 +149,7 @@ def _batch(crops, language, whitelist=""):
 
 def recognize(image, prepared=None):
     """Return existing schema + real crop tokens, or None for generic fallback."""
-    from khatauni_hybrid import _maybe_htr, _recognition_context, _select
+    from khatauni_hybrid import _comparison_text, _maybe_htr, _recognition_context, _select
     started = time.perf_counter()
     page = prepared if prepared is not None else prepare_page(image)
     if page is None:
@@ -177,11 +177,16 @@ def recognize(image, prepared=None):
     gray[rules > 0] = 255
     binary[rules > 0] = 255
     jobs = []
-    left_bands = ((.100,.130),(.140,.172),(.184,.220),(.229,.264),(.279,.307),(.321,.354),(.371,.400))
-    right_bands = ((.099,.130),(.146,.178),(.186,.220),(.234,.275),(.280,.316),(.329,.365),(.379,.412))
+    left_bands = ((.100,.130),(.140,.180),(.184,.228),(.229,.264),(.279,.307),(.321,.354),(.371,.400))
+    right_bands = ((.099,.130),(.146,.178),(.186,.220),(.234,.275),(.280,.316),(.329,.373),(.379,.412))
     for keys, x1, x2, bands in [(LEFT_KEYS,.17,.46,left_bands), (RIGHT_KEYS,.743,.98,right_bands)]:
         for row,key in enumerate(keys):
-            jobs.append({"key":key, "box":relative((x1,bands[row][0],x2,bands[row][1])), "row":None})
+            job = {"key":key, "box":relative((x1,bands[row][0],x2,bands[row][1])), "row":None}
+            if key == "pargana":
+                job["alternate_boxes"] = [relative((x1,.321,x2,.358)), relative((x1,.321,x2,.366))]
+            elif key == "crop_year":
+                job["alternate_boxes"] = [relative((x1,.370,x2,.410)), relative((x1,.365,x2,.405))]
+            jobs.append(job)
     header_count = len(jobs)
     xs,ys = page["xs"],page["ys"]
     # Last band is the printed total; recognise its label rather than creating
@@ -206,7 +211,8 @@ def recognize(image, prepared=None):
             for job,candidate in zip(group,candidates):
                 candidate["text"] = clean_value(candidate["raw_text"],job["key"])
                 candidate["format_valid"] = valid_value(candidate["text"],kind)
-                job["candidate"] = candidate
+                candidate["variant"] = "grayscale"
+                job["candidate_passes"] = [candidate]
                 if not candidate["format_valid"] or (candidate["confidence"] or 0) < (85 if kind == "hindi" else 70):
                     weak.append(job)
             if weak:
@@ -215,10 +221,34 @@ def recognize(image, prepared=None):
                 for job,alternative in zip(weak,alternatives):
                     alternative["text"] = clean_value(alternative["raw_text"],job["key"])
                     alternative["format_valid"] = valid_value(alternative["text"],kind)
-                    primary = job["candidate"]
-                    evidence = [dict(primary),dict(alternative)]
-                    best = max(evidence,key=lambda c:(c["format_valid"],c["confidence"] or 0))
-                    job["candidate"] = {**best,"passes":evidence}
+                    alternative["variant"] = "otsu"
+                    job["candidate_passes"].append(alternative)
+                expanded = [(job, box, index) for job in weak for index, box in enumerate(job.get("alternate_boxes") or [], 1)]
+                if expanded:
+                    expanded_candidates = _batch(
+                        [crop(box) for _, box, _ in expanded],
+                        "hin+eng" if kind == "hindi" else "eng",
+                        WHITELISTS.get(kind,""),
+                    )
+                    batch_count += 1
+                    for (job, _, index), alternative in zip(expanded, expanded_candidates):
+                        alternative["text"] = clean_value(alternative["raw_text"],job["key"])
+                        alternative["format_valid"] = valid_value(alternative["text"],kind)
+                        alternative["variant"] = f"expanded_roi_{index}"
+                        job["candidate_passes"].append(alternative)
+            for job in group:
+                evidence = job["candidate_passes"]
+                comparison_kind = "handwritten" if kind == "hindi" else "numeric"
+                def rank(candidate):
+                    normalized = _comparison_text(candidate.get("text") or "", comparison_kind)
+                    support = sum(
+                        _comparison_text(other.get("text") or "", comparison_kind) == normalized
+                        for other in evidence
+                        if normalized
+                    )
+                    return candidate.get("format_valid", False), support, candidate.get("confidence") or 0
+                best = max(evidence, key=rank)
+                job["candidate"] = {**best, "passes": [dict(candidate) for candidate in evidence]}
             return batch_count
         with ThreadPoolExecutor(max_workers=3) as pool:
             passes += sum(pool.map(recognize_group, groups.items()))
@@ -263,7 +293,7 @@ def recognize(image, prepared=None):
     for schema in HEADER_FIELDS:
         job = next(j for j in jobs[:header_count] if j["key"] == schema["key"])
         result = job["result"]
-        headers.append({"key":schema["key"],"label":schema["label"],"ocr_value":result["selected_text"],"ocr_confidence":result["confidence"],"confidence_source":"hybrid_field_roi","bounding_box":job["bbox"],"source_token_ids":[],"audit_metadata":result})
+        headers.append({"key":schema["key"],"label":schema["label"],"ocr_value":result["selected_text"],"ocr_confidence":result["confidence"],"confidence_source":"recognition_evidence_v2","bounding_box":job["bbox"],"source_token_ids":[],"audit_metadata":result})
     rows = []
     for row in sorted({j["row"] for j in jobs[header_count:]}):
         row_jobs = [j for j in jobs[header_count:] if j["row"] == row]
@@ -272,16 +302,16 @@ def recognize(image, prepared=None):
         cells=[]
         for job in row_jobs:
             result=job["result"]
-            cells.append({"column_index":next(i for i,c in enumerate(TABLE_COLUMNS) if c["key"]==job["key"]),"raw_ocr_value":result["selected_text"],"ai_value":result["selected_text"],"ai_confidence":result["confidence"],"confidence_source":"hybrid_field_roi","bounding_box":job["bbox"],"source_token_ids":[],"audit_metadata":result})
+            cells.append({"column_index":next(i for i,c in enumerate(TABLE_COLUMNS) if c["key"]==job["key"]),"raw_ocr_value":result["selected_text"],"ai_value":result["selected_text"],"ai_confidence":result["confidence"],"confidence_source":"recognition_evidence_v2","bounding_box":job["bbox"],"source_token_ids":[],"audit_metadata":result})
         rows.append({"cells":cells,"source":"seven_column_grid_roi"})
     structure={"document_type":"khatauni","header_fields":headers,"table_headers":[c["label"] for c in TABLE_COLUMNS],"rows":rows,"extraction_summary":{"header_fields_detected":sum(bool(f["ocr_value"]) for f in headers),"header_fields_total":len(headers),"table_rows_detected":len(rows),"ocr_cells_populated":sum(bool(c["raw_ocr_value"]) for r in rows for c in r["cells"])},"hybrid_metadata":{"status":"seven_column_template_matched","htr_attempted_crops":context["htr_budget"]["attempted"],"tesseract_batches":passes}}
     structure=annotate_structure(structure)
     confidences = [f["ocr_confidence"] for f in headers if f["ocr_value"]]
     confidences.extend(c["ai_confidence"] for row in rows for c in row["cells"] if c["raw_ocr_value"])
     structure["extraction_summary"].update({
-        "high_confidence_values": sum(c is not None and c >= 90 for c in confidences),
-        "medium_confidence_values": sum(c is not None and 70 <= c < 90 for c in confidences),
-        "low_confidence_values": sum(c is not None and c < 70 for c in confidences),
+        "high_confidence_values": sum(c is not None and c >= 85 for c in confidences),
+        "medium_confidence_values": sum(c is not None and 65 <= c < 85 for c in confidences),
+        "low_confidence_values": sum(c is not None and c < 65 for c in confidences),
         "unavailable_values": sum(c is None for c in confidences),
     })
     structure["digital_khatauni"]=build_digital_khatauni(structure)

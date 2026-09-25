@@ -9,6 +9,7 @@ import os
 import re
 import time
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Optional
 
 import cv2
@@ -16,7 +17,7 @@ import numpy as np
 import pytesseract
 from fastapi import APIRouter, Depends, HTTPException
 from PIL import Image
-from sqlalchemy import String, cast, or_
+from sqlalchemy import String, cast, func, or_
 from sqlalchemy.orm import Session
 
 from config import TESSERACT_CMD, TESSERACT_LANGUAGES
@@ -32,7 +33,7 @@ from security import require_officer
 
 
 router = APIRouter(dependencies=[Depends(require_officer)])
-SUBMISSION_STATUSES = {"SUBMITTED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "REJECTED"}
+SUBMISSION_STATUSES = {"UPLOADED", "SUBMITTED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "REJECTED"}
 REJECTION_CATEGORIES = {
     "Poor Scan Quality", "Incomplete Document", "Incorrect Document",
     "Unreadable Information", "Duplicate Submission", "Information Mismatch", "Other",
@@ -133,6 +134,20 @@ def _document(db: Session, document_id: int) -> models.Document:
     return doc
 
 
+def _active_review_submission(db: Session, document_id: int) -> models.Submission:
+    submission = db.query(models.Submission).filter(
+        models.Submission.document_id == document_id
+    ).order_by(models.Submission.id.desc()).first()
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    if submission.status not in {"SUBMITTED", "PROCESSING", "NEEDS_REVIEW"}:
+        raise HTTPException(
+            status_code=409,
+            detail=f"A {submission.status.lower()} submission is read-only.",
+        )
+    return submission
+
+
 def _latest_ocr(db: Session, document_id: int) -> models.OCRResult | None:
     return db.query(models.OCRResult).filter(models.OCRResult.document_id == document_id).order_by(models.OCRResult.id.desc()).first()
 
@@ -179,6 +194,9 @@ def _submission_search_query(db: Session, *, status: str | None, search: str | N
     query = db.query(models.Submission).join(models.Document).join(models.User)
     if status:
         query = query.filter(models.Submission.status == status)
+    else:
+        # Citizen uploads are private drafts until the submit action succeeds.
+        query = query.filter(models.Submission.status != "UPLOADED")
     if search and search.strip():
         pattern = f"%{search.strip()}%"
         query = query.filter(or_(
@@ -282,9 +300,9 @@ def _summary(items: list[models.DynamicExtractedItem], tables: list[dict[str, An
         "header_fields_total": len(items), "tables_detected": len(tables), "rows_digitized": len(rows),
         "columns_detected": sum(table["column_count"] for table in tables),
         "ocr_cells_populated": len(populated_cells),
-        "high_confidence_items": sum(value is not None and value >= 90 for value in values),
-        "medium_confidence_items": sum(value is not None and 70 <= value < 90 for value in values),
-        "low_confidence_items": sum(value is not None and value < 70 for value in values),
+        "high_confidence_items": sum(value is not None and value >= 85 for value in values),
+        "medium_confidence_items": sum(value is not None and 65 <= value < 85 for value in values),
+        "low_confidence_items": sum(value is not None and value < 65 for value in values),
         "unavailable_confidence_items": sum(value is None for value in values),
     }
 
@@ -345,24 +363,26 @@ def _table(db: Session, document_id: int, table_id: int) -> models.DynamicExtrac
 
 @router.get("/dashboard")
 def get_officer_dashboard(db: Session = Depends(get_db)):
-    total = db.query(models.Submission).count()
+    counts = dict(
+        db.query(models.Submission.status, func.count(models.Submission.id))
+        .filter(models.Submission.status != "UPLOADED")
+        .group_by(models.Submission.status)
+        .all()
+    )
     low_docs: set[int] = set()
     for model in (models.ExtractedField, models.DynamicExtractedItem, models.DynamicExtractedCell):
-        try:
-            if model is models.ExtractedField:
-                rows = db.query(models.OCRResult.document_id).join(model).filter(model.ai_confidence.isnot(None), model.ai_confidence < 60).distinct().all()
-            else:
-                rows = db.query(model.document_id).filter(model.is_deleted.is_(False), model.ai_confidence.isnot(None), model.ai_confidence < 60).distinct().all()
-            low_docs.update(row[0] for row in rows)
-        except Exception:
-            pass
+        if model is models.ExtractedField:
+            rows = db.query(models.OCRResult.document_id).join(model).filter(model.ai_confidence.isnot(None), model.ai_confidence < 65).distinct().all()
+        else:
+            rows = db.query(model.document_id).filter(model.is_deleted.is_(False), model.ai_confidence.isnot(None), model.ai_confidence < 65).distinct().all()
+        low_docs.update(row[0] for row in rows)
     return {
-        "total_received": total,
-        "pending": db.query(models.Submission).filter(models.Submission.status == "SUBMITTED").count(),
-        "processing": db.query(models.Submission).filter(models.Submission.status == "PROCESSING").count(),
+        "total_received": sum(counts.values()),
+        "pending": counts.get("SUBMITTED", 0),
+        "processing": counts.get("PROCESSING", 0),
         "digitized": db.query(models.OCRResult).count(), "verified": db.query(models.VerifiedRecord).count(),
-        "needs_review": db.query(models.Submission).filter(models.Submission.status == "NEEDS_REVIEW").count(),
-        "rejected": db.query(models.Submission).filter(models.Submission.status == "REJECTED").count(),
+        "needs_review": counts.get("NEEDS_REVIEW", 0),
+        "rejected": counts.get("REJECTED", 0),
         "low_confidence": db.query(models.Submission).filter(models.Submission.document_id.in_(low_docs)).count() if low_docs else 0,
     }
 
@@ -376,21 +396,36 @@ def get_all_submissions(status: str | None = None, search: str | None = None, db
 
 
 @router.get("/submissions/{id}", response_model=schemas.Submission)
-def get_submission(id: int, db: Session = Depends(get_db)):
+def get_submission(id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     submission = db.query(models.Submission).filter(models.Submission.id == id).first()
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
     if submission.status == "SUBMITTED":
         submission.status = "PROCESSING"
+        db.add(models.AuditLog(
+            user_id=current_officer.id,
+            document_id=submission.document_id,
+            submission_id=submission.id,
+            action="PROCESSING_STARTED",
+        ))
         db.commit()
         db.refresh(submission)
     return _submission_payload(db, submission)
 
 
 @router.post("/documents/{id}/preprocess")
-def preprocess_document(id: int, db: Session = Depends(get_db)):
+def preprocess_document(id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     started = time.perf_counter()
     doc = _document(db, id)
+    submission = _active_review_submission(db, id)
+    if submission.status == "SUBMITTED":
+        submission.status = "PROCESSING"
+        db.add(models.AuditLog(
+            user_id=current_officer.id,
+            document_id=id,
+            submission_id=submission.id,
+            action="PROCESSING_STARTED",
+        ))
     image, pdf_page = _load_document_image(doc.file_path)
     if image is None:
         raise HTTPException(status_code=400, detail="Could not read image file")
@@ -465,6 +500,16 @@ def preprocess_document(id: int, db: Session = Depends(get_db)):
 @router.post("/documents/{id}/ocr")
 def run_ocr(id: int, processed_path: str | None = None, db: Session = Depends(get_db)):
     doc = _document(db, id)
+    _active_review_submission(db, id)
+    if processed_path:
+        requested = Path(processed_path).resolve()
+        allowed = {
+            Path(path).resolve()
+            for path in (doc.file_path, doc.processed_file_path)
+            if path
+        }
+        if requested not in allowed:
+            raise HTTPException(status_code=422, detail="OCR source must belong to this document.")
     image_path = processed_path or doc.file_path
     print("TESSERACT OCR STARTED", flush=True)
     print(f"document_id={id}", flush=True)
@@ -549,6 +594,7 @@ def run_ocr(id: int, processed_path: str | None = None, db: Session = Depends(ge
 @router.post("/documents/{id}/extract")
 def extract_fields(id: int, ocr_id: int | None = None, db: Session = Depends(get_db)):
     doc = _document(db, id)
+    _active_review_submission(db, id)
     ocr = db.query(models.OCRResult).filter(models.OCRResult.id == ocr_id, models.OCRResult.document_id == id).first() if ocr_id else _latest_ocr(db, id)
     if not ocr:
         raise HTTPException(status_code=404, detail="OCR result not found for this document")
@@ -684,8 +730,11 @@ def get_latest_ocr(id: int, db: Session = Depends(get_db)):
 @router.patch("/documents/{id}/fields/{field_id}")
 def edit_field(id: int, field_id: int, update: schemas.ExtractedFieldUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _officer(db, officer_id)
-    field = db.query(models.ExtractedField).filter(models.ExtractedField.id == field_id).first()
+    _active_review_submission(db, id); _officer(db, officer_id)
+    field = db.query(models.ExtractedField).filter(
+        models.ExtractedField.id == field_id,
+        models.ExtractedField.ocr_result.has(models.OCRResult.document_id == id),
+    ).first()
     if not field:
         raise HTTPException(status_code=404, detail="Field not found")
     before = field.final_value if field.final_value is not None else field.ai_value
@@ -699,7 +748,7 @@ def edit_field(id: int, field_id: int, update: schemas.ExtractedFieldUpdate, cur
 @router.post("/documents/{id}/dynamic-fields")
 def add_dynamic_field(id: int, payload: schemas.DynamicExtractedItemUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id)
     label = (payload.original_label or "").strip() or None
     value = payload.officer_value if payload.officer_value is not None else payload.final_value
     item = models.DynamicExtractedItem(document_id=id, ocr_result_id=None, item_type=payload.item_type or "key_value",
@@ -718,7 +767,7 @@ def add_dynamic_field(id: int, payload: schemas.DynamicExtractedItemUpdate, curr
 @router.patch("/documents/{id}/dynamic-fields/{field_id}")
 def edit_dynamic_field(id: int, field_id: int, payload: schemas.DynamicExtractedItemUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id)
     item = db.query(models.DynamicExtractedItem).filter(models.DynamicExtractedItem.id == field_id,
         models.DynamicExtractedItem.document_id == id, models.DynamicExtractedItem.is_deleted.is_(False)).first()
     if not item:
@@ -745,7 +794,7 @@ def edit_dynamic_field(id: int, field_id: int, payload: schemas.DynamicExtracted
 @router.delete("/documents/{id}/dynamic-fields/{field_id}")
 def delete_dynamic_field(id: int, field_id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id)
     item = db.query(models.DynamicExtractedItem).filter(models.DynamicExtractedItem.id == field_id,
         models.DynamicExtractedItem.document_id == id, models.DynamicExtractedItem.is_deleted.is_(False)).first()
     if not item:
@@ -761,7 +810,7 @@ def delete_dynamic_field(id: int, field_id: int, current_officer: models.User = 
 @router.post("/documents/{id}/tables")
 def add_dynamic_table(id: int, payload: schemas.DynamicExtractedTableUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id)
     headers = payload.detected_headers if payload.detected_headers is not None else []
     next_index = db.query(models.DynamicExtractedTable).filter(models.DynamicExtractedTable.document_id == id).count()
     table = models.DynamicExtractedTable(document_id=id, ocr_result_id=None,
@@ -781,7 +830,7 @@ def add_dynamic_table(id: int, payload: schemas.DynamicExtractedTableUpdate, cur
 @router.patch("/documents/{id}/tables/{table_id}")
 def edit_dynamic_table(id: int, table_id: int, payload: schemas.DynamicExtractedTableUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cells = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.table_id == table.id,
         models.DynamicExtractedCell.is_deleted.is_(False)).all()
     before, changed, old_headers = _table_json(table, cells), _changes(payload), _headers(table)
@@ -824,7 +873,7 @@ def edit_dynamic_table(id: int, table_id: int, payload: schemas.DynamicExtracted
 @router.post("/documents/{id}/tables/{table_id}/rows")
 def add_dynamic_row(id: int, table_id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cells = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.table_id == table.id,
         models.DynamicExtractedCell.is_deleted.is_(False)).all()
     row_index, headers = max([cell.row_index for cell in cells], default=-1) + 1, _headers(table)
@@ -847,7 +896,7 @@ def add_dynamic_row(id: int, table_id: int, current_officer: models.User = Depen
 @router.delete("/documents/{id}/tables/{table_id}/rows/{row_index}")
 def delete_dynamic_row(id: int, table_id: int, row_index: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cells = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.table_id == table.id,
         models.DynamicExtractedCell.row_index == row_index, models.DynamicExtractedCell.is_deleted.is_(False)).all()
     if not cells:
@@ -864,7 +913,7 @@ def delete_dynamic_row(id: int, table_id: int, row_index: int, current_officer: 
 @router.patch("/documents/{id}/tables/{table_id}/cells/{cell_id}")
 def edit_dynamic_cell(id: int, table_id: int, cell_id: int, payload: schemas.DynamicExtractedCellUpdate, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id); _table(db, id, table_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id); _table(db, id, table_id)
     cell = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.id == cell_id,
         models.DynamicExtractedCell.table_id == table_id, models.DynamicExtractedCell.document_id == id,
         models.DynamicExtractedCell.is_deleted.is_(False)).first()
@@ -888,7 +937,7 @@ def edit_dynamic_cell(id: int, table_id: int, cell_id: int, payload: schemas.Dyn
 @router.delete("/documents/{id}/tables/{table_id}/cells/{cell_id}")
 def delete_dynamic_cell(id: int, table_id: int, cell_id: int, current_officer: models.User = Depends(require_officer), db: Session = Depends(get_db)):
     officer_id = current_officer.id
-    _document(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
+    _document(db, id); _active_review_submission(db, id); _officer(db, officer_id); table = _table(db, id, table_id)
     cell = db.query(models.DynamicExtractedCell).filter(models.DynamicExtractedCell.id == cell_id,
         models.DynamicExtractedCell.table_id == table_id, models.DynamicExtractedCell.document_id == id,
         models.DynamicExtractedCell.is_deleted.is_(False)).first()
@@ -912,6 +961,10 @@ def verify_document(id: int, action: str, rejection: schemas.RejectionDecision |
     submission = db.query(models.Submission).filter(models.Submission.document_id == id).order_by(models.Submission.id.desc()).first()
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
+    if submission.status not in {"SUBMITTED", "PROCESSING", "NEEDS_REVIEW"}:
+        raise HTTPException(status_code=409, detail=f"A {submission.status.lower()} submission cannot receive another decision.")
+    if action == "mark-review" and submission.status == "NEEDS_REVIEW":
+        raise HTTPException(status_code=409, detail="This submission is already marked for review.")
     doc = _document(db, id)
     if action == "reject":
         category = (rejection.reason_category if rejection else "").strip()
@@ -920,6 +973,18 @@ def verify_document(id: int, action: str, rejection: schemas.RejectionDecision |
             raise HTTPException(status_code=422, detail="Choose a rejection reason category")
         if category == "Other" and not note:
             raise HTTPException(status_code=422, detail="Add an officer note when using Other")
+        matched_submission = None
+        matched_record = None
+        if category == "Duplicate Submission":
+            if not doc.duplicate_of_id:
+                raise HTTPException(status_code=422, detail="Run an exact duplicate check before rejecting as a duplicate")
+            matched_record = db.query(models.VerifiedRecord).filter(
+                models.VerifiedRecord.verification_status == "VERIFIED",
+                models.VerifiedRecord.submission.has(models.Submission.document_id == doc.duplicate_of_id),
+            ).order_by(models.VerifiedRecord.id.desc()).first()
+            matched_submission = matched_record.submission if matched_record else None
+            if not matched_record:
+                raise HTTPException(status_code=422, detail="Duplicate Submission requires an exact match to an existing verified record")
     submission.status = {"approve": "VERIFIED", "reject": "REJECTED", "mark-review": "NEEDS_REVIEW"}[action]
     if action == "approve":
         ocr = _latest_ocr(db, id)
@@ -945,41 +1010,74 @@ def verify_document(id: int, action: str, rejection: schemas.RejectionDecision |
             record.verification_status, record.verified_by = "VERIFIED", officer_id
         _audit(db, document_id=id, ocr_result_id=ocr.id if ocr else None, action="VERIFIED", entity_type="verified_record",
             entity_id=record.id, actor_id=officer_id, metadata={"record_id": record.record_id, "dynamic_structure": _digitization(db, id)["summary"]})
+        db.add(models.AuditLog(
+            document_id=id,
+            user_id=officer_id,
+            submission_id=submission.id,
+            record_id=record.id,
+            action="VERIFIED",
+            metadata_json=_json({"record_id": record.record_id, "actor_role": "OFFICER"}),
+        ))
+        if submission.user and submission.user.role == "user":
+            existing_notice = db.query(models.UserNotification).filter(
+                models.UserNotification.user_id == submission.user_id,
+                models.UserNotification.type == "SUBMISSION_VERIFIED",
+                models.UserNotification.document_id == id,
+                models.UserNotification.record_id == record.id,
+            ).first()
+            if not existing_notice:
+                db.add(models.UserNotification(
+                    user_id=submission.user_id,
+                    type="SUBMISSION_VERIFIED",
+                    title="Land record verified",
+                    message=f"Your submission has been verified as record {record.record_id}. The verified record is now available in your workspace.",
+                    document_id=id,
+                    record_id=record.id,
+                ))
     else:
         metadata = None
         if action == "reject":
             metadata = {"reason_category": category, "officer_note": note or None, "actor_role": "OFFICER"}
-            # Exact duplicate resolution remains an officer decision. Only a
-            # confirmed Duplicate Submission rejection can notify the owner of
-            # a different, already verified source record.
-            if category == "Duplicate Submission" and doc.duplicate_of_id:
-                matched_submission = db.query(models.Submission).filter(
-                    models.Submission.document_id == doc.duplicate_of_id
-                ).order_by(models.Submission.submitted_at.desc(), models.Submission.id.desc()).first()
-                matched_record = None
-                if matched_submission:
-                    matched_record = db.query(models.VerifiedRecord).filter(
-                        models.VerifiedRecord.submission_id == matched_submission.id
-                    ).first()
-                if matched_record and matched_submission and matched_submission.user_id != submission.user_id:
-                    exists = db.query(models.UserNotification).filter(
-                        models.UserNotification.user_id == matched_submission.user_id,
-                        models.UserNotification.type == "EXACT_DUPLICATE_NOTICE",
-                        models.UserNotification.document_id == doc.duplicate_of_id,
-                        models.UserNotification.record_id == matched_record.id,
-                    ).first()
-                    if not exists:
-                        db.add(models.UserNotification(
-                            user_id=matched_submission.user_id, type="EXACT_DUPLICATE_NOTICE", title="Record Notice",
-                            message=f"A new submission exactly matched one of your verified land-record documents. Record: {matched_record.record_id}. The new submission was reviewed by an officer. No changes have been made to your verified record.",
-                            document_id=doc.duplicate_of_id, record_id=matched_record.id,
-                        ))
+            if category == "Duplicate Submission":
+                uploader_notice = db.query(models.UserNotification).filter(
+                    models.UserNotification.user_id == submission.user_id,
+                    models.UserNotification.type == "DUPLICATE_SUBMISSION_REVIEWED",
+                    models.UserNotification.document_id == id,
+                    models.UserNotification.record_id == matched_record.id,
+                ).first()
+                if not uploader_notice:
+                    db.add(models.UserNotification(
+                        user_id=submission.user_id, type="DUPLICATE_SUBMISSION_REVIEWED", title="Duplicate submission reviewed",
+                        message=f"Your submission exactly matched existing verified land-record document {matched_record.record_id} and was reviewed as a duplicate. No new verified record was created.",
+                        document_id=id, record_id=matched_record.id,
+                    ))
+                owner_notice = db.query(models.UserNotification).filter(
+                    models.UserNotification.user_id == matched_submission.user_id,
+                    models.UserNotification.type == "EXACT_DUPLICATE_NOTICE",
+                    models.UserNotification.document_id == doc.duplicate_of_id,
+                    models.UserNotification.record_id == matched_record.id,
+                ).first()
+                if not owner_notice:
+                    db.add(models.UserNotification(
+                        user_id=matched_submission.user_id, type="EXACT_DUPLICATE_NOTICE", title="Exact document match notice",
+                        message=f"A new submission exactly matched one of your verified land-record documents ({matched_record.record_id}). It was reviewed by a verification officer. Your verified record was not changed.",
+                        document_id=doc.duplicate_of_id, record_id=matched_record.id,
+                    ))
+            elif submission.user and submission.user.role == "user":
+                rejection_notice = db.query(models.UserNotification).filter(
+                    models.UserNotification.user_id == submission.user_id,
+                    models.UserNotification.type == "SUBMISSION_REJECTED",
+                    models.UserNotification.document_id == id,
+                ).first()
+                if not rejection_notice:
+                    db.add(models.UserNotification(
+                        user_id=submission.user_id,
+                        type="SUBMISSION_REJECTED",
+                        title="Submission reviewed",
+                        message=f"Your submission was not verified. Reason: {category}. Review the submission status for details.",
+                        document_id=id,
+                    ))
         db.add(models.AuditLog(document_id=id, user_id=officer_id, submission_id=submission.id,
             action="NEEDS_REVIEW" if action == "mark-review" else "REJECTED", metadata_json=_json(metadata) if metadata else None))
     db.commit()
     return {"message": f"Document {action}d successfully"}
-
-
-@router.get("/audit")
-def get_audit_logs(db: Session = Depends(get_db)):
-    return db.query(models.AuditLog).order_by(models.AuditLog.timestamp.desc()).all()

@@ -74,10 +74,9 @@ class DuplicateResolutionTests(unittest.TestCase):
         self.assertEqual(payload["current_status"], "SUBMITTED")
         self.assertEqual(payload["verified_record_id"], self.record_id)
         self.assertEqual(payload["verified_record_code"], "LR-UP-LUC-000014")
-        self.assertEqual(payload["related_submissions"], [
-            {"document_id": self.existing_doc_id, "submission_id": self.existing_submission_id, "status": "VERIFIED"},
-            {"document_id": self.current_doc_id, "submission_id": self.current_submission_id, "status": "SUBMITTED"},
-        ])
+        for private_detail in ("current_citizen", "matched_document", "verified_metadata", "related_submissions"):
+            self.assertNotIn(private_detail, payload)
+        self.assertNotIn("phone_number", str(payload)); self.assertNotIn("email", str(payload)); self.assertNotIn("address", str(payload))
         self.login_as(self.owner_id)
         self.assertTrue(self.client.get("/api/user/notifications").json() == [])
         self.login_as(self.officer_id)
@@ -86,7 +85,7 @@ class DuplicateResolutionTests(unittest.TestCase):
         with self.sessions() as db:
             self.assertTrue(db.query(models.AuditLog).filter_by(action="DUPLICATE_CHECKED", document_id=self.current_doc_id).first())
 
-    def test_rejected_match_includes_its_existing_rejection_reason(self):
+    def test_rejected_match_omits_unnecessary_existing_submission_detail(self):
         self.login_as(self.officer_id)
         with self.sessions() as db:
             source_doc = models.Document(file_path="prior.pdf", original_filename="prior.pdf", document_type="Khatauni", state="UP", district="Lucknow", tehsil="Sadar", village="Rampur", file_hash="rejected-hash")
@@ -101,8 +100,7 @@ class DuplicateResolutionTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["matched_status"], "REJECTED")
-        self.assertEqual(payload["previous_rejection"]["reason_category"], "Poor Scan Quality")
-        self.assertEqual(payload["previous_rejection"]["officer_note"], "Please upload a clearer scan.")
+        self.assertNotIn("previous_rejection", payload)
 
     def test_continue_override_preserves_both_submissions(self):
         self.login_as(self.officer_id)

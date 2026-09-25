@@ -128,19 +128,25 @@ class FastTemplateTests(unittest.TestCase):
                     self.assertEqual(next(f for f in repeated["items"] if f["id"]==field["id"])["officer_value"],correction)
                     self.assertEqual(len(repeated["items"]),14)
                     self.assertEqual(next(c for c in repeated["tables"][0]["cells"] if c["id"]==cell["id"])["officer_value"],"7")
-                    for action in ("mark-review", "reject", "approve"):
-                        payload = {"reason_category": "Incomplete Document", "officer_note": "Test rejection reason"} if action == "reject" else None
-                        ok(client.post(prefix + "/" + action, json=payload))
+                    ok(client.post(prefix + "/mark-review"))
+                    ok(client.post(prefix + "/approve"))
+                    self.assertEqual(
+                        client.post(prefix + "/reject", json={"reason_category": "Incomplete Document", "officer_note": "Test rejection reason"}).status_code,
+                        409,
+                    )
                     with sessions() as db:
                         self.assertEqual(db.query(models.VerifiedRecord).count(),1)
                         self.assertEqual(db.query(models.Submission).first().status,"VERIFIED")
                         self.assertGreater(db.query(models.DynamicDigitizationAudit).count(),0)
+                        stored_source = Path(db.query(models.Document).first().file_path)
+                    self.assertEqual(client.patch(prefix+f"/dynamic-fields/{field['id']}",json={"officer_value":"late edit"}).status_code,409)
+                    self.assertEqual(client.post(prefix+"/preprocess").status_code,409)
                     print(f"Acceptance: 14/14 source-matching headers, 42 table cells, zero HTR; preprocess/OCR/extract {elapsed:.3f}s")
                     # A source edit must invalidate saved recognition.
-                    with Image.open(Path(directory)/"sample.png") as original:
+                    with Image.open(stored_source) as original:
                         changed=original.convert("RGB")
                     ImageDraw.Draw(changed).rectangle((30,80,100,100),fill="white")
-                    changed.save(Path(directory)/"sample.png")
+                    changed.save(stored_source)
                     self.assertEqual(client.post(prefix+"/extract").status_code,409)
             finally:
                 engine.dispose()

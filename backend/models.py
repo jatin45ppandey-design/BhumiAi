@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Text, JSON
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Text, JSON, Index
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
@@ -11,8 +11,7 @@ class User(Base):
     name = Column(String)
     role = Column(String, default="user") # "user" or "officer"
     password_hash = Column(String, nullable=True)
-    # Google assigns this stable, immutable identifier to an account. Email is
-    # useful for contact, but the subject is the identity we bind to OAuth.
+    # Legacy nullable column retained for database compatibility; unused by authentication.
     google_subject = Column(String, unique=True, index=True, nullable=True)
     # Issued by the authorized administrator; never selected by a public user.
     officer_id = Column(String, unique=True, index=True, nullable=True)
@@ -101,11 +100,14 @@ class Document(Base):
 
 class Submission(Base):
     __tablename__ = "submissions"
+    __table_args__ = (
+        Index("ix_submissions_user_status", "user_id", "status"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey("documents.id"))
+    document_id = Column(Integer, ForeignKey("documents.id"), index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    status = Column(String, default="SUBMITTED") # UPLOADED, SUBMITTED, PROCESSING, NEEDS_REVIEW, VERIFIED, REJECTED
+    status = Column(String, default="SUBMITTED", index=True) # UPLOADED, SUBMITTED, PROCESSING, NEEDS_REVIEW, VERIFIED, REJECTED
     submitted_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     document = relationship("Document", back_populates="submissions")
@@ -116,7 +118,7 @@ class OCRResult(Base):
     __tablename__ = "ocr_results"
 
     id = Column(Integer, primary_key=True, index=True)
-    document_id = Column(Integer, ForeignKey("documents.id"))
+    document_id = Column(Integer, ForeignKey("documents.id"), index=True)
     engine = Column(String)
     script = Column(String)
     raw_text = Column(Text)
@@ -312,7 +314,7 @@ class VerifiedRecord(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     record_id = Column(String, unique=True, index=True)
-    submission_id = Column(Integer, ForeignKey("submissions.id"))
+    submission_id = Column(Integer, ForeignKey("submissions.id"), index=True)
     owner_name = Column(String)
     father_guardian_name = Column(String, nullable=True)
     khasra_number = Column(String)
@@ -331,6 +333,10 @@ class VerifiedRecord(Base):
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
+    __table_args__ = (
+        Index("ix_audit_logs_document_action", "document_id", "action"),
+        Index("ix_audit_logs_submission_action", "submission_id", "action"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)

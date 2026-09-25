@@ -44,7 +44,8 @@ class CandidateSelectionTests(unittest.TestCase):
         result = _select(tesseract("कमल", 25), htr("राम कुमार"), "handwritten")
         self.assertEqual(result["selected_engine"], "HTR")
         self.assertEqual(result["selected_text"], "राम कुमार")
-        self.assertEqual(result["confidence"], 40)
+        self.assertLess(result["confidence"], 60)
+        self.assertNotEqual(result["confidence_breakdown"]["engine_base"], 50)
 
     def test_tesseract_htr_agreement_retains_local_consensus(self):
         result = _select(tesseract("राम कुमार", 50), htr("राम कुमार"), "handwritten")
@@ -55,6 +56,16 @@ class CandidateSelectionTests(unittest.TestCase):
         result = _select(tesseract("राम", 30), htr("श्याम"), "handwritten")
         self.assertIn("engine_disagreement", result["warnings"])
         self.assertIn(result["confidence_level"], {"LOW", "UNAVAILABLE"})
+
+    def test_repeated_tesseract_reads_outrank_one_disagreeing_htr_read(self):
+        result = _select(
+            tesseract("परसपुर", 33, ["परसपूर", "परसपुर"]),
+            htr("ज़रु", .31),
+            "handwritten",
+        )
+        self.assertEqual((result["selected_text"], result["selected_engine"]), ("परसपुर", "TESSERACT"))
+        self.assertIn("repeated-read support", result["selection_reason"])
+        self.assertIn("engine_disagreement", result["warnings"])
 
     def test_numeric_disagreement_caps_tesseract_evidence(self):
         result = _select(tesseract("121", 96, ["121", "127"]), {"text": "", "status": "skipped"}, "numeric")
@@ -93,69 +104,112 @@ class EvidenceConfidenceTests(unittest.TestCase):
     def test_strong_tesseract_only_numeric_score(self):
         result = _select(tesseract("125", 82), {"text": "", "status": "skipped"}, "numeric")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("125", "TESSERACT"))
-        self.assertEqual(result["confidence"], 92)
+        self.assertEqual(result["confidence"], 72.5)
+        self.assertEqual(result["confidence_level"], "MEDIUM")
+        self.assertEqual(result["confidence_breakdown"]["stability_bonus"], 0)
+        self.assertEqual(result["confidence_breakdown"]["validation_bonus"], 4)
+        self.assertEqual(result["confidence_breakdown"]["signals"]["total_passes"], 1)
+
+    def test_normalized_multi_pass_stability_meaningfully_increases_evidence(self):
+        result = _select(tesseract("125", 82, ["125", "125"]), {"text": "", "status": "skipped"}, "numeric")
+        self.assertEqual(result["confidence"], 86.5)
         self.assertEqual(result["confidence_level"], "HIGH")
-        self.assertEqual(result["confidence_breakdown"]["stability_bonus"], 5)
-        self.assertEqual(result["confidence_breakdown"]["validation_bonus"], 5)
+        self.assertEqual(result["confidence_breakdown"]["signals"]["stable_passes"], 2)
+        self.assertEqual(result["confidence_breakdown"]["stability_bonus"], 14)
+
+    def test_empty_passes_are_omitted_and_normalized_text_is_compared(self):
+        tess = tesseract("उन्नाव", 62, ["उन्\u200dनाव", "", "उन्नाव"])
+        score, _, breakdown = self._score(
+            "उन्नाव", "TESSERACT", tess, {"text": "", "status": "skipped"}, "handwritten",
+        )
+        self.assertEqual(breakdown["signals"]["total_passes"], 2)
+        self.assertEqual(breakdown["signals"]["stable_passes"], 2)
+        self.assertGreaterEqual(score, 80)
+
+    def test_invalid_optional_passes_do_not_contradict_one_valid_read(self):
+        tess = tesseract("2024-25", 95)
+        tess["passes"] = [
+            {"text": "9", "format_valid": False},
+            {"text": "", "format_valid": False},
+            {"text": "2024-25", "format_valid": True},
+        ]
+        result = _select(tess, {"text": "", "status": "skipped"}, "numeric")
+        self.assertEqual(result["selected_text"], "2024-25")
+        self.assertNotIn("tesseract_digit_disagreement", result["warnings"])
+        self.assertEqual(result["confidence_breakdown"]["signals"]["total_passes"], 1)
+        self.assertEqual(result["confidence_breakdown"]["signals"]["ignored_empty_or_invalid_passes"], 2)
 
     def test_matching_tesseract_and_htr_agreement_bonus(self):
-        result = _select(tesseract("राम कुमार", 74), htr("राम कुमार", .83), "handwritten")
+        result = _select(tesseract("राम कुमार", 74, ["राम कुमार", "राम कुमार"]), htr("राम कुमार", .83), "handwritten")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("राम कुमार", "TESSERACT"))
-        self.assertEqual(result["confidence"], 99)
-        self.assertEqual(result["confidence_breakdown"]["agreement_bonus"], 15)
+        self.assertEqual(result["confidence"], 98)
+        self.assertEqual(result["confidence_breakdown"]["agreement_bonus"], 14)
         self.assertEqual(result["confidence_breakdown"]["raw_htr_model_score"], .83)
+        self.assertFalse(result["confidence_breakdown"]["signals"]["htr_model_evidence"]["calibrated_probability"])
 
     def test_approximate_independent_agreement_gets_single_bonus(self):
         score, _, breakdown = self._score(
             "राम कुमार", "TESSERACT", tesseract("राम कुमार", 70), htr("राम कुमारी"),
             "handwritten", {"tesseract_htr": .85}, [], [],
         )
-        self.assertEqual(score, 85)
-        self.assertEqual(breakdown["agreement_bonus"], 5)
+        self.assertEqual(score, 73.5)
+        self.assertEqual(breakdown["agreement_bonus"], 4)
 
     def test_clear_engine_disagreement_penalty_and_cap(self):
         result = _select(tesseract("राम कुमार", 80), htr("सीता देवी"), "handwritten")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("राम कुमार", "TESSERACT"))
-        self.assertEqual(result["confidence"], 59)
-        self.assertIn({"reason": "engine_disagreement", "value": -15}, result["confidence_breakdown"]["penalties"])
-        self.assertIn({"reason": "engine_disagreement", "max_score": 59}, result["confidence_breakdown"]["applied_caps"])
+        self.assertEqual(result["confidence"], 58)
+        self.assertIn({"reason": "engine_disagreement", "value": -12}, result["confidence_breakdown"]["penalties"])
+        self.assertIn({"reason": "engine_disagreement", "max_score": 58}, result["confidence_breakdown"]["applied_caps"])
 
     def test_numeric_pass_disagreement_penalty_and_cap(self):
         result = _select(tesseract("125", 80, ["125", "128"]), {"text": "", "status": "skipped"}, "numeric")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("125", "TESSERACT"))
-        self.assertEqual(result["confidence"], 49)
-        self.assertIn({"reason": "tesseract_digit_disagreement", "max_score": 49}, result["confidence_breakdown"]["applied_caps"])
+        self.assertEqual(result["confidence"], 55)
+        self.assertIn({"reason": "tesseract_digit_disagreement", "max_score": 55}, result["confidence_breakdown"]["applied_caps"])
 
     def test_invalid_numeric_candidate_is_capped_without_rewriting_value(self):
         result = _select(tesseract("12x", 80, format_valid=False), {"text": "", "status": "skipped"}, "numeric")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("12x", "TESSERACT"))
-        self.assertEqual(result["confidence"], 35)
+        self.assertEqual(result["confidence"], 45)
         self.assertEqual(result["confidence_breakdown"]["validation_bonus"], 0)
 
     def test_valid_htr_only_devanagari_uses_conservative_base(self):
         result = _select(tesseract("", None), htr("राम कुमार", .83), "handwritten")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("राम कुमार", "HTR"))
-        self.assertEqual(result["confidence"], 55)
-        self.assertEqual(result["confidence_breakdown"]["engine_base"], 50)
+        self.assertEqual(result["confidence"], 72)
+        self.assertEqual(result["confidence_breakdown"]["engine_base"], 68)
+        self.assertEqual(result["confidence_breakdown"]["raw_htr_model_score"], .83)
+
+    def test_htr_internal_read_stability_can_reach_high_evidence(self):
+        local_htr = {
+            **htr("राम कुमार", .83),
+            "line_candidate": {"text": "राम कुमार"},
+            "word_candidates": [{"text": "राम"}, {"text": "कुमार"}],
+        }
+        result = _select(tesseract("", None), local_htr, "handwritten")
+        self.assertEqual(result["confidence"], 86)
+        self.assertEqual(result["confidence_level"], "HIGH")
+        self.assertEqual(result["confidence_breakdown"]["signals"]["stable_passes"], 2)
 
     def test_htr_selection_with_tesseract_agreement_preserves_selection(self):
         result = _select(tesseract("राम कुमार", 25), htr("राम कुमार", .83), "handwritten")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("राम कुमार", "HTR"))
-        self.assertEqual(result["confidence"], 70)
-        self.assertEqual(result["confidence_level"], "MEDIUM")
+        self.assertEqual(result["confidence"], 86)
+        self.assertEqual(result["confidence_level"], "HIGH")
 
     def test_mixed_script_safety_cap(self):
         result = _select(tesseract("Ram", 80), htr("राम कुमार", .83), "handwritten")
         self.assertEqual((result["selected_text"], result["selected_engine"]), ("राम कुमार", "HTR"))
-        self.assertEqual(result["confidence"], 39)
-        self.assertIn({"reason": "mixed_script_review", "max_score": 39}, result["confidence_breakdown"]["applied_caps"])
+        self.assertEqual(result["confidence"], 45)
+        self.assertIn({"reason": "mixed_script_review", "max_score": 45}, result["confidence_breakdown"]["applied_caps"])
 
     def test_truncated_htr_safety_cap(self):
         score, _, breakdown = self._score(
             "राम कुमार", "HTR", tesseract("", None), htr("राम कुमार", .83, truncated=True), "handwritten",
         )
-        self.assertEqual(score, 39)
-        self.assertIn({"reason": "truncated_htr", "max_score": 39}, breakdown["applied_caps"])
+        self.assertEqual(score, 45)
+        self.assertIn({"reason": "truncated_htr", "max_score": 45}, breakdown["applied_caps"])
 
     def test_no_usable_candidate_has_no_score(self):
         result = _select(tesseract("", None), {"text": "", "status": "skipped"}, "handwritten")
@@ -181,14 +235,17 @@ class TableAndStructureTests(unittest.TestCase):
         self.assertEqual(_holder_relation_parts("राम पुत्र श्याम"), ("राम", "पुत्र", "श्याम"))
         self.assertIsNone(_holder_relation_parts("राम श्याम"))
 
-    def test_recognition_warning_reaches_validation_status(self):
+    def test_recognition_warning_remains_separate_from_validation_status(self):
         structure = {"header_fields": [{
             "key": "khata_number", "ocr_value": "12", "ocr_confidence": 95,
             "audit_metadata": {"warnings": ["engine_disagreement"]},
         }], "rows": []}
         annotate_structure(structure)
-        self.assertIn("engine_disagreement", structure["header_fields"][0]["validation"]["warnings"])
-        self.assertEqual(structure["header_fields"][0]["status"], "LOW")
+        validation = structure["header_fields"][0]["validation"]
+        self.assertEqual(validation["warnings"], [])
+        self.assertIn("engine_disagreement", validation["recognition_warnings"])
+        self.assertEqual(validation["review_status"], "NEEDS_REVIEW")
+        self.assertEqual(structure["header_fields"][0]["status"], "PASS")
 
     def test_compact_evidence_excludes_engine_internals(self):
         compact = compact_recognition_evidence({
@@ -196,11 +253,16 @@ class TableAndStructureTests(unittest.TestCase):
             "warnings": [],
             "tesseract": {"passes": [{"tokens": ["verbose"]}]},
             "request_headers": {"Authorization": "must-not-persist"},
-            "candidates": {"tesseract": {"raw_text": "12", "confidence": 80}},
+            "candidates": {"tesseract": {"raw_text": "12", "confidence": 80, "passes": [
+                {"variant": "gray", "raw_text": "12", "normalized_text": "12", "confidence": 80, "tokens": ["verbose"]},
+            ]}},
+            "confidence_breakdown": {"final_score": 72, "signals": {"stable_passes": 1}},
         })
         self.assertEqual(compact["selected_engine"], "TESSERACT")
         self.assertNotIn("tesseract", compact)
         self.assertNotIn("request_headers", compact)
+        self.assertNotIn("tokens", compact["candidates"]["tesseract"]["passes"][0])
+        self.assertEqual(compact["confidence_breakdown"]["final_score"], 72)
 
     def test_two_holder_lines_become_two_source_linked_rows(self):
         image = Image.new("RGB", (240, 40), "white")

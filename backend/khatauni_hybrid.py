@@ -109,9 +109,9 @@ def _suspicious_hindi_candidate(value: str, kind: str) -> bool:
 def _confidence_level(value: float | None) -> str:
     if value is None:
         return "UNAVAILABLE"
-    if value >= 90:
+    if value >= 85:
         return "HIGH"
-    if value >= 70:
+    if value >= 65:
         return "MEDIUM"
     return "LOW"
 
@@ -184,7 +184,7 @@ def _numeric_variants(tesseract: dict[str, Any]) -> set[str]:
     return {
         str(candidate.get("text") or "")
         for candidate in tesseract.get("passes", [])
-        if candidate.get("text")
+        if candidate.get("text") and candidate.get("format_valid") is not False
     }
 
 
@@ -408,6 +408,8 @@ def _htr_candidate(crop: Image.Image) -> dict[str, Any]:
 
 def _comparison_text(value: str, kind: str) -> str:
     value = unicodedata.normalize("NFKC", value or "").translate(DEVANAGARI_DIGITS)
+    value = re.sub(r"[\u200b-\u200d\u2060\ufeff]", "", value)
+    value = value.translate(str.maketrans({"–": "-", "—": "-", "−": "-", "／": "/"}))
     value = re.sub(r"\s+", " ", value).strip()
     if kind == "numeric":
         return re.sub(r"\s+", "", value)
@@ -423,6 +425,91 @@ def _candidate_similarity(left: str, right: str, kind: str) -> float:
     from rapidfuzz.fuzz import ratio
 
     return ratio(left_value, right_value) / 100
+
+
+def _observable_cleanliness(value: str, kind: str) -> float:
+    """Measure script/character cleanliness without treating it as probability."""
+
+    normalized = _comparison_text(value, kind)
+    characters = [character for character in normalized if not character.isspace()]
+    if not characters:
+        return 0.0
+    allowed = sum(
+        bool(re.fullmatch(r"[\u0900-\u097f0-9./\-()]", character))
+        for character in characters
+    ) / len(characters)
+    if kind == "numeric":
+        return round(allowed, 3)
+    return round((0.7 * _devanagari_score(normalized)) + (0.3 * allowed), 3)
+
+
+def _pass_stability(
+    selected_text: str,
+    selected_engine: str | None,
+    tesseract: dict[str, Any],
+    htr: dict[str, Any],
+    kind: str,
+) -> dict[str, Any]:
+    """Compare existing independent reads after normalization only.
+
+    Empty reads are omitted. Original recognizer values remain untouched in
+    their candidate metadata.
+    """
+
+    outputs: list[dict[str, str]] = []
+    ignored_passes = 0
+
+    def add(source: str, value: Any) -> None:
+        raw_value = str(value or "")
+        normalized = _comparison_text(raw_value, kind)
+        if normalized:
+            outputs.append({"source": source, "normalized_text": normalized})
+
+    if selected_engine == "TESSERACT":
+        for index, candidate in enumerate(tesseract.get("passes") or []):
+            if isinstance(candidate, dict):
+                if candidate.get("format_valid") is False or not _comparison_text(candidate.get("text") or "", kind):
+                    ignored_passes += 1
+                    continue
+                add(str(candidate.get("variant") or f"pass_{index + 1}"), candidate.get("text"))
+    elif selected_engine == "HTR":
+        line_candidate = htr.get("line_candidate")
+        word_candidates = htr.get("word_candidates") or []
+        if isinstance(line_candidate, dict):
+            add("line", line_candidate.get("text"))
+        else:
+            add("line", htr.get("text"))
+        if word_candidates and all(
+            isinstance(candidate, dict) and candidate.get("text") for candidate in word_candidates
+        ):
+            add("word_segments", " ".join(candidate["text"] for candidate in word_candidates))
+
+    selected_normalized = _comparison_text(selected_text, kind)
+    stable = sum(output["normalized_text"] == selected_normalized for output in outputs)
+    total = len(outputs)
+    return {
+        "stable_passes": stable,
+        "total_passes": total,
+        "ignored_empty_or_invalid_passes": ignored_passes,
+        "pass_stability": round(stable / total, 3) if total else None,
+        "normalized_pass_outputs": outputs,
+    }
+
+
+def _has_repeat_tesseract_support(tesseract: dict[str, Any], kind: str) -> bool:
+    """Return true when at least two meaningful OCR reads closely support one another."""
+
+    values = [
+        str(candidate.get("text") or "")
+        for candidate in (tesseract.get("passes") or [])
+        if isinstance(candidate, dict)
+        and candidate.get("format_valid") is not False
+        and _comparison_text(candidate.get("text") or "", kind)
+    ]
+    return any(
+        sum(_candidate_similarity(value, other, kind) >= 0.80 for other in values) >= 2
+        for value in values
+    )
 
 
 def _calculate_evidence_confidence(
@@ -443,79 +530,118 @@ def _calculate_evidence_confidence(
     raw_tesseract_confidence = tesseract.get("confidence")
     raw_htr_model_score = htr.get("model_score")
     agreement_similarity = agreements.get("tesseract_htr")
-    pass_agreement = tesseract.get("pass_agreement")
+    stability = _pass_stability(selected_text, selected_engine, tesseract, htr, kind)
+    cleanliness = _observable_cleanliness(selected_text, kind)
     breakdown: dict[str, Any] = {
         "selected_engine": selected_engine,
+        "selected_value": selected_text or None,
         "engine_base": None,
         "raw_tesseract_confidence": raw_tesseract_confidence,
         "raw_htr_model_score": raw_htr_model_score,
         "agreement_similarity": agreement_similarity,
         "agreement_bonus": 0,
-        "pass_agreement": pass_agreement,
+        "pass_agreement": stability["pass_stability"],
         "stability_bonus": 0,
         "validation_bonus": 0,
         "penalties": [],
         "applied_caps": [],
         "final_score": None,
+        "signals": {
+            "tesseract_raw": raw_tesseract_confidence,
+            "htr_model_evidence": {
+                "value": raw_htr_model_score,
+                "type": htr.get("score_type", "unavailable"),
+                "calibrated_probability": False,
+            } if raw_htr_model_score is not None else None,
+            **stability,
+            "cross_engine_agreement": agreement_similarity,
+            "supporting_engines": supporting_engines,
+            "observable_cleanliness": cleanliness,
+            "validation": "UNRESOLVED" if not selected_text else "NEEDS_REVIEW",
+        },
+        "components": {
+            "engine_evidence": 0,
+            "multi_pass_stability": 0,
+            "cross_engine_agreement": 0,
+            "validation_support": 0,
+        },
     }
-    method = "bhumiai_evidence_score_v1_uncalibrated"
+    method = "bhumiai_recognition_evidence_v2_uncalibrated"
     if not selected_text or selected_engine is None:
         return None, method, breakdown
 
     if selected_engine == "TESSERACT":
-        if raw_tesseract_confidence is None:
-            return None, method, breakdown
         try:
-            engine_base = max(0.0, min(100.0, float(raw_tesseract_confidence)))
+            bounded_raw = max(0.0, min(100.0, float(raw_tesseract_confidence)))
         except (TypeError, ValueError):
-            return None, method, breakdown
+            bounded_raw = 0.0
+        # The engine's token mean is a bounded input, never the field score.
+        engine_base = 48.0 + (0.25 * bounded_raw)
     elif selected_engine == "HTR":
-        # TrOCR's geometric mean token score is retained as raw evidence but
-        # deliberately is not scaled into a percentage.
-        engine_base = 50.0
+        # TrOCR token likelihood is uncalibrated and retained only as metadata.
+        # Its evidence base comes from observable script/character cleanliness.
+        engine_base = 52.0 + (16.0 * cleanliness)
     else:
         return None, method, breakdown
+    engine_base = round(engine_base, 2)
     breakdown["engine_base"] = engine_base
+    breakdown["components"]["engine_evidence"] = engine_base
 
-    # Agreements are populated only when both local candidates passed their
-    # existing usability checks, so this cannot double-count OCR pass stability.
     if agreement_similarity is not None:
         if agreement_similarity >= 0.95:
-            breakdown["agreement_bonus"] = 15
+            breakdown["agreement_bonus"] = 14
         elif agreement_similarity >= 0.90:
-            breakdown["agreement_bonus"] = 10
+            breakdown["agreement_bonus"] = 9
         elif agreement_similarity >= 0.80:
-            breakdown["agreement_bonus"] = 5
+            breakdown["agreement_bonus"] = 4
+    breakdown["components"]["cross_engine_agreement"] = breakdown["agreement_bonus"]
 
-    if selected_engine == "TESSERACT" and pass_agreement is not None:
-        if pass_agreement >= 0.95:
-            breakdown["stability_bonus"] = 5
-        elif pass_agreement >= 0.50:
-            breakdown["stability_bonus"] = 2
+    total_passes = stability["total_passes"]
+    pass_stability = stability["pass_stability"]
+    if total_passes >= 2 and pass_stability is not None:
+        if pass_stability >= 1:
+            breakdown["stability_bonus"] = 14 if total_passes == 2 else 16 if total_passes == 3 else 18
+        elif pass_stability >= 0.75:
+            breakdown["stability_bonus"] = 10
+        elif pass_stability >= 0.60:
+            breakdown["stability_bonus"] = 6
+    breakdown["components"]["multi_pass_stability"] = breakdown["stability_bonus"]
 
     numeric_valid = bool(re.fullmatch(r"[0-9]+(?:[./ -][0-9]+)*", selected_text))
     if kind == "numeric":
         if numeric_valid:
-            breakdown["validation_bonus"] = 5
-    elif _devanagari_score(selected_text) >= 0.90:
-        breakdown["validation_bonus"] = 5
+            breakdown["validation_bonus"] = 4
+            breakdown["signals"]["validation"] = "PASS"
+    elif cleanliness >= 0.90:
+        breakdown["validation_bonus"] = 4
+        breakdown["signals"]["validation"] = "PASS"
+    breakdown["components"]["validation_support"] = breakdown["validation_bonus"]
 
     penalty_total = 0
     caps: list[tuple[str, float]] = []
     if "engine_disagreement" in warnings:
-        breakdown["penalties"].append({"reason": "engine_disagreement", "value": -15})
-        penalty_total += 15
-        caps.append(("engine_disagreement", 59))
+        breakdown["penalties"].append({"reason": "engine_disagreement", "value": -12})
+        penalty_total += 12
+        caps.append(("engine_disagreement", 58))
     if "tesseract_digit_disagreement" in warnings:
-        breakdown["penalties"].append({"reason": "tesseract_digit_disagreement", "value": -15})
-        penalty_total += 15
-        caps.append(("tesseract_digit_disagreement", 49))
+        breakdown["penalties"].append({"reason": "tesseract_digit_disagreement", "value": -12})
+        penalty_total += 12
+        caps.append(("tesseract_digit_disagreement", 55))
+    if (
+        total_passes >= 2
+        and pass_stability is not None
+        and pass_stability < 0.60
+        and "tesseract_digit_disagreement" not in warnings
+    ):
+        breakdown["penalties"].append({"reason": "recognition_pass_disagreement", "value": -10})
+        penalty_total += 10
+        caps.append(("recognition_pass_disagreement", 58))
     if kind == "numeric" and not numeric_valid:
-        caps.append(("invalid_numeric_format", 35))
+        caps.append(("invalid_numeric_format", 45))
     if "mixed_script_review" in warnings:
-        caps.append(("mixed_script_review", 39))
+        caps.append(("mixed_script_review", 45))
     if selected_engine == "HTR" and htr.get("truncated") is True:
-        caps.append(("truncated_htr", 39))
+        caps.append(("truncated_htr", 45))
 
     score = (
         engine_base
@@ -527,7 +653,7 @@ def _calculate_evidence_confidence(
     for reason, maximum in caps:
         breakdown["applied_caps"].append({"reason": reason, "max_score": maximum})
         score = min(score, maximum)
-    score = round(max(0.0, min(100.0, score)), 2)
+    score = round(max(0.0, min(98.0, score)), 2)
     breakdown["final_score"] = score
     return score, method, breakdown
 
@@ -591,6 +717,9 @@ def _select(
         else:
             selected_text, engine = "", None
             reason = "no format-valid numeric candidate"
+    elif t_usable and _has_repeat_tesseract_support(tesseract, kind):
+        selected_text, engine = t_text, "TESSERACT"
+        reason = "Tesseract candidate retained with repeated-read support"
     elif h_usable and not strong_t and (not t_text or (h_score or 0) >= 0.25):
         selected_text, engine = h_text, "HTR"
         reason = "usable Devanagari HTR candidate with no stable Tesseract candidate"
@@ -610,6 +739,13 @@ def _select(
         warnings.append("tesseract_digit_disagreement")
     if t_text and not t_usable:
         warnings.append("mixed_script_review")
+    pass_evidence = _pass_stability(selected_text, engine, tesseract, htr, kind)
+    if (
+        pass_evidence["total_passes"] >= 2
+        and pass_evidence["pass_stability"] is not None
+        and pass_evidence["pass_stability"] < 0.60
+    ):
+        warnings.append("recognition_pass_disagreement")
 
     confidence, confidence_method, confidence_breakdown = _calculate_evidence_confidence(
         selected_text,
@@ -629,6 +765,17 @@ def _select(
             "confidence": t_conf,
             "confidence_type": "tesseract_token_mean",
             "status": "ready" if t_text else "unresolved",
+            "passes": [
+                {
+                    "variant": candidate.get("variant"),
+                    "raw_text": candidate.get("raw_text"),
+                    "normalized_text": _comparison_text(candidate.get("text") or "", kind) or None,
+                    "confidence": candidate.get("confidence"),
+                    "format_valid": candidate.get("format_valid"),
+                }
+                for candidate in (tesseract.get("passes") or [])
+                if isinstance(candidate, dict)
+            ],
         },
         "local_htr": {
             "raw_text": h_text or None,
@@ -636,6 +783,7 @@ def _select(
             "confidence": h_score,
             "confidence_type": htr.get("score_type", "unavailable"),
             "status": htr.get("status"),
+            "truncated": htr.get("truncated"),
         },
     }
     return {
@@ -922,7 +1070,7 @@ def recognize_table_rows(
                 "raw_ocr_value": value,
                 "ai_value": value,
                 "ai_confidence": selected["confidence"],
-                "confidence_source": "hybrid_field_roi",
+                "confidence_source": "recognition_evidence_v2",
                 "bounding_box": {"left": box[0], "top": box[1], "width": max(box[2] - box[0], 0), "height": max(box[3] - box[1], 0)},
                 "source_token_ids": [],
                 "audit_metadata": {**selected, "source": "khatauni_table_roi", "schema_key": column["key"]},
@@ -1012,7 +1160,7 @@ def apply_hybrid_recognition(structure: dict[str, Any], original_path: str | Non
                 **field,
                 "ocr_value": result["selected_text"],
                 "ocr_confidence": result["confidence"],
-                "confidence_source": "hybrid_field_roi",
+                "confidence_source": "recognition_evidence_v2",
                 "audit_metadata": result,
             })
         elif result and "mixed_script_review" in (result.get("warnings") or []):
@@ -1024,7 +1172,7 @@ def apply_hybrid_recognition(structure: dict[str, Any], original_path: str | Non
                 **field,
                 "ocr_value": "",
                 "ocr_confidence": None,
-                "confidence_source": "hybrid_field_roi",
+                "confidence_source": "recognition_evidence_v2",
                 "audit_metadata": result,
             })
         else:
@@ -1040,7 +1188,7 @@ def apply_hybrid_recognition(structure: dict[str, Any], original_path: str | Non
                 "label": schema["label"],
                 "ocr_value": result["selected_text"],
                 "ocr_confidence": result["confidence"],
-                "confidence_source": "hybrid_field_roi" if result["selected_text"] else "unavailable",
+                "confidence_source": "recognition_evidence_v2" if result["selected_text"] else "unavailable",
                 "bounding_box": None,
                 "source_token_ids": [],
                 "audit_metadata": result,
@@ -1063,9 +1211,9 @@ def apply_hybrid_recognition(structure: dict[str, Any], original_path: str | Non
         "header_fields_total": len(fields),
         "table_rows_detected": len(structure.get("rows", [])),
         "ocr_cells_populated": sum(bool(cell.get("raw_ocr_value") or cell.get("ai_value")) for row in structure.get("rows", []) for cell in row.get("cells", [])),
-        "high_confidence_values": sum(value is not None and value >= 90 for value in confidences),
-        "medium_confidence_values": sum(value is not None and 70 <= value < 90 for value in confidences),
-        "low_confidence_values": sum(value is not None and value < 70 for value in confidences),
+        "high_confidence_values": sum(value is not None and value >= 85 for value in confidences),
+        "medium_confidence_values": sum(value is not None and 65 <= value < 85 for value in confidences),
+        "low_confidence_values": sum(value is not None and value < 65 for value in confidences),
         "unavailable_values": sum(value is None for value in confidences),
     }
     structure["hybrid_metadata"] = {

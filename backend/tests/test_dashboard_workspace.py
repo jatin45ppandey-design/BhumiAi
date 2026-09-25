@@ -88,10 +88,23 @@ class DashboardWorkspaceTests(unittest.TestCase):
         own = next(row for row in response.json() if row["id"] == self.submissions["REJECTED"])
         self.assertEqual(own["rejection"]["reason_category"], "Poor Scan Quality")
         self.assertEqual(own["rejection"]["officer_note"], "Plot number is unreadable.")
-        created = self.client.post(f"/api/officer/documents/{self.rejected_document_id}/reject", json={"reason_category": "Information Mismatch", "officer_note": "Verified mismatch."})
+        repeated = self.client.post(f"/api/officer/documents/{self.rejected_document_id}/reject", json={"reason_category": "Information Mismatch", "officer_note": "Verified mismatch."})
+        self.assertEqual(repeated.status_code, 409)
+        with self.sessions() as db:
+            review_document_id = db.get(models.Submission, self.submissions["NEEDS_REVIEW"]).document_id
+        created = self.client.post(f"/api/officer/documents/{review_document_id}/reject", json={"reason_category": "Information Mismatch", "officer_note": "Verified mismatch."})
         self.assertEqual(created.status_code, 200)
-        events = self.client.get("/api/officer/audit").json()
-        self.assertTrue(any(event["action"] == "REJECTED" and "Information Mismatch" in event.get("metadata_json", "") for event in events))
+        with self.sessions() as db:
+            event = db.query(models.AuditLog).filter_by(
+                document_id=review_document_id, action="REJECTED"
+            ).one()
+            self.assertIn("Information Mismatch", event.metadata_json)
+            notice = db.query(models.UserNotification).filter_by(
+                user_id=self.citizen_id,
+                document_id=review_document_id,
+                type="SUBMISSION_REJECTED",
+            ).one()
+            self.assertIn("Information Mismatch", notice.message)
 
     def test_citizen_filter_scope_and_rejection_visibility(self):
         self.login_as(self.citizen_id)
@@ -105,10 +118,49 @@ class DashboardWorkspaceTests(unittest.TestCase):
         self.assertEqual(own_search.status_code, 200)
         self.assertEqual(own_search.json(), [])
 
+    def test_verification_is_terminal_and_notifies_the_citizen_once(self):
+        self.login_as(self.officer_id)
+        with self.sessions() as db:
+            submission = db.get(models.Submission, self.submissions["PROCESSING"])
+            document_id = submission.document_id
+            db.add(models.DynamicExtractedItem(
+                document_id=document_id,
+                item_type="key_value",
+                original_label="Khata number",
+                normalized_label="khata_number",
+                officer_value="42",
+                final_value="42",
+                created_by=self.officer_id,
+            ))
+            db.commit()
+        approved = self.client.post(f"/api/officer/documents/{document_id}/approve")
+        self.assertEqual(approved.status_code, 200, approved.text)
+        self.assertEqual(self.client.post(f"/api/officer/documents/{document_id}/approve").status_code, 409)
+        with self.sessions() as db:
+            submission = db.get(models.Submission, self.submissions["PROCESSING"])
+            self.assertEqual(submission.status, "VERIFIED")
+            self.assertIsNotNone(submission.verified_record)
+            notices = db.query(models.UserNotification).filter_by(
+                user_id=self.citizen_id,
+                document_id=document_id,
+                type="SUBMISSION_VERIFIED",
+            ).all()
+            self.assertEqual(len(notices), 1)
+            self.assertNotIn("officer@example.test", notices[0].message)
+
     def test_existing_verified_record_search_remains_available(self):
+        self.assertEqual(self.client.get("/api/verified-records/").status_code, 401)
+        self.login_as(self.citizen_id)
+        self.assertEqual(self.client.get("/api/verified-records/").status_code, 403)
+        with self.sessions() as db:
+            verified_id = db.query(models.VerifiedRecord.id).scalar()
+        self.assertEqual(self.client.get(f"/api/verified-records/{verified_id}").status_code, 403)
+        self.login_as(self.officer_id)
         response = self.client.get("/api/verified-records/", params={"search": "LR-UP-LUC-000001"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()[0]["record_id"], "LR-UP-LUC-000001")
+        record_id = response.json()[0]["id"]
+        self.assertEqual(self.client.get(f"/api/verified-records/{record_id}").status_code, 200)
 
 
 if __name__ == "__main__":

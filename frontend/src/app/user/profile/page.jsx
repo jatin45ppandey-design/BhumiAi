@@ -1,14 +1,16 @@
 'use client';
 
 import {useEffect, useState} from 'react';
+import {useRouter} from 'next/navigation';
 import {BadgeCheck, MailCheck, ShieldCheck} from 'lucide-react';
 import {api} from '../../../lib/api';
+import {saveUser} from '../../../lib/auth';
 import {Button, ErrorMessage, Loader, Toast} from '../../../components/common/UI';
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState(null); const [code, setCode] = useState(''); const [emailDelivery, setEmailDelivery] = useState(null); const [feedback, setFeedback] = useState(null); const [error, setError] = useState(''); const [loading, setLoading] = useState('');
+  const [profile, setProfile] = useState(null); const [code, setCode] = useState(''); const [emailDelivery, setEmailDelivery] = useState(null); const [feedback, setFeedback] = useState(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(''); const router = useRouter();
   useEffect(() => { api.me().then(setProfile).catch(() => setError('We could not load your profile. Please try again.')); }, []);
-  async function save(event) { event.preventDefault(); setLoading('save'); setError(''); try { const data = Object.fromEntries(new FormData(event.currentTarget)); const updated = await api.updateProfile(data); setProfile(updated); setFeedback({tone:'success', message:'Profile saved. Email verification remains optional.'}); } catch { setError('We could not save your profile. Check the highlighted details and try again.'); } finally { setLoading(''); } }
+  async function save(event) { event.preventDefault(); setLoading('save'); setError(''); try { const data = Object.fromEntries(new FormData(event.currentTarget)); const updated = await api.updateProfile(data); saveUser(updated); setProfile(updated); router.replace('/user'); } catch { setError('We could not save your profile. Check the highlighted details and try again.'); } finally { setLoading(''); } }
   async function requestEmail() { setLoading('email'); setError(''); try { setEmailDelivery(await api.requestEmailVerification()); } catch { setError('We could not send an email verification code. Please try again.'); } finally { setLoading(''); } }
   async function verifyEmail() { setLoading('verify'); setError(''); try { await api.verifyEmail(code); setProfile(await api.me()); setEmailDelivery(null); setFeedback({tone:'success', message:'Email verified.'}); } catch { setError('That verification code could not be confirmed. Please try again.'); } finally { setLoading(''); } }
   if (!profile) return error ? <ErrorMessage>{error}</ErrorMessage> : <Loader label="Loading your profile…"/>;

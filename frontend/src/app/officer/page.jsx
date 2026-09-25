@@ -37,7 +37,7 @@ export default function OfficerDashboard() {
     <div className="page-title officer-page-title"><div><div className="eyebrow">OFFICER WORKSPACE</div><h2>Verification work, prioritized.</h2><p>Start with records that need a decision, then keep the verified repository current.</p></div>{submitted.length ? <Link className="button" href="/officer/submissions?status=SUBMITTED"><Inbox size={16}/> Review next record</Link> : <button className="button" type="button" disabled><Inbox size={16}/> Review next record</button>}</div>
     <ErrorMessage>{error}</ErrorMessage>
     <div className="stat-grid officer-stat-grid">
-      <StatCard label="Pending review" value={stats.pending} icon={Inbox}/>
+      <StatCard label="Pending review" value={stats.pending} icon={Inbox} href="/officer/submissions"/>
       <StatCard label="Needs attention" value={stats.needs_review} icon={AlertTriangle} tone="amber" href="/officer/submissions?status=NEEDS_REVIEW"/>
       <StatCard label="Rejected" value={stats.rejected} icon={XCircle} tone="red" href="/officer/submissions?status=REJECTED"/>
       <StatCard label="Verified records" value={stats.verified} icon={CheckCircle} tone="green" href="/officer/records"/>
