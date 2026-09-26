@@ -107,6 +107,36 @@ class AuthSessionTests(unittest.TestCase):
         self.authenticate_citizen()
         self.assertEqual(self.client.get("/api/officer/dashboard").status_code, 403)
 
+    def test_citizen_otp_login_replaces_existing_officer_session(self):
+        officer_login = self.client.post("/api/auth/login", json={
+            "role": "officer",
+            "officer_id": "GOV-TEST-1",
+            "password": "issued-password",
+        })
+        self.assertEqual(officer_login.status_code, 200, officer_login.text)
+        officer_token = self.client.cookies.get(SESSION_COOKIE_NAME)
+        self.assertTrue(officer_token)
+
+        code = self.request_code("9876543211", "login")
+        verified = self.client.post("/api/auth/phone/verify-otp", json={
+            "phone_number": "+919876543211",
+            "otp": code,
+            "intent": "login",
+        })
+        self.assertEqual(verified.status_code, 200, verified.text)
+        self.assertEqual(verified.json()["user"]["id"], self.other_id)
+        self.assertNotEqual(self.client.cookies.get(SESSION_COOKIE_NAME), officer_token)
+        self.assertEqual(self.client.get("/api/officer/dashboard").status_code, 403)
+        self.assertEqual(self.client.get("/api/user/dashboard").status_code, 200)
+
+        with self.sessions() as db:
+            officer_session = db.query(models.UserSession).filter(
+                models.UserSession.user_id == self.officer_id,
+                models.UserSession.token_hash.isnot(None),
+            ).order_by(models.UserSession.id.desc()).first()
+            self.assertIsNotNone(officer_session)
+            self.assertIsNotNone(officer_session.revoked_at)
+
     def test_existing_phone_login_reuses_account_and_registration_does_not_duplicate(self):
         code = self.request_code("9876543211", "login")
         verified = self.client.post("/api/auth/phone/verify-otp", json={"phone_number":"+919876543211", "otp":code, "intent":"login"})
