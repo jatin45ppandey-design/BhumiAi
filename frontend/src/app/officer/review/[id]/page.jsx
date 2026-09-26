@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AlertTriangle, CheckCircle, ChevronLeft, ChevronRight, FileText, LocateFixed, Minus, Plus, Save, ScanLine, Search, Trash2, XCircle, ZoomIn } from 'lucide-react';
 import { api } from '../../../../lib/api';
 import { bilingualKhatauniLabel } from '../../../../lib/khatauniLabels';
 import { supportsHindiPhoneticInput } from '../../../../lib/hindiTransliteration';
 import { Button, ErrorMessage, Loader, StatusBadge, Toast } from '../../../../components/common/UI';
-import ConfidenceBadge, { ValidationBadge } from '../../../../components/officer/ConfidenceBadge';
+import ConfidenceBadge from '../../../../components/officer/ConfidenceBadge';
 import AuthenticatedDocument from '../../../../components/documents/AuthenticatedDocument';
 import HindiPhoneticInput from '../../../../components/officer/HindiPhoneticInput';
 
@@ -16,12 +16,19 @@ const ocrValueOf = (entry) => entry?.raw_ocr_value ?? entry?.ai_value ?? '';
 const validationOf = (entry) => entry?.validation ?? entry?.audit_metadata?.validation;
 const hasDraft = (drafts, key) => Object.prototype.hasOwnProperty.call(drafts, key);
 const LOW_CONFIDENCE_THRESHOLD = 65;
+const CORE_FIELD_ORDER = ['district', 'tehsil', 'revenue_village', 'village_name', 'village_code', 'pargana', 'crop_year', 'khata_number'];
+const CORE_FIELD_KEYS = new Set(CORE_FIELD_ORDER);
+const HIDDEN_REVIEW_FIELD_KEYS = new Set(['lekhpal_name']);
+const PRIMARY_PARCEL_KEYS = new Set(['plot_number', 'holder_name', 'guardian_name', 'share', 'area']);
 const safeErrorMessage = (error) => {
   const message = String(error?.message || '');
   return /(?:\bat\s+\w+\s*\(|traceback|[A-Za-z]:\\|\/[^\s]+\.(?:py|js))/i.test(message)
     ? 'We could not complete that request. Check the record and try again.'
     : message || 'We could not complete that request. Please try again.';
 };
+const confidenceText = (value) => value === null || value === undefined
+  ? 'Unavailable'
+  : `${Math.round(value)}% · ${value < LOW_CONFIDENCE_THRESHOLD ? 'Low' : value < 85 ? 'Medium' : 'High'}`;
 const FIELD_GROUPS = [
   ['Location Details', /district|tehsil|village|pargana|state|location/i],
   ['Record Details', /khata|gata|khasra|plot|area|share|land|revenue|year|number|serial/i],
@@ -36,6 +43,19 @@ function groupedFields(items) {
     (index === -1 ? other : groups[index][1]).push(field);
   });
   return [...groups.filter(([, fields]) => fields.length), ...(other.length ? [['Other Details', other]] : [])];
+}
+function visibleReviewField(field) {
+  return !HIDDEN_REVIEW_FIELD_KEYS.has(schemaKeyOf(field));
+}
+function parcelColumns(table) {
+  const columns = table.headers.map((header) => ({
+    ...header,
+    schemaKey: schemaKeyOf(table.rows.flatMap(row => row.cells).find(cell => cell.column_index === header.column_index)),
+  }));
+  const typeColumn = columns.find(column => column.schemaKey === 'land_type') || columns.find(column => column.schemaKey === 'land_category');
+  const matched = columns.filter(column => PRIMARY_PARCEL_KEYS.has(column.schemaKey) || column.column_index === typeColumn?.column_index);
+  const primary = matched.length ? matched : columns.slice(0, 6);
+  return {primary, secondary: columns.filter(column => !primary.some(item => item.column_index === column.column_index))};
 }
 function normalizeDigitization(payload) {
   const items = Array.isArray(payload?.items) ? payload.items : [];
@@ -80,6 +100,11 @@ function SourceDocument({ document, processedPath, sourceMode, setSourceMode, zo
   const showHighlight = Boolean(box && compatibleVariant && !isPdf);
   const stageStyle = naturalSize.width ? {width: naturalSize.width * displayScale, height: naturalSize.height * displayScale} : undefined;
   const boxStyle = showHighlight ? {left: box.left * displayScale, top: box.top * displayScale, width: Math.max(3, box.width * displayScale), height: Math.max(3, box.height * displayScale)} : undefined;
+  const selectedValidation = selectedEvidence?.validation?.status;
+  const ruleCheck = selectedValidation === 'PASS' ? 'Pass'
+    : selectedValidation === 'NEEDS_REVIEW' ? 'Needs Review'
+      : selectedValidation === 'UNRESOLVED' ? 'Unresolved'
+        : 'Not available';
 
   useEffect(() => {
     if (!showHighlight || !canvasRef.current) return;
@@ -101,13 +126,18 @@ function SourceDocument({ document, processedPath, sourceMode, setSourceMode, zo
         <button onClick={() => { setFit(false); setZoom(1); }} type="button">Reset</button>
       </div>
     </div>
-    {selectedEvidence && <div className="source-evidence-info" role="status"><div><span className="eyebrow">SOURCE EVIDENCE</span><b>{selectedEvidence.label}</b></div><small><span>Recognized: {selectedEvidence.recognizedValue || 'Unavailable'}</span><span>Reviewed: {selectedEvidence.value || 'Blank'}</span><span>Recognition evidence: {selectedEvidence.confidence === null || selectedEvidence.confidence === undefined ? 'Unavailable' : `${Math.round(selectedEvidence.confidence)} / ${selectedEvidence.confidence < 65 ? 'Low' : selectedEvidence.confidence < 85 ? 'Medium' : 'High'}`}</span></small>{!selectedEvidence.boundingBox && <em>Source region unavailable for this value.</em>}{selectedEvidence.boundingBox && naturalSize.width > 0 && !box && <em>Stored source region is invalid or outside this image.</em>}{selectedEvidence.boundingBox && !compatibleVariant && <em>Open Enhanced view to display this recognition region accurately.</em>}</div>}
+    {selectedEvidence && <div className="source-evidence-info" role="status">
+      <div className="source-evidence-title"><span className="eyebrow">SELECTED EVIDENCE</span><b>{selectedEvidence.label}</b></div>
+      <dl><div><dt>Recognized</dt><dd>{selectedEvidence.recognizedValue || 'Unavailable'}</dd></div><div><dt>Reviewed</dt><dd>{selectedEvidence.value || 'Blank'}</dd></div><div><dt>Recognition Evidence</dt><dd>{confidenceText(selectedEvidence.confidence)}</dd></div><div><dt>Rule Check</dt><dd>{ruleCheck}</dd></div></dl>
+      {selectedEvidence.reasons?.length > 0 && <div className="source-evidence-reason"><b>Reason</b><span>{selectedEvidence.reasons.join(' · ')}</span></div>}
+      {!selectedEvidence.boundingBox && <em>Source mapping unavailable.</em>}{selectedEvidence.boundingBox && naturalSize.width > 0 && !box && <em>Stored source region is invalid or outside this image.</em>}{selectedEvidence.boundingBox && !compatibleVariant && <em>Open Enhanced view to display this recognition region accurately.</em>}
+    </div>}
     <div ref={canvasRef} className={`source-canvas ${fit ? 'fit' : ''}`}>
       {selectedPath ? (isPdf
         ? <AuthenticatedDocument documentId={document.id} variant={variant} isPdf title="Original uploaded PDF" alt="Actual uploaded Khatauni"/>
         : <div className="source-image-stage" style={stageStyle}>
           <AuthenticatedDocument documentId={document.id} variant={variant} alt="Actual uploaded Khatauni" onImageLoad={(event) => setNaturalSize({width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight})}/>
-          {showHighlight && <div className="source-evidence-highlight" style={boxStyle} aria-label={`Selected source evidence for ${selectedEvidence.label}`}><span>{selectedEvidence.label}</span></div>}
+          {showHighlight && <div className="source-evidence-highlight" style={boxStyle} role="img" aria-label={`Highlighted source evidence for ${selectedEvidence.label}`}/>}
         </div>) : <FileText size={46} />}
     </div>
     {processingActions}
@@ -149,7 +179,7 @@ function cellEvidence(cell, row, header, rowOrder = row.row_index) {
   return evidenceEntity(cell, 'cell', label, 1000 + rowOrder * 100 + cell.column_index, plot);
 }
 function collectEvidenceEntities(digitization) {
-  const fields = digitization.items.map((field, index) => evidenceEntity(
+  const fields = digitization.items.filter(visibleReviewField).map((field, index) => evidenceEntity(
     field, 'field', bilingualKhatauniLabel(field.original_label || field.normalized_label || 'Field'), index,
   ));
   const rows = digitization.table?.rows || [];
@@ -235,8 +265,16 @@ function ValidationSummaryCard({ruleValidation, crossValidation, structuredDupli
   </section>;
 }
 
-function EvidenceButton({evidence, onSelect}) {
-  return <button type="button" className="evidence-link" aria-label={`${evidence.boundingBox ? 'Show source evidence' : 'Source region unavailable'} for ${evidence.label}`} onMouseDown={(event) => event.preventDefault()} onClick={(event) => { event.preventDefault(); event.stopPropagation(); onSelect(evidence); }}><LocateFixed size={12}/>{evidence.boundingBox ? 'Show source' : 'Source unavailable'}</button>;
+function ValidationIssueBadge({validation}) {
+  const status = validation?.status;
+  if (!status || status === 'PASS' || status === 'UNAVAILABLE') return null;
+  return <span className={`rule-issue-badge ${status.toLowerCase().replaceAll('_', '-')}`}><AlertTriangle size={11}/>{status === 'UNRESOLVED' ? 'Unresolved' : `Rule check · ${status.replaceAll('_', ' ')}`}</span>;
+}
+
+function EvidenceButton({evidence, onSelect, compact = false}) {
+  const available = Boolean(evidence.boundingBox);
+  const label = `${available ? 'Show source evidence' : 'Source evidence unavailable'} for ${evidence.label}`;
+  return <button type="button" className={`evidence-link ${compact ? 'compact' : ''} ${available ? 'available' : 'unavailable'}`} aria-label={label} title={label} onMouseDown={(event) => event.preventDefault()} onClick={(event) => { event.preventDefault(); event.stopPropagation(); onSelect(evidence); }}>{available ? <LocateFixed size={compact ? 14 : 12}/> : <span aria-hidden="true">⊘</span>}{!compact && available ? 'Show source' : null}</button>;
 }
 
 function ReviewIssueNavigator({issues, activeIndex, onNavigate}) {
@@ -249,9 +287,28 @@ function ReviewIssueNavigator({issues, activeIndex, onNavigate}) {
   </section>;
 }
 
+function StructuredField({field, typingMode, work, drafts, selectedEvidence, onSelectEvidence, onFieldChange}) {
+  const label = bilingualKhatauniLabel(field.original_label || field.normalized_label || 'Field');
+  const draftKey = `field-${field.id}`;
+  const evidence = {...evidenceEntity(field, 'field', label, field.display_order || 0), value: hasDraft(drafts, draftKey) ? drafts[draftKey] : valueOf(field)};
+  const inputProps = {onFocus: () => onSelectEvidence(evidence), disabled: Boolean(work)};
+  return <label className={`khatauni-field ${selectedEvidence?.key === evidence.key ? 'evidence-selected' : ''}`} data-field-id={field.id} data-evidence-entity={`field-${field.id}`}>
+    <span>{label}</span>
+    {supportsHindiPhoneticInput(label)
+      ? <HindiPhoneticInput {...inputProps} key={`${field.id}-${valueOf(field)}`} defaultValue={valueOf(field)} hindiMode={typingMode === 'hi'} placeholder="स्वचालित रूप से पता नहीं चला / Not automatically detected" onValueChange={value => onFieldChange(field, value)} onCommit={value => value !== String(valueOf(field)) && onFieldChange(field, value)}/>
+      : <input {...inputProps} key={`${field.id}-${valueOf(field)}`} defaultValue={valueOf(field)} placeholder="स्वचालित रूप से पता नहीं चला / Not automatically detected" onBlur={(event) => event.target.value !== String(valueOf(field)) && onFieldChange(field, event.target.value)}/>}
+    <small className="recognition-indicators">{field.ai_confidence !== null && field.ai_confidence !== undefined && <ConfidenceBadge value={field.ai_confidence}/>}<ValidationIssueBadge validation={validationOf(field)}/><EvidenceButton evidence={evidence} onSelect={onSelectEvidence}/></small>
+    {hasDraft(drafts, draftKey) && <em title={`Original OCR: ${ocrValueOf(field) || 'Blank'}`}><span className="edited-tag">Edited</span> Unsaved correction</em>}
+    {field.officer_value !== null && field.officer_value !== undefined && <em><span className="edited-tag">Edited</span> OCR: {ocrValueOf(field) || 'रिक्त / Blank'}</em>}
+  </label>;
+}
+
 function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, typingMode, setTypingMode, drafts, isDirty, error, selectedEvidence, onSelectEvidence, onFieldChange, onCellChange, onAddRow, onDeleteRow, onSave, onNeedsReview, onVerify, onReject }) {
   const { items, table } = digitization;
-  const fieldGroups = groupedFields(items);
+  const visibleItems = items.filter(visibleReviewField);
+  const coreItems = visibleItems.filter(field => CORE_FIELD_KEYS.has(schemaKeyOf(field))).sort((left, right) => CORE_FIELD_ORDER.indexOf(schemaKeyOf(left)) - CORE_FIELD_ORDER.indexOf(schemaKeyOf(right)));
+  const additionalItems = visibleItems.filter(field => !CORE_FIELD_KEYS.has(schemaKeyOf(field)));
+  const fieldGroups = groupedFields(coreItems);
   if (digitizationLoading) return <section className="card khatauni-pane khatauni-loading" aria-label="Loading structured record"><div className="section-head"><div><div className="eyebrow">DIGITAL KHATAUNI</div><h3>Loading structured record…</h3><p>The source record remains available while extracted fields load.</p></div></div><div className="khatauni-fields"><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/><span className="skeleton-block skeleton-khatauni-field"/></div><div className="skeleton-block skeleton-khatauni-table"/></section>;
   return <section className="card khatauni-pane structured-pane">
     <div className="section-head"><div><div className="eyebrow">STRUCTURED / EXTRACTED RECORD</div><h3>Structured Record</h3><p>Review and correct the extracted record beside the source document.</p></div>{!isTerminal && <div className="typing-mode" role="group" aria-label="Correction typing mode"><span>Typing</span><button type="button" className={typingMode === 'en' ? 'active' : ''} aria-pressed={typingMode === 'en'} onClick={() => setTypingMode('en')}>EN</button><button type="button" className={typingMode === 'hi' ? 'active' : ''} aria-pressed={typingMode === 'hi'} onClick={() => setTypingMode('hi')}>हिंदी</button></div>}</div>
@@ -260,13 +317,8 @@ function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, 
       const field = items.find((item) => String(item.id) === fieldId);
       if (field) onFieldChange(field, event.target.value);
     }}>
-      {items.length ? fieldGroups.map(([title, fields]) => <section className="field-group" key={title}><h4>{title}</h4>{fields.map((field) => <label className={`khatauni-field ${selectedEvidence?.key === `field:${field.id}` ? 'evidence-selected' : ''}`} data-field-id={field.id} data-evidence-entity={`field-${field.id}`} key={field.id}>
-        <span>{bilingualKhatauniLabel(field.original_label)}</span>
-        {supportsHindiPhoneticInput(bilingualKhatauniLabel(field.original_label)) ? <HindiPhoneticInput key={`${field.id}-${valueOf(field)}`} defaultValue={valueOf(field)} hindiMode={typingMode === 'hi'} placeholder="स्वचालित रूप से पता नहीं चला / Not automatically detected" onValueChange={value => onFieldChange(field, value)} onCommit={value => value !== String(valueOf(field)) && onFieldChange(field, value)} disabled={Boolean(work)} /> : <input key={`${field.id}-${valueOf(field)}`} defaultValue={valueOf(field)} placeholder="स्वचालित रूप से पता नहीं चला / Not automatically detected" onBlur={(event) => event.target.value !== String(valueOf(field)) && onFieldChange(field, event.target.value)} disabled={Boolean(work)} />}
-        <small className="recognition-indicators"><span className="indicator-label">Recognition evidence</span><ConfidenceBadge value={field.ai_confidence} /><ValidationBadge validation={validationOf(field)} /><EvidenceButton evidence={evidenceEntity(field, 'field', bilingualKhatauniLabel(field.original_label || field.normalized_label || 'Field'), field.display_order || 0)} onSelect={onSelectEvidence}/></small>
-        {hasDraft(drafts, `field-${field.id}`) && <em title={`Original OCR: ${ocrValueOf(field) || 'Blank'}`}><span className="edited-tag">Edited</span> Unsaved correction</em>}
-        {field.officer_value !== null && field.officer_value !== undefined && <em><span className="edited-tag">Edited</span> OCR: {ocrValueOf(field) || 'रिक्त / Blank'}</em>}
-      </label>)}</section>) : <div className="khatauni-empty">Extract Khatauni Data to create the empty schema and populate OCR matches.</div>}
+      {coreItems.length ? fieldGroups.map(([title, fields]) => <section className="field-group" key={title}><h4>{title}</h4>{fields.map((field) => <StructuredField key={field.id} field={field} typingMode={typingMode} work={work} drafts={drafts} selectedEvidence={selectedEvidence} onSelectEvidence={onSelectEvidence} onFieldChange={onFieldChange}/>)}</section>) : <div className="khatauni-empty">Extract Khatauni Data to create the core record fields.</div>}
+      {additionalItems.length > 0 && <details className="secondary-record-fields"><summary>Additional record details <span>{additionalItems.length}</span></summary><div>{additionalItems.map(field => <StructuredField key={field.id} field={field} typingMode={typingMode} work={work} drafts={drafts} selectedEvidence={selectedEvidence} onSelectEvidence={onSelectEvidence} onFieldChange={onFieldChange}/>)}</div></details>}
     </div>
     <div className="khatauni-table-head"><div><b>Land Parcel Details</b><small>Rows originate from OCR; manual rows are explicitly marked.</small></div><Button variant="secondary" onClick={onAddRow} disabled={!table?.id || Boolean(work)}><Plus size={14} /> Add Row</Button></div>
     {table ? <div className="table-wrap khatauni-table-wrap"><table className="data-table khatauni-table">
@@ -281,7 +333,7 @@ function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, 
         return <tr key={row.row_index} data-row-index={row.row_index}>{table.headers.map((header) => {
           const cell = row.cells.find((candidate) => candidate.column_index === header.column_index);
           const supportsHindi = supportsHindiPhoneticInput(bilingualKhatauniLabel(header.label));
-          return <td key={header.column_index} className={cell && hasDraft(drafts, `cell-${cell.id}`) ? 'has-unsaved-correction' : ''}>{cell ? <div className="khatauni-cell">{supportsHindi ? <HindiPhoneticInput key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} hindiMode={typingMode === 'hi'} placeholder="मान दर्ज करें / Enter Value" onValueChange={value => onCellChange(cell, value)} onCommit={value => value !== String(valueOf(cell)) && onCellChange(cell, value)} disabled={Boolean(work)} /> : <input key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} placeholder="मान दर्ज करें / Enter Value" onBlur={(event) => event.target.value !== String(valueOf(cell)) && onCellChange(cell, event.target.value)} disabled={Boolean(work)} />}<span className="recognition-indicators"><ConfidenceBadge value={cell.ai_confidence} /><ValidationBadge validation={validationOf(cell)} /></span>{cell.officer_value !== null && cell.officer_value !== undefined && <small><span className="edited-tag">Edited</span> OCR: {ocrValueOf(cell) || 'रिक्त / Blank'}</small>}</div> : <span className="empty-cell">रिक्त / Blank</span>}</td>;
+          return <td key={header.column_index} className={cell && hasDraft(drafts, `cell-${cell.id}`) ? 'has-unsaved-correction' : ''}>{cell ? <div className="khatauni-cell">{supportsHindi ? <HindiPhoneticInput key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} hindiMode={typingMode === 'hi'} placeholder="मान दर्ज करें / Enter Value" onValueChange={value => onCellChange(cell, value)} onCommit={value => value !== String(valueOf(cell)) && onCellChange(cell, value)} disabled={Boolean(work)} /> : <input key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} placeholder="मान दर्ज करें / Enter Value" onBlur={(event) => event.target.value !== String(valueOf(cell)) && onCellChange(cell, event.target.value)} disabled={Boolean(work)} />}<span className="recognition-indicators">{cell.ai_confidence !== null && cell.ai_confidence !== undefined && <ConfidenceBadge value={cell.ai_confidence}/>}<ValidationIssueBadge validation={validationOf(cell)}/></span>{cell.officer_value !== null && cell.officer_value !== undefined && <small><span className="edited-tag">Edited</span> OCR: {ocrValueOf(cell) || 'रिक्त / Blank'}</small>}</div> : <span className="empty-cell">रिक्त / Blank</span>}</td>;
         })}<td><span className={`source-tag ${manual ? 'manual' : 'ocr'}`}>{manual ? 'Added by Officer' : 'OCR'}</span><button className="table-delete-button" type="button" onClick={() => onDeleteRow(row)} disabled={Boolean(work)}><Trash2 size={13} /> Delete row</button></td></tr>;
       }) : <tr><td colSpan={table.headers.length + 1} className="dynamic-empty-row">कोई पंक्ति विश्वसनीय रूप से नहीं मिली। सही पंक्ति अधिकारी जोड़ सकते हैं। / No row was detected reliably. An officer can add the correct row.</td></tr>}</tbody>
     </table></div> : <div className="khatauni-empty">No Khatauni table has been extracted yet.</div>}
@@ -289,39 +341,64 @@ function DigitalKhatauni({ digitization, digitizationLoading, work, isTerminal, 
   </section>;
 }
 
-function LandParcelReview({digitization, work, isTerminal, typingMode, drafts, selectedEvidence, onSelectEvidence, onCellChange, onAddRow, onDeleteRow}) {
+function ParcelCell({cell, row, header, typingMode, work, drafts, selectedEvidence, onSelectEvidence, onCellChange, detail = false}) {
+  if (!cell) return <span className="empty-cell">Blank</span>;
+  const label = bilingualKhatauniLabel(header.label);
+  const draftKey = `cell-${cell.id}`;
+  const evidence = {...cellEvidence(cell, row, header), value: hasDraft(drafts, draftKey) ? drafts[draftKey] : valueOf(cell)};
+  const inputProps = {onFocus: () => onSelectEvidence(evidence), disabled: Boolean(work)};
+  return <div className={`khatauni-cell parcel-cell ${detail ? 'detail' : ''} ${selectedEvidence?.key === evidence.key ? 'evidence-selected' : ''}`} data-evidence-entity={`cell-${cell.id}`}>
+    <div className="parcel-value-row">
+      {supportsHindiPhoneticInput(label)
+        ? <HindiPhoneticInput {...inputProps} key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} hindiMode={typingMode === 'hi'} placeholder="मान दर्ज करें / Enter value" onValueChange={value => onCellChange(cell, value)} onCommit={value => value !== String(valueOf(cell)) && onCellChange(cell, value)}/>
+        : <input {...inputProps} key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} placeholder="Enter value" onChange={event => onCellChange(cell, event.target.value)}/>}
+      <EvidenceButton evidence={evidence} onSelect={onSelectEvidence} compact/>
+    </div>
+    {cell.ai_confidence !== null && cell.ai_confidence !== undefined && <span className="cell-confidence"><ConfidenceBadge value={cell.ai_confidence}/></span>}
+    {hasDraft(drafts, draftKey) && <small><span className="edited-tag">Edited</span> Unsaved</small>}
+    {!hasDraft(drafts, draftKey) && cell.officer_value !== null && cell.officer_value !== undefined && <small title={`Original OCR: ${ocrValueOf(cell) || 'Blank'}`}><span className="edited-tag">Edited</span> OCR retained</small>}
+  </div>;
+}
+
+function LandParcelReview({digitization, work, isTerminal, typingMode, drafts, selectedEvidence, reviewIssues, onSelectEvidence, onSelectIssue, onCellChange, onAddRow, onDeleteRow}) {
   const {table} = digitization;
+  const [expandedRows, setExpandedRows] = useState({});
   if (!table) return <section className="card land-table-pane"><div className="section-head"><div><div className="eyebrow">LAND RECORD REVIEW</div><h3>Khatauni / Land Parcel Table</h3></div></div><div className="khatauni-empty">No Khatauni table has been extracted yet.</div></section>;
+  const {primary, secondary} = parcelColumns(table);
+  const toggleRow = rowIndex => setExpandedRows(current => ({...current, [rowIndex]: !current[rowIndex]}));
   return <section className="card land-table-pane">
-    <div className="section-head land-table-head"><div><div className="eyebrow">LAND RECORD REVIEW</div><h3>Khatauni / Land Parcel Table</h3><p>Review parcel details, then record the officer decision alongside this table.</p></div>{!isTerminal && <Button variant="secondary" onClick={onAddRow} disabled={!table.id || Boolean(work)}><Plus size={14} /> Add Row</Button>}</div>
-    <div className="table-wrap khatauni-table-wrap"><table className="data-table khatauni-table">
-      <thead><tr>{table.headers.map((header) => <th key={header.column_index}>{bilingualKhatauniLabel(header.label)}</th>)}<th>Status</th></tr></thead>
-      <tbody onChangeCapture={(event) => {
-        const rowIndex = Number(event.target.closest('tr')?.dataset.rowIndex);
-        const columnIndex = event.target.closest('td')?.cellIndex;
-        const cell = table.rows.find((row) => row.row_index === rowIndex)?.cells.find((candidate) => candidate.column_index === columnIndex);
-        if (cell) onCellChange(cell, event.target.value);
-      }}>{table.rows.length ? table.rows.map((row) => {
+    <div className="section-head land-table-head"><div><div className="eyebrow">LAND RECORD REVIEW</div><h3>Khatauni / Land Parcel Table</h3><p>Core parcel values stay visible; expand a row for secondary record details.</p></div>{!isTerminal && <Button variant="secondary" onClick={onAddRow} disabled={!table.id || Boolean(work)}><Plus size={14} /> Add Parcel</Button>}</div>
+    <div className="table-wrap khatauni-table-wrap"><table className="data-table khatauni-table simplified-parcel-table">
+      <thead><tr>{primary.map((header) => <th key={header.column_index}>{bilingualKhatauniLabel(header.label)}</th>)}<th>Review</th></tr></thead>
+      <tbody>{table.rows.length ? table.rows.map((row) => {
         const manual = row.cells.length > 0 && row.cells.every((cell) => cell.confidence_source === 'officer_manual');
-        return <tr key={row.row_index} data-row-index={row.row_index}>{table.headers.map((header) => {
-          const cell = row.cells.find((candidate) => candidate.column_index === header.column_index);
-          const supportsHindi = supportsHindiPhoneticInput(bilingualKhatauniLabel(header.label));
-          return <td key={header.column_index} className={cell && hasDraft(drafts, `cell-${cell.id}`) ? 'has-unsaved-correction' : ''}>{cell ? <div className={`khatauni-cell ${selectedEvidence?.key === `cell:${cell.id}` ? 'evidence-selected' : ''}`} data-evidence-entity={`cell-${cell.id}`}>{supportsHindi ? <HindiPhoneticInput key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} hindiMode={typingMode === 'hi'} placeholder="मान दर्ज करें / Enter value" onValueChange={(value) => onCellChange(cell, value)} onCommit={(value) => value !== String(valueOf(cell)) && onCellChange(cell, value)} disabled={Boolean(work)} /> : <input key={`${cell.id}-${valueOf(cell)}`} defaultValue={valueOf(cell)} placeholder="Enter value" onBlur={(event) => event.target.value !== String(valueOf(cell)) && onCellChange(cell, event.target.value)} disabled={Boolean(work)} />}<span className="recognition-indicators"><ConfidenceBadge value={cell.ai_confidence} /><ValidationBadge validation={validationOf(cell)} /><EvidenceButton evidence={cellEvidence(cell, row, header)} onSelect={onSelectEvidence}/></span>{cell.officer_value !== null && cell.officer_value !== undefined && <small title={`Original OCR: ${ocrValueOf(cell) || 'Blank'}`}><span className="edited-tag">Edited</span> OCR value available</small>}</div> : <span className="empty-cell">Blank</span>}</td>;
-        })}<td><span className={`source-tag ${manual ? 'manual' : 'ocr'}`}>{manual ? 'Added by Officer' : 'OCR'}</span>{!isTerminal && <button className="table-delete-button" type="button" onClick={() => onDeleteRow(row)} disabled={Boolean(work)}><Trash2 size={13} /> Delete row</button>}</td></tr>;
-      }) : <tr><td colSpan={table.headers.length + 1} className="dynamic-empty-row">No row was detected reliably. An officer can add the correct row.</td></tr>}</tbody>
+        const rowIssues = reviewIssues.filter(issue => issue.evidence.entityType === 'cell' && issue.evidence.rowIndex === row.row_index);
+        const unresolved = rowIssues.some(issue => issue.reasons.some(reason => reason.toLowerCase().includes('unresolved')));
+        const selectedInSecondary = selectedEvidence?.entityType === 'cell' && selectedEvidence.rowIndex === row.row_index && secondary.some(header => header.column_index === selectedEvidence.columnIndex);
+        const expanded = Boolean(expandedRows[row.row_index] || selectedInSecondary);
+        return <Fragment key={row.row_index}>
+          <tr data-row-index={row.row_index}>{primary.map((header) => {
+            const cell = row.cells.find(candidate => candidate.column_index === header.column_index);
+            return <td key={header.column_index} className={cell && hasDraft(drafts, `cell-${cell.id}`) ? 'has-unsaved-correction' : ''}><ParcelCell cell={cell} row={row} header={header} typingMode={typingMode} work={work} drafts={drafts} selectedEvidence={selectedEvidence} onSelectEvidence={onSelectEvidence} onCellChange={onCellChange}/></td>;
+          })}<td className="parcel-review-cell"><span className={`source-tag ${manual ? 'manual' : 'ocr'}`}>{manual ? 'Officer' : 'OCR'}</span>{rowIssues.length ? <button type="button" className={`row-review-status issue ${unresolved ? 'unresolved' : ''}`} onClick={() => onSelectIssue(rowIssues[0])}><AlertTriangle size={13}/>{unresolved ? 'Unresolved' : `${rowIssues.length} issue${rowIssues.length === 1 ? '' : 's'}`}</button> : <span className="row-review-status clear"><CheckCircle size={13}/> Clear</span>}{secondary.length > 0 && <button type="button" className="row-details-toggle" aria-expanded={expanded} onClick={() => toggleRow(row.row_index)}>{expanded ? 'Hide details' : 'View details'}</button>}{!isTerminal && <button className="table-delete-button compact" type="button" onClick={() => onDeleteRow(row)} disabled={Boolean(work)} aria-label={`Delete parcel row ${row.row_index + 1}`}><Trash2 size={13}/> Delete</button>}</td></tr>
+          {expanded && secondary.length > 0 && <tr className="parcel-detail-row"><td colSpan={primary.length + 1}><div className="parcel-detail-grid">{secondary.map(header => {
+            const cell = row.cells.find(candidate => candidate.column_index === header.column_index);
+            return <div className="parcel-detail-field" key={header.column_index}><span>{bilingualKhatauniLabel(header.label)}</span><ParcelCell cell={cell} row={row} header={header} typingMode={typingMode} work={work} drafts={drafts} selectedEvidence={selectedEvidence} onSelectEvidence={onSelectEvidence} onCellChange={onCellChange} detail/></div>;
+          })}</div></td></tr>}
+        </Fragment>;
+      }) : <tr><td colSpan={primary.length + 1} className="dynamic-empty-row">No row was detected reliably. An officer can add the correct row.</td></tr>}</tbody>
     </table></div>
   </section>;
 }
 
-function OfficerDecisionPanel({digitization, drafts, isDirty, error, work, isTerminal, onSave, onNeedsReview, onVerify, onReject}) {
+function OfficerDecisionPanel({digitization, drafts, reviewIssues, isDirty, error, work, isTerminal, onSave, onNeedsReview, onVerify, onReject}) {
   if (isTerminal) return null;
-  const entries = [...digitization.items, ...(digitization.table?.cells || [])];
+  const entries = [...digitization.items.filter(visibleReviewField), ...(digitization.table?.cells || [])];
   const edited = new Set([...Object.keys(drafts), ...entries.filter((entry) => entry.officer_value !== null && entry.officer_value !== undefined).map((entry) => `${entry.table_id ? 'cell' : 'field'}-${entry.id}`)]).size;
   const lowConfidence = entries.filter((entry) => entry.ai_confidence !== null && entry.ai_confidence !== undefined && entry.ai_confidence < 65).length;
-  const needsReview = entries.filter((entry) => ['NEEDS_REVIEW', 'UNRESOLVED'].includes(validationOf(entry)?.status)).length;
   return <aside className="card officer-decision-panel" aria-label="Officer decision">
     <div className="officer-decision-head"><div className="eyebrow">OFFICER REVIEW</div><h3>Decision</h3></div>
-    <dl className="decision-summary"><div><dt>Edited fields</dt><dd>{edited}</dd></div><div><dt>Low confidence</dt><dd>{lowConfidence}</dd></div><div><dt>Needs review</dt><dd>{needsReview}</dd></div></dl>
+    <dl className="decision-summary"><div><dt>Edited fields</dt><dd>{edited}</dd></div><div><dt>Low evidence</dt><dd>{lowConfidence}</dd></div><div><dt>Review issues</dt><dd>{reviewIssues.length}</dd></div></dl>
     <div className={`decision-dirty ${isDirty ? 'is-dirty' : ''}`}>{isDirty ? 'Unsaved changes' : 'All corrections saved'}</div>
     {error && <p className="review-action-error" role="alert">{error}</p>}
     <div className="decision-actions"><Button variant="secondary" onClick={onSave} loading={work === 'save-corrections'} loadingText="Saving…" disabled={!isDirty || Boolean(work)}><Save size={15} /> Save Corrections</Button><Button variant="secondary" onClick={onNeedsReview} disabled={isDirty || Boolean(work)}><AlertTriangle size={15} /> Needs Review</Button><hr/><Button onClick={onVerify} disabled={!digitization.items.length || !digitization.table || isDirty || Boolean(work)}><CheckCircle size={15} /> Verify Record</Button><Button variant="danger" onClick={onReject} disabled={isDirty || Boolean(work)}><XCircle size={15} /> Reject</Button></div>
@@ -380,7 +457,16 @@ export default function Review() {
       setSelectedEvidence(current => current?.selectionSource === 'issue' ? null : current);
       return;
     }
-    if (reviewIssues.some(issue => issue.key === activeIssueKey)) return;
+    const activeIssue = reviewIssues.find(issue => issue.key === activeIssueKey);
+    if (activeIssue) {
+      setSelectedEvidence(current => {
+        if (current?.selectionSource !== 'issue' || current.key !== activeIssue.evidence.key) return current;
+        const sameReasons = (current.reasons || []).join('\n') === activeIssue.reasons.join('\n');
+        const sameValue = current.value === activeIssue.evidence.value && current.validation === activeIssue.evidence.validation;
+        return sameReasons && sameValue ? current : {...activeIssue.evidence, reasons: activeIssue.reasons, selectionSource: 'issue'};
+      });
+      return;
+    }
     const first = reviewIssues[0];
     setActiveIssueKey(first.key);
     setSelectedEvidence({...first.evidence, reasons: first.reasons, selectionSource: 'issue'});
@@ -463,6 +549,8 @@ export default function Review() {
     if (!evidence || evidence.entityType === 'record') return;
     window.requestAnimationFrame(() => {
       const target = window.document.querySelector(`[data-evidence-entity="${evidence.entityType}-${evidence.entityId}"]`);
+      const disclosure = target?.closest('details');
+      if (disclosure && !disclosure.open) disclosure.open = true;
       const scroller = target?.closest(evidence.entityType === 'cell' ? '.khatauni-table-wrap' : '.structured-pane');
       if (!target || !scroller) return;
       const targetRect = target.getBoundingClientRect();
@@ -476,8 +564,8 @@ export default function Review() {
   }
 
   function selectEvidence(evidence) {
-    setSelectedEvidence({...evidence, selectionSource: 'manual'});
     const matchingIssue = reviewIssues.find(issue => issue.evidence.key === evidence.key);
+    setSelectedEvidence({...evidence, reasons: matchingIssue?.reasons || [], selectionSource: 'manual'});
     if (matchingIssue) setActiveIssueKey(matchingIssue.key);
     scrollStructuredEvidence(evidence);
   }
@@ -551,7 +639,7 @@ export default function Review() {
     <ValidationSummaryCard ruleValidation={ruleValidation} crossValidation={crossValidation} structuredDuplicate={structuredDuplicate} loading={validationLoading}/>
     <ReviewIssueNavigator issues={reviewIssues} activeIndex={activeIssueIndex} onNavigate={navigateReviewIssue}/>
     <div className="review-workbench"><SourceDocument document={sourceDocument} processedPath={processedPath} sourceMode={sourceMode} setSourceMode={setSourceMode} zoom={zoom} setZoom={setZoom} fit={fit} setFit={setFit} processingActions={processingActions} selectedEvidence={selectedEvidence}/><DigitalKhatauni digitization={digitization} digitizationLoading={isTerminal ? false : digitizationLoading} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} setTypingMode={setTypingMode} drafts={drafts} isDirty={isDirty} error={error} selectedEvidence={selectedEvidence} onSelectEvidence={selectEvidence} onFieldChange={updateField} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)} /></div>
-    <section className={`land-review-layout ${isTerminal ? 'terminal-land-review' : ''}`}><LandParcelReview digitization={digitization} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} drafts={drafts} selectedEvidence={selectedEvidence} onSelectEvidence={selectEvidence} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow}/><OfficerDecisionPanel digitization={digitization} drafts={drafts} isDirty={isDirty} error={error} work={work} isTerminal={isTerminal} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)}/></section>
+    <section className={`land-review-layout ${isTerminal ? 'terminal-land-review' : ''}`}><LandParcelReview digitization={digitization} work={isTerminal ? 'read-only' : work} isTerminal={isTerminal} typingMode={typingMode} drafts={drafts} selectedEvidence={selectedEvidence} reviewIssues={reviewIssues} onSelectEvidence={selectEvidence} onSelectIssue={(issue) => navigateReviewIssue(reviewIssues.findIndex(candidate => candidate.key === issue.key))} onCellChange={updateCell} onAddRow={addRow} onDeleteRow={deleteRow}/><OfficerDecisionPanel digitization={digitization} drafts={drafts} reviewIssues={reviewIssues} isDirty={isDirty} error={error} work={work} isTerminal={isTerminal} onSave={saveCorrections} onNeedsReview={() => isDirty ? setError('Save unsaved corrections before updating this review.') : setPendingDecision('mark-review')} onVerify={() => isDirty ? setError('Save unsaved corrections before verifying this record.') : setPendingDecision('approve')} onReject={() => isDirty ? setError('Save unsaved corrections before rejecting this record.') : setRejectOpen(true)}/></section>
 
     {pendingDecision && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="decision-title"><div className="modal-card decision-modal"><div className="eyebrow">OFFICER DECISION</div><h3 id="decision-title">{pendingDecision === 'approve' ? 'Verify this record?' : 'Mark this record for further review?'}</h3><p><b>Submission #{submission.id || sourceDocument.id}</b></p><p>{pendingDecision === 'approve' ? 'Final decision: verification creates or updates the verified digital record using the reviewed values.' : 'The record remains in the review queue for a later decision.'}</p>{error && <p className="review-action-error" role="alert">{error}</p>}<div className="actions"><Button variant="secondary" onClick={() => setPendingDecision('')} disabled={Boolean(work)}>Cancel</Button><Button onClick={() => decide(pendingDecision)} loading={work === pendingDecision} loadingText={pendingDecision === 'approve' ? 'Verifying…' : 'Updating…'} disabled={Boolean(work)}>{pendingDecision === 'approve' ? 'Verify Record' : 'Mark Needs Review'}</Button></div></div></div>}
     {rejectOpen && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reject-title"><div className="modal-card decision-modal"><div className="eyebrow">OFFICER DECISION</div><h3 id="reject-title">Reject this record?</h3><p><b>Submission #{submission.id || sourceDocument.id}</b></p><p>Final decision: rejection is recorded in the audit trail and shown to the submitting citizen.</p><div className="field"><label>Reason Category</label><select value={reasonCategory} onChange={event => setReasonCategory(event.target.value)} disabled={Boolean(work)}><option value="">Select a reason</option>{['Poor Scan Quality', 'Incomplete Document', 'Incorrect Document', 'Unreadable Information', 'Duplicate Submission', 'Information Mismatch', 'Other'].map(reason => <option key={reason}>{reason}</option>)}</select></div><div className="field"><label>Officer Note {reasonCategory === 'Other' ? '(required)' : '(optional)'}</label><textarea value={officerNote} onChange={event => setOfficerNote(event.target.value)} placeholder="Explain what the citizen needs to correct." disabled={Boolean(work)}/></div>{error && <p className="review-action-error" role="alert">{error}</p>}<div className="actions" style={{marginTop: 16}}><Button variant="secondary" onClick={() => setRejectOpen(false)} disabled={Boolean(work)}>Cancel</Button><Button variant="danger" loading={work === 'reject'} loadingText="Rejecting…" disabled={!reasonCategory || (reasonCategory === 'Other' && !officerNote.trim()) || Boolean(work)} onClick={() => decide('reject', {reason_category: reasonCategory, officer_note: officerNote.trim() || null})}>Confirm rejection</Button></div></div></div>}

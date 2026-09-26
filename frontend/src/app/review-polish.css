@@ -48,8 +48,8 @@
 .confidence-badge.high { background:#f0f4f2; color:#53696b; }
 .confidence-badge.medium { background:#fff6e7; color:#895b15; }
 .confidence-badge.low { background:#fae8e5; color:#a34840; }
-.confidence-badge.validation-badge { background:#edf1f6; color:#4c6279; }
-.confidence-badge.validation-badge.medium { background:#fff6e7; color:#895b15; }
+.rule-issue-badge { display:inline-flex; align-items:center; gap:4px; border-radius:4px; padding:3px 5px; background:#fff1da; color:#895b15; font-size:8px; font-weight:850; letter-spacing:.035em; text-transform:uppercase; }
+.rule-issue-badge.unresolved { background:#fae8e5; color:#a34840; }
 .edited-tag { display:inline-block; margin-right:4px; border-radius:3px; padding:1px 4px; background:#f5e7d4; color:#865314; font-size:9px; font-style:normal; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
 .khatauni-field>span,.khatauni-field em,.khatauni-cell small { overflow-wrap:anywhere; }
 .khatauni-table td.has-unsaved-correction { background:#fffaf1; }
@@ -179,17 +179,23 @@
 .review-issue-actions button:focus-visible,.evidence-link:focus-visible { outline:3px solid rgba(210,111,28,.24); outline-offset:2px; }
 .review-issue-actions button:disabled { opacity:.42; cursor:not-allowed; }
 
-.source-evidence-info { flex:none; display:grid; grid-template-columns:minmax(135px,.8fr) minmax(240px,1.4fr); gap:6px 14px; border-bottom:1px solid #e5dacb; padding:8px 16px; background:#fffaf2; }
-.source-evidence-info>div { display:grid; min-width:0; gap:1px; }
-.source-evidence-info b { overflow:hidden; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
-.source-evidence-info small { display:flex; flex-wrap:wrap; align-items:center; gap:5px 12px; color:#65584b; font-size:9px; }
+.source-evidence-info { flex:none; display:grid; grid-template-columns:minmax(130px,.55fr) minmax(250px,1.45fr); gap:7px 14px; border-bottom:1px solid #e5dacb; padding:9px 16px; background:#fffaf2; }
+.source-evidence-title { display:grid; align-content:start; min-width:0; gap:2px; }
+.source-evidence-title b { overflow:hidden; color:#34291f; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.source-evidence-info dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px 12px; margin:0; }
+.source-evidence-info dl div { min-width:0; }
+.source-evidence-info dt { color:#806648; font-size:8px; font-weight:850; letter-spacing:.045em; text-transform:uppercase; }
+.source-evidence-info dd { margin:1px 0 0; overflow:hidden; color:#493a2c; font-size:9px; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+.source-evidence-reason { grid-column:1/-1; display:flex; gap:7px; border-top:1px solid #eadfd2; padding-top:6px; color:#7c551c; font-size:9px; line-height:1.35; }
 .source-evidence-info em { grid-column:1/-1; color:#8a5d1b; font-size:9px; font-style:normal; }
 .source-canvas { padding:18px; }
 .source-image-stage { position:relative; flex:none; margin:auto; }
 .source-image-stage img { width:100%; height:100%; max-width:none; max-height:none; object-fit:fill; transform:none !important; }
-.source-evidence-highlight { position:absolute; z-index:2; border:2px solid #c95f16; outline:1px solid rgba(255,255,255,.92); background:rgba(238,133,40,.18); box-shadow:0 0 0 1px rgba(55,33,15,.2),0 3px 12px rgba(55,33,15,.18); pointer-events:none; }
-.source-evidence-highlight span { position:absolute; left:-2px; bottom:calc(100% + 4px); max-width:220px; overflow:hidden; border-radius:3px; padding:2px 5px; background:#9d4312; color:#fff; font-size:9px; font-weight:800; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+.source-evidence-highlight { position:absolute; z-index:2; border:1px solid rgba(180,101,10,.42); border-radius:3px; outline:0; background:rgba(244,177,42,.31); box-shadow:inset 0 0 0 1px rgba(255,232,160,.26); pointer-events:none; }
 .evidence-link { min-height:23px; margin-left:auto; padding:3px 6px; white-space:nowrap; }
+.evidence-link.unavailable { border-color:transparent; background:transparent; color:#978a7d; font-size:15px; }
+.evidence-link.compact { width:27px; min-width:27px; height:27px; min-height:27px; margin:0; border-radius:50%; padding:0; }
+.evidence-link.compact.available { border-color:#dcc8ad; background:#fffaf2; color:#a45a1b; }
 .evidence-selected { position:relative; z-index:1; outline:2px solid #d26f1c !important; outline-offset:1px; background:#fff6e9 !important; box-shadow:0 0 0 4px rgba(210,111,28,.11); }
 .khatauni-cell.evidence-selected { border-radius:4px; padding:5px; }
 
@@ -206,26 +212,52 @@
 .structured-pane .recognition-indicators { margin-top:4px; }
 .structured-pane .indicator-label { display:none; }
 .structured-pane .confidence-badge { padding:3px 5px; font-size:8px; }
+.secondary-record-fields { grid-column:1/-1; border-top:1px solid #e5dacb; padding-top:9px; }
+.secondary-record-fields>summary { width:max-content; cursor:pointer; color:#68492c; font-size:10px; font-weight:800; }
+.secondary-record-fields>summary span { display:inline-grid; min-width:19px; height:19px; margin-left:4px; place-items:center; border-radius:999px; background:#f3e8da; color:#70431d; font-size:9px; }
+.secondary-record-fields>div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 10px; margin-top:10px; }
+.secondary-record-fields .khatauni-field { padding:8px 9px; border:1px solid #e2d7c9; border-radius:6px; background:#fffdfa; }
 
 .land-review-layout { display:grid; grid-template-columns:minmax(0,70fr) minmax(260px,30fr); align-items:start; gap:18px; margin-top:4px; }
 .land-table-pane,.officer-decision-panel { min-width:0; border-color:#e4d8c8; }
 .land-table-head { min-height:72px; align-items:center; }
 .land-table-head .button { flex:none; }
 .land-table-pane .khatauni-table-wrap { max-height:min(66vh,680px); min-height:340px; overflow:auto; scrollbar-color:#c6af93 transparent; scrollbar-width:thin; }
-.land-table-pane .khatauni-table { min-width:720px; }
+.land-table-pane .khatauni-table { min-width:760px; }
 .land-table-pane .khatauni-table th { top:0; z-index:2; }
 .land-table-pane .khatauni-cell { gap:3px; }
-.land-table-pane .recognition-indicators { margin-top:1px; gap:3px; }
-.land-table-pane .validation-badge.high { display:none; }
 .land-table-pane .confidence-badge { padding:2px 4px; font-size:8px; }
-.land-table-pane .validation-badge.medium,.land-table-pane .validation-badge.unavailable { display:inline-flex; }
 .land-table-pane .source-tag { margin-bottom:3px; }
+.simplified-parcel-table th { min-width:116px; padding:9px 10px; }
+.simplified-parcel-table th:first-child { min-width:104px; }
+.simplified-parcel-table th:last-child { width:116px; min-width:116px; }
+.simplified-parcel-table td { padding:8px 9px; }
+.simplified-parcel-table td.has-unsaved-correction::before { display:none; }
+.parcel-cell { min-width:0; padding:2px; }
+.parcel-value-row { display:flex; align-items:center; gap:5px; }
+.parcel-value-row input { min-width:86px; min-height:34px; padding:7px 8px; font-size:10px; }
+.cell-confidence { display:flex; margin-top:1px; }
+.cell-confidence .confidence-badge { opacity:.86; font-size:7px; }
+.parcel-cell>small { color:#806648; font-size:8px; }
+.parcel-review-cell { min-width:116px; }
+.parcel-review-cell>* { margin-bottom:5px; }
+.row-review-status { display:inline-flex; align-items:center; gap:4px; width:max-content; border-radius:5px; padding:4px 6px; font-size:9px; font-weight:800; }
+button.row-review-status { border:1px solid #e1bf88; background:#fff5e3; color:#865d1d; cursor:pointer; }
+button.row-review-status:hover { border-color:var(--saffron); }
+.row-review-status.unresolved { border-color:#e7beb9; background:#fae9e6; color:#9a443d; }
+.row-review-status.clear { background:#edf5ef; color:#3e704f; }
+.row-details-toggle { display:block; border:0; padding:2px 0; background:transparent; color:#68492c; font:750 9px inherit; cursor:pointer; text-decoration:underline; text-decoration-color:#d8b993; text-underline-offset:3px; }
+.table-delete-button.compact { margin-top:0; font-size:9px; }
+.parcel-detail-row>td { padding:0 !important; background:#fbf6ee !important; }
+.parcel-detail-grid { display:grid; grid-template-columns:repeat(3,minmax(180px,1fr)); gap:10px; padding:13px 14px 15px; border-top:1px solid #eadfd2; border-bottom:1px solid #eadfd2; }
+.parcel-detail-field { display:grid; min-width:0; gap:4px; color:#665442; font-size:9px; font-weight:800; }
+.parcel-detail-grid .parcel-cell { border-radius:5px; background:#fff; }
 
 .officer-decision-panel { position:sticky; top:18px; padding:16px; background:#fffdf9; }
 .officer-decision-head h3 { margin:3px 0 0; font-size:18px; }
-.decision-summary { display:grid; grid-template-columns:1fr; gap:7px; margin:15px 0 13px; }
-.decision-summary div { display:flex; align-items:center; justify-content:space-between; padding-bottom:7px; border-bottom:1px solid #eee4d8; }
-.decision-summary dt { color:#6f6255; font-size:11px; }
+.decision-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin:13px 0; }
+.decision-summary div { display:grid; gap:2px; border:1px solid #eee4d8; border-radius:5px; padding:7px; background:#fff; }
+.decision-summary dt { color:#6f6255; font-size:8px; line-height:1.2; }
 .decision-summary dd { margin:0; color:#173b54; font-size:15px; font-weight:850; }
 .decision-dirty { border-radius:5px; padding:8px 9px; background:#eef3f1; color:#53696b; font-size:11px; font-weight:750; }
 .decision-dirty.is-dirty { background:#fff4df; color:#805615; }
@@ -258,10 +290,14 @@
   .review-issue-current { border-left:0; border-top:1px solid #eadfd2; padding:7px 0 0; }
   .review-issue-actions button { flex:1; }
   .source-evidence-info { grid-template-columns:1fr; padding-inline:12px; }
+  .source-evidence-info dl { grid-template-columns:1fr 1fr; }
+  .source-evidence-reason { grid-column:auto; }
   .source-evidence-info em { grid-column:auto; }
   .field-group { grid-template-columns:1fr; }
+  .secondary-record-fields>div { grid-template-columns:1fr; }
   .review-workbench { margin-bottom:16px; }
   .land-table-head { align-items:flex-start; flex-direction:column; }
   .land-table-head .button { width:100%; }
   .land-table-pane .khatauni-table-wrap { max-height:58vh; min-height:280px; }
+  .parcel-detail-grid { grid-template-columns:1fr; }
 }
