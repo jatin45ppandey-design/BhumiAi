@@ -221,7 +221,13 @@ def request_phone_otp(payload: schemas.PhoneOtpRequest, db: Session = Depends(ge
 
 
 @router.post("/phone/verify-otp")
-def verify_phone_otp(payload: schemas.PhoneOtpVerify, response: Response, current_user: models.User | None = Depends(get_optional_current_user), db: Session = Depends(get_db)):
+def verify_phone_otp(
+    payload: schemas.PhoneOtpVerify,
+    response: Response,
+    current_user: models.User | None = Depends(get_optional_current_user),
+    session_token: str | None = Cookie(default=None, alias=SESSION_COOKIE_NAME),
+    db: Session = Depends(get_db),
+):
     phone_number = normalize_phone(payload.phone_number)
     intent = _phone_intent(payload.intent)
     if not re.fullmatch(r"\d{6}", payload.otp or ""):
@@ -238,10 +244,8 @@ def verify_phone_otp(payload: schemas.PhoneOtpVerify, response: Response, curren
         raise HTTPException(status_code=401, detail="Invalid or expired verification code.")
     challenge.used_at = now
     phone_user = _phone_user(db, phone_number)
-    if current_user and current_user.role != "user":
-        raise HTTPException(status_code=403, detail="Government officers must use Officer ID and password.")
     if intent == "register":
-        if phone_user or current_user:
+        if phone_user:
             raise HTTPException(status_code=409, detail="An account already exists with this phone number. Please log in.")
         user = models.User(role="user", phone_number=phone_number, phone_verified_at=now, name=None, email=None)
         db.add(user)
@@ -255,11 +259,17 @@ def verify_phone_otp(payload: schemas.PhoneOtpVerify, response: Response, curren
             raise HTTPException(status_code=404, detail="No account was found with this phone number. Please register first.")
         if phone_user.role != "user":
             raise HTTPException(status_code=403, detail="Government officers must use Officer ID and password.")
-        if current_user and current_user.id != phone_user.id:
-            raise HTTPException(status_code=409, detail="Please sign out before logging in to another citizen account.")
         user = phone_user
         user.phone_number = phone_number
         user.phone_verified_at = now
+
+    # A valid phone OTP is sufficient proof to begin a citizen session.
+    # Revoke any session already attached to this browser first (for example,
+    # a previous officer session) so switching workspaces cannot leave the
+    # login page stuck behind a stale role cookie.
+    if current_user and session_token:
+        revoke_session(db, session_token)
+
     db.add(models.AuditLog(user_id=user.id, action="PHONE_VERIFIED"))
     _set_session(response, db, user)
     db.commit(); db.refresh(user)
